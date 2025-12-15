@@ -5,7 +5,7 @@ import React, { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { useUser } from '@/firebase/auth/use-user'
 import { Button } from '@/components/ui/button'
-import { ArrowLeft, User, LogOut, Loader2, Shield, Paintbrush, RefreshCw, ChevronRight, HelpCircle, Bell, Moon, Sun, KeyRound, Palette, Info } from 'lucide-react'
+import { ArrowLeft, User, LogOut, Loader2, Shield, Paintbrush, RefreshCw, ChevronRight, HelpCircle, Bell, Moon, Sun, KeyRound, Palette, Info, QrCode } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { useAuth } from '@/firebase/provider'
 import { signOut } from 'firebase/auth'
@@ -14,6 +14,8 @@ import { Switch } from '@/components/ui/switch'
 import { useToast } from '@/hooks/use-toast'
 import { doc, updateDoc } from 'firebase/firestore'
 import { useFirestore } from '@/firebase/provider'
+import Image from 'next/image'
+import { motion } from 'framer-motion'
 
 export default function SettingsPage() {
     const router = useRouter()
@@ -66,17 +68,42 @@ export default function SettingsPage() {
             <main className="flex-1 overflow-auto p-4 md:p-6">
                 <div className="max-w-2xl mx-auto space-y-8">
                     {user && (
-                        <Link href={`/chat/settings/${user?.uid}`} className="flex items-center gap-4 group bg-card p-4 rounded-xl border">
-                            <Avatar className="w-16 h-16 border">
-                                <AvatarImage src={user?.photoURL || `https://avatar.vercel.sh/${user?.displayName}.png`} alt={user?.displayName || 'User'} />
-                                <AvatarFallback>{user?.displayName?.substring(0, 1)}</AvatarFallback>
-                            </Avatar>
-                            <div className="flex-1">
-                                <h2 className="text-xl font-bold">{user?.displayName}</h2>
-                                <p className="text-sm text-muted-foreground">{user?.email}</p>
+                        <motion.div 
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.5, ease: 'easeOut' }}
+                            className="relative group w-full overflow-hidden rounded-2xl shadow-lg"
+                        >
+                             <div className="absolute inset-0">
+                                <Image 
+                                    src={user?.photoURL || `https://avatar.vercel.sh/${user?.displayName}.png`} 
+                                    alt="Profile background" 
+                                    layout="fill"
+                                    objectFit="cover"
+                                    className="blur-xl scale-125 opacity-30"
+                                />
+                                <div className="absolute inset-0 bg-black/30" />
                             </div>
-                            <ChevronRight className="w-5 h-5 text-muted-foreground transition-transform group-hover:translate-x-1" />
-                        </Link>
+
+                            <div className="relative flex flex-col items-center justify-center p-8 text-center text-white">
+                                <Link href={`/chat/settings/${user?.uid}`} className="block">
+                                    <Avatar className="w-24 h-24 border-4 border-background/50 shadow-2xl transition-transform group-hover:scale-105">
+                                        <AvatarImage src={user?.photoURL || `https://avatar.vercel.sh/${user?.displayName}.png`} alt={user?.displayName || 'User'} />
+                                        <AvatarFallback className="text-4xl">{user?.displayName?.substring(0, 1)}</AvatarFallback>
+                                    </Avatar>
+                                </Link>
+                                <h2 className="text-2xl font-bold mt-4 drop-shadow-md">{user?.displayName}</h2>
+                                <p className="text-sm text-white/80 drop-shadow-md">{user?.email}</p>
+                            </div>
+                            <Button 
+                                size="icon" 
+                                variant="ghost" 
+                                className="absolute top-4 right-4 h-9 w-9 rounded-full bg-white/10 text-white/80 hover:bg-white/20 hover:text-white"
+                                onClick={() => router.push(`/profile/${user?.id}/share`)}
+                            >
+                                <QrCode className="w-5 h-5" />
+                            </Button>
+                        </motion.div>
                     )}
 
                     <div className="space-y-6">
@@ -128,7 +155,7 @@ const SettingsItem: React.FC<SettingsItemProps> = ({ icon: Icon, text, href, isS
     )
 
     const commonProps = {
-        className: `block hover:bg-muted/50 transition-colors cursor-pointer ${className || ''}`,
+        className: `block hover:bg-muted/50 transition-colors cursor-pointer first:rounded-t-xl last:rounded-b-xl ${className || ''}`,
         onClick: onClick,
     };
 
