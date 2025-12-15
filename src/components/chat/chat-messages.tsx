@@ -396,9 +396,18 @@ export function ChatMessages({
   }, [messages, loggedInUser.uid, allUsersInApp]);
 
   useEffect(() => {
-    if (scrollAreaRef.current) {
-      scrollAreaRef.current.scrollTop = scrollAreaRef.current.scrollHeight;
-    }
+    const scrollToBottom = () => {
+      if (scrollAreaRef.current) {
+        scrollAreaRef.current.scrollTop = scrollAreaRef.current.scrollHeight;
+      }
+    };
+    // Scroll to bottom on initial load and when new messages arrive
+    scrollToBottom();
+
+    // A slight delay might be needed for images to load before scrolling
+    const timeoutId = setTimeout(scrollToBottom, 100);
+
+    return () => clearTimeout(timeoutId);
   }, [groupedMessages, isTyping]);
   
   const contextProviderValue = { loggedInUser, allUsersInApp, otherUser };
