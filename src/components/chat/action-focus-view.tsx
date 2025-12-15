@@ -10,7 +10,7 @@ import type { LucideIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Bell, BellOff, Trash, LogOut, Loader2, CheckCheck, Check } from 'lucide-react';
 import { useFirestore } from '@/firebase/provider';
-import { collection, query, where, orderBy, limit, onSnapshot } from 'firebase/firestore';
+import { collection, query, where, orderBy, limit, onSnapshot, getDocs } from 'firebase/firestore';
 import { useUser } from '@/firebase/auth/use-user';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useRouter } from 'next/navigation';
@@ -77,26 +77,38 @@ export function ActionFocusView({
     };
 
     setLoadingMessages(true);
-    // Fetch users data
-     if (chat.members && chat.members.length > 0) {
-        const usersQuery = query(collection(firestore, 'users'), where('__name__', 'in', chat.members));
-        const unsubscribeUsers = onSnapshot(usersQuery, (snapshot) => {
+
+    const fetchAssociatedUsers = async (userIds: string[]) => {
+        if (userIds.length === 0) return;
+        const usersToFetch = userIds.filter(id => !usersData[id]);
+        if (usersToFetch.length === 0) return;
+
+        try {
+            const usersQuery = query(collection(firestore, 'users'), where('__name__', 'in', usersToFetch));
+            const usersSnap = await getDocs(usersQuery);
             const fetchedUsers: { [key: string]: User } = {};
-            snapshot.forEach(doc => {
+            usersSnap.forEach(doc => {
                 fetchedUsers[doc.id] = { id: doc.id, ...doc.data() } as User;
             });
             setUsersData(prev => ({ ...prev, ...fetchedUsers }));
-        });
-    }
+        } catch (error) {
+            console.error("Error fetching users:", error);
+        }
+    };
+    
+    // Initial fetch for members
+    fetchAssociatedUsers(chat.members || []);
 
-    // Fetch messages
     const messagesRef = collection(firestore, 'chats', chat.id, 'messages');
-    const q = query(messagesRef, orderBy('timestamp', 'asc')); // Fetch all messages, ChatMessages will handle display
+    const q = query(messagesRef, orderBy('timestamp', 'asc'));
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const msgs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Message));
       setMessages(msgs);
       setLoadingMessages(false);
+      
+      const messageUserIds = msgs.map(m => m.senderId);
+      fetchAssociatedUsers(messageUserIds);
     });
 
     return () => unsubscribe();
@@ -242,7 +254,7 @@ export function ActionFocusView({
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
     >
-      <div className="absolute inset-0 bg-background/50 backdrop-blur-sm" onClick={onClose} />
+      <div className="absolute inset-0 bg-background/50 backdrop-blur-sm" />
       <div className="relative flex flex-col items-center justify-center gap-6">
         {navActions && navActions.length > 0 && (
           <motion.div
