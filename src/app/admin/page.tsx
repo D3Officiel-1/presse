@@ -495,7 +495,7 @@ ${magicLink}
                     <DialogFooter>
                          <Button variant="ghost" onClick={() => setIsAddMemberOpen(false)}>Annuler</Button>
                         <Button onClick={handleAddMember} disabled={isLoading} className="flex-1">
-                            {isLoading ? <Loader2 className="animate-spin" /> : <UserPlus />}
+                            {isLoading ? <Loader2 className="animate-spin" /> : <UserPlus className="mr-2"/>}
                             Ajouter le membre
                         </Button>
                     </DialogFooter>
@@ -505,3 +505,5 @@ ${magicLink}
         </div>
     );
 }
+
+    
