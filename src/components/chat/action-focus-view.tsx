@@ -10,7 +10,7 @@ import type { LucideIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Bell, BellOff, Trash, LogOut, Loader2, CheckCheck, Check } from 'lucide-react';
 import { useFirestore } from '@/firebase/provider';
-import { collection, query, where, orderBy, limit, onSnapshot, getDocs } from 'firebase/firestore';
+import { collection, query, where, orderBy, limit, getDocs } from 'firebase/firestore';
 import { useUser } from '@/firebase/auth/use-user';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useRouter } from 'next/navigation';
@@ -117,7 +117,7 @@ export function ActionFocusView({
     });
 
     return () => unsubscribe();
-  }, [firestore, chat]);
+  }, [firestore, chat, usersData]);
 
   useEffect(() => {
     if (!loadingMessages && messagesContainerRef.current) {
@@ -203,8 +203,6 @@ export function ActionFocusView({
       }
       onClose();
   }
-  
-  const actionsGrid = 'grid-cols-4';
 
   const muteDurationActions = [
     { label: '15 minutes', action: () => handleMuteDuration('pour 15 minutes') },
@@ -260,38 +258,7 @@ export function ActionFocusView({
       exit={{ opacity: 0 }}
     >
       <div className="absolute inset-0 bg-background/50 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative flex flex-col items-center justify-center gap-6">
-        {navActions && navActions.length > 0 && (
-          <motion.div
-            className="flex items-center gap-2"
-            initial="hidden"
-            animate="visible"
-            variants={{
-              visible: {
-                transition: {
-                  staggerChildren: 0.05,
-                },
-              },
-            }}
-          >
-            {navActions.map((item) => (
-              <motion.button
-                key={item.label}
-                className="flex flex-col items-center gap-2 text-center text-xs w-20"
-                onClick={() => handleAction(item.action, item.label)}
-                variants={{
-                  hidden: { opacity: 0, y: 20 },
-                  visible: { opacity: 1, y: 0 },
-                }}
-              >
-                <div className="w-14 h-14 flex items-center justify-center rounded-full bg-background/80 backdrop-blur-lg shadow-lg border">
-                  <item.icon className="w-6 h-6" />
-                </div>
-                <span>{item.label}</span>
-              </motion.button>
-            ))}
-          </motion.div>
-        )}
+      <div className="relative flex flex-col items-center justify-center gap-4">
 
         <motion.div
           layoutId={chat ? `chat-card-${chat.id}` : 'global-action-card'}
@@ -312,26 +279,47 @@ export function ActionFocusView({
             {viewMode === 'main' && (
               <motion.div
                 key="main-actions"
-                className="absolute w-full bg-background/80 backdrop-blur-lg rounded-2xl shadow-lg border overflow-hidden"
+                className="absolute w-full flex flex-col gap-2"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -20 }}
                 transition={{ duration: 0.2 }}
               >
-                <ul className="text-base">
-                    {mainActions.map((item, index) => (
-                        <React.Fragment key={item.label}>
-                            <li
-                              onClick={() => handleAction(item.action, item.label)}
-                              className={cn("flex items-center justify-between p-4 cursor-pointer hover:bg-muted/50", item.className)}
-                            >
-                                <span className="font-medium">{item.label}</span>
-                                <item.icon className="w-5 h-5 text-muted-foreground" />
-                            </li>
-                            {index < mainActions.length - 1 && <Separator className="bg-border/50" />}
-                        </React.Fragment>
-                    ))}
-                </ul>
+                 {(navActions && navActions.length > 0) && (
+                    <div className="grid grid-cols-4 gap-2">
+                        {navActions.map((item) => (
+                          <motion.button
+                            key={item.label}
+                            className="flex flex-col items-center justify-center gap-2 text-center text-xs w-full aspect-square bg-background/80 backdrop-blur-lg rounded-2xl shadow-lg border"
+                            onClick={() => handleAction(item.action, item.label)}
+                            variants={{
+                              hidden: { opacity: 0, y: 20 },
+                              visible: { opacity: 1, y: 0 },
+                            }}
+                          >
+                              <item.icon className="w-6 h-6" />
+                              <span className='truncate'>{item.label}</span>
+                          </motion.button>
+                        ))}
+                    </div>
+                 )}
+
+                <div className="bg-background/80 backdrop-blur-lg rounded-2xl shadow-lg border overflow-hidden">
+                    <ul className="text-base">
+                        {mainActions.map((item, index) => (
+                            <React.Fragment key={item.label}>
+                                <li
+                                onClick={() => handleAction(item.action, item.label)}
+                                className={cn("flex items-center justify-between p-4 cursor-pointer hover:bg-muted/50", item.className)}
+                                >
+                                    <span className="font-medium">{item.label}</span>
+                                    <item.icon className="w-5 h-5 text-muted-foreground" />
+                                </li>
+                                {index < mainActions.length - 1 && <Separator className="bg-border/50" />}
+                            </React.Fragment>
+                        ))}
+                    </ul>
+                </div>
               </motion.div>
             )}
 
