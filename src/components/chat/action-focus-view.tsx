@@ -13,6 +13,11 @@ import { useFirestore } from '@/firebase/provider';
 import { collection, query, orderBy, limit, onSnapshot } from 'firebase/firestore';
 import { useUser } from '@/firebase/auth/use-user';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useRouter } from 'next/navigation';
+
+import { ChatInput } from '@/components/chat/chat-input';
+import { ChatMessages, type ReplyInfo } from '@/components/chat/chat-messages';
+import { ChatTopbar } from '@/components/chat/chat-topbar';
 
 export interface ActionItem {
   icon: LucideIcon;
@@ -53,21 +58,42 @@ export function ActionFocusView({
   onLogout,
   toast,
 }: ActionFocusViewProps) {
+  const router = useRouter();
   const [viewMode, setViewMode] = useState<'main' | 'mute' | 'delete' | 'logout'>('main');
   const [messages, setMessages] = useState<Message[]>([]);
   const [loadingMessages, setLoadingMessages] = useState(true);
   const { user: currentUser } = useUser();
   const firestore = useFirestore();
 
+  const [usersData, setUsersData] = useState<{[key: string]: User}>({});
+  const [replyInfo, setReplyInfo] = useState<ReplyInfo | undefined>();
+
+
   useEffect(() => {
-    if (!firestore || !chat) return;
+    if (!firestore || !chat) {
+        if(chat === undefined) setLoadingMessages(false);
+        return;
+    };
 
     setLoadingMessages(true);
+    // Fetch users data
+     if (chat.members) {
+        const usersQuery = query(collection(firestore, 'users'), where('__name__', 'in', chat.members));
+        const unsubscribeUsers = onSnapshot(usersQuery, (snapshot) => {
+            const fetchedUsers: { [key: string]: User } = {};
+            snapshot.forEach(doc => {
+                fetchedUsers[doc.id] = { id: doc.id, ...doc.data() } as User;
+            });
+            setUsersData(prev => ({ ...prev, ...fetchedUsers }));
+        });
+    }
+
+    // Fetch messages
     const messagesRef = collection(firestore, 'chats', chat.id, 'messages');
-    const q = query(messagesRef, orderBy('timestamp', 'desc'), limit(5));
+    const q = query(messagesRef, orderBy('timestamp', 'asc')); // Fetch all messages, ChatMessages will handle display
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
-      const msgs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Message)).reverse();
+      const msgs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Message));
       setMessages(msgs);
       setLoadingMessages(false);
     });
@@ -81,20 +107,30 @@ export function ActionFocusView({
   let finalTitle: string;
   let finalAvatarUrl: string | undefined;
   let finalAvatarFallback: string;
+  let chatInfoForTopbar: any;
+  let otherUserForMessages: User | undefined;
+
 
   if (chat) {
     if (isCommunity) {
       finalTitle = chat.name || 'Communauté';
       finalAvatarUrl = "https://i.postimg.cc/fbtSZFWz/icon-256x256.png";
       finalAvatarFallback = chat.name?.substring(0, 1) || 'C';
+      chatInfoForTopbar = { name: chat.name, users: chat.members.map(id => usersData[id]).filter(Boolean) as User[] }
     } else if (user) {
       finalTitle = user.name;
       finalAvatarUrl = user.avatar;
       finalAvatarFallback = user.name.substring(0, 1);
+      chatInfoForTopbar = user;
+      otherUserForMessages = user;
     } else {
-        finalTitle = chat.name || 'Discussion';
-        finalAvatarUrl = `https://avatar.vercel.sh/${chat.name}.png`;
-        finalAvatarFallback = chat.name?.substring(0, 1) || '?';
+        const otherUserId = chat.members.find(uid => uid !== currentUser?.uid);
+        const otherUserData = otherUserId ? usersData[otherUserId] : undefined;
+        finalTitle = otherUserData?.name || chat.name || 'Discussion';
+        finalAvatarUrl = otherUserData?.avatar || `https://avatar.vercel.sh/${chat.name}.png`;
+        finalAvatarFallback = otherUserData?.name?.substring(0, 1) || chat.name?.substring(0,1) || '?';
+        chatInfoForTopbar = otherUserData || { name: chat.name, users: chat.members.map(id => usersData[id]).filter(Boolean) as User[] };
+        otherUserForMessages = otherUserData;
     }
   } else {
     finalTitle = title || 'Actions';
@@ -140,6 +176,12 @@ export function ActionFocusView({
       }
       onClose();
   }
+  
+  const navigateToChat = () => {
+    if (chat) {
+        router.push(`/chat/${chat.id}`);
+    }
+  }
 
   const actionsGrid = 'grid-cols-4';
 
@@ -149,6 +191,44 @@ export function ActionFocusView({
     { label: '8 heures', action: () => handleMuteDuration('pour 8 heures') },
     { label: 'Toujours', action: () => handleMuteDuration('pour toujours') },
   ];
+
+  const ChatPreview = () => {
+     if (!chat || !currentUser) {
+       return <div className="flex-1 flex items-center justify-center text-muted-foreground text-sm">Pas d'aperçu disponible.</div>;
+     }
+
+     return (
+        <div className="flex flex-col h-full w-full bg-background" onClick={navigateToChat}>
+            <ChatTopbar info={chatInfoForTopbar} isGroup={chat.type !== 'private'} />
+            
+            <div className="flex-1 overflow-hidden pointer-events-none">
+                 <ChatMessages
+                    messages={messages}
+                    chatType={chat.type}
+                    loggedInUser={currentUser}
+                    otherUser={otherUserForMessages!}
+                    isTyping={chat.typing?.[otherUserForMessages?.id || ''] || false}
+                    chatMembers={chat.members.map(id => usersData[id]).filter(Boolean) as User[]}
+                    onReply={() => {}}
+                    onDeleteForMe={() => {}}
+                    onDeleteForEveryone={() => {}}
+                    onToggleStar={() => {}}
+                    onShare={()=>{}}
+                    allUsersInApp={Object.values(usersData)}
+                />
+            </div>
+           
+            <div className="pointer-events-none">
+                <ChatInput
+                    chat={chat}
+                    onSendMessage={() => {}}
+                    replyInfo={undefined}
+                    onClearReply={() => {}}
+                />
+            </div>
+        </div>
+     )
+  }
 
   return (
     <motion.div
@@ -196,49 +276,13 @@ export function ActionFocusView({
           layoutId={chat ? `chat-card-${chat.id}` : 'global-action-card'}
           className="w-80 h-96 rounded-2xl bg-card shadow-2xl ring-2 ring-primary/50 overflow-hidden"
         >
-             <div className="absolute inset-0 flex flex-col p-4 bg-card/80 backdrop-blur-lg">
-                {/* Chat Preview */}
-                <div className="flex-1 flex flex-col justify-end gap-1 overflow-hidden">
-                    {loadingMessages ? (
-                        <div className="flex flex-col gap-2 items-start">
-                            <Skeleton className="h-8 w-3/4 rounded-lg" />
-                            <Skeleton className="h-10 w-1/2 rounded-lg" />
-                        </div>
-                    ) : messages.length > 0 ? (
-                        messages.map(msg => {
-                            const isOwn = msg.senderId === currentUser?.uid;
-                            const statusIcon = isOwn ? (msg.readBy?.length > 1 ? <CheckCheck className="w-4 h-4 text-green-400" /> : <Check className="w-4 h-4" />) : null;
-                            return (
-                                <div key={msg.id} className={cn("flex w-full", isOwn ? "justify-end" : "justify-start")}>
-                                    <div className={cn("max-w-[75%] rounded-xl px-3 py-2 text-sm", isOwn ? "bg-primary text-primary-foreground" : "bg-muted text-foreground")}>
-                                        <p>{msg.content}</p>
-                                        {isOwn && (
-                                            <div className="flex items-center justify-end gap-1 text-xs mt-1 opacity-70">
-                                                <span>{msg.timestamp?.toDate().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}</span>
-                                                {statusIcon}
-                                            </div>
-                                        )}
-                                    </div>
-                                </div>
-                            )
-                        })
-                    ) : (
-                        <p className="text-muted-foreground text-sm text-center">Aucun message récent.</p>
-                    )}
+             {loadingMessages ? (
+                <div className="flex h-full w-full items-center justify-center">
+                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
                 </div>
-
-                 {/* Bottom Info */}
-                 <div className="flex items-center gap-3 mt-4 pt-4 border-t border-border/50">
-                     <Avatar className="w-12 h-12 border-2 border-background">
-                         <AvatarImage src={finalAvatarUrl} alt={finalTitle} />
-                         <AvatarFallback>{finalAvatarFallback}</AvatarFallback>
-                     </Avatar>
-                     <div>
-                         <h2 className="font-bold text-lg text-foreground">{finalTitle}</h2>
-                         <p className="text-sm text-muted-foreground">{subtitle || (chat?.type === 'private' ? (user?.online ? 'En ligne' : 'Hors ligne') : `${chat?.members?.length} membres`)}</p>
-                     </div>
-                 </div>
-             </div>
+             ) : (
+                <ChatPreview />
+             )}
         </motion.div>
 
         <div className="relative w-full" style={{ minHeight: '150px' }}>
