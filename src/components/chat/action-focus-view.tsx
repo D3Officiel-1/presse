@@ -10,7 +10,7 @@ import type { LucideIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Bell, BellOff, Trash, LogOut, Loader2, CheckCheck, Check } from 'lucide-react';
 import { useFirestore } from '@/firebase/provider';
-import { collection, query, where, orderBy, limit, getDocs } from 'firebase/firestore';
+import { collection, query, where, orderBy, limit, getDocs, onSnapshot } from 'firebase/firestore';
 import { useUser } from '@/firebase/auth/use-user';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useRouter } from 'next/navigation';
@@ -98,10 +98,8 @@ export function ActionFocusView({
         }
     };
     
-    // Initial fetch for members
-    if (chat.members && chat.members.length > 0) {
-      fetchAssociatedUsers(chat.members);
-    }
+    // Initial fetch for members, including community members from messages
+    let userIdsToFetch = new Set<string>(chat.members || []);
 
     const messagesRef = collection(firestore, 'chats', chat.id, 'messages');
     const q = query(messagesRef, orderBy('timestamp', 'asc'));
@@ -110,14 +108,14 @@ export function ActionFocusView({
       const msgs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Message));
       setMessages(msgs);
       
-      const messageUserIds = msgs.map(m => m.senderId);
-      fetchAssociatedUsers(messageUserIds);
+      msgs.forEach(m => userIdsToFetch.add(m.senderId));
+      fetchAssociatedUsers(Array.from(userIdsToFetch));
       
       setLoadingMessages(false);
     });
 
     return () => unsubscribe();
-  }, [firestore, chat, usersData]);
+  }, [firestore, chat]);
 
   useEffect(() => {
     if (!loadingMessages && messagesContainerRef.current) {
@@ -143,7 +141,8 @@ export function ActionFocusView({
       finalTitle = chat.name || 'Communauté';
       finalAvatarUrl = "https://i.postimg.cc/fbtSZFWz/icon-256x256.png";
       finalAvatarFallback = chat.name?.substring(0, 1) || 'C';
-      chatInfoForTopbar = { name: chat.name, users: chat.members.map(id => usersData[id]).filter(Boolean) as User[] }
+      const chatMembers = chat.members.map(id => usersData[id]).filter(Boolean) as User[];
+      chatInfoForTopbar = { name: chat.name, users: chatMembers }
     } else if (user) {
       finalTitle = user.name;
       finalAvatarUrl = user.avatar;
@@ -156,7 +155,8 @@ export function ActionFocusView({
         finalTitle = otherUserData?.name || chat.name || 'Discussion';
         finalAvatarUrl = otherUserData?.avatar || `https://avatar.vercel.sh/${chat.name}.png`;
         finalAvatarFallback = otherUserData?.name?.substring(0, 1) || chat.name?.substring(0,1) || '?';
-        chatInfoForTopbar = otherUserData || { name: chat.name, users: chat.members.map(id => usersData[id]).filter(Boolean) as User[] };
+        const chatMembers = chat.members.map(id => usersData[id]).filter(Boolean) as User[];
+        chatInfoForTopbar = otherUserData || { name: chat.name, users: chatMembers };
         otherUserForMessages = otherUserData;
     }
   } else {
