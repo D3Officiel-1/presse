@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import React, { useState, useEffect } from 'react';
@@ -197,17 +196,7 @@ export function ActionFocusView({
           layoutId={chat ? `chat-card-${chat.id}` : 'global-action-card'}
           className="w-80 h-96 rounded-2xl bg-card shadow-2xl ring-2 ring-primary/50 overflow-hidden"
         >
-             <div className="absolute inset-0 w-full h-full pointer-events-none">
-                <div
-                    className="w-full h-full bg-cover bg-center"
-                    style={{ 
-                        backgroundImage: `url(${finalAvatarUrl})`,
-                        filter: 'blur(20px) brightness(0.4)',
-                        transform: 'scale(1.2)'
-                    }}
-                />
-             </div>
-             <div className="absolute inset-0 flex flex-col p-4">
+             <div className="absolute inset-0 flex flex-col p-4 bg-card/80 backdrop-blur-lg">
                 {/* Chat Preview */}
                 <div className="flex-1 flex flex-col justify-end gap-1 overflow-hidden">
                     {loadingMessages ? (
@@ -234,19 +223,19 @@ export function ActionFocusView({
                             )
                         })
                     ) : (
-                        <p className="text-white/50 text-sm text-center">Aucun message récent.</p>
+                        <p className="text-muted-foreground text-sm text-center">Aucun message récent.</p>
                     )}
                 </div>
 
                  {/* Bottom Info */}
-                 <div className="flex items-center gap-3 mt-4 pt-4 border-t border-white/10">
+                 <div className="flex items-center gap-3 mt-4 pt-4 border-t border-border/50">
                      <Avatar className="w-12 h-12 border-2 border-background">
                          <AvatarImage src={finalAvatarUrl} alt={finalTitle} />
                          <AvatarFallback>{finalAvatarFallback}</AvatarFallback>
                      </Avatar>
                      <div>
-                         <h2 className="font-bold text-lg text-white">{finalTitle}</h2>
-                         <p className="text-sm text-white/70">{subtitle || (chat?.type === 'private' ? (user?.online ? 'En ligne' : 'Hors ligne') : `${chat?.members?.length} membres`)}</p>
+                         <h2 className="font-bold text-lg text-foreground">{finalTitle}</h2>
+                         <p className="text-sm text-muted-foreground">{subtitle || (chat?.type === 'private' ? (user?.online ? 'En ligne' : 'Hors ligne') : `${chat?.members?.length} membres`)}</p>
                      </div>
                  </div>
              </div>
