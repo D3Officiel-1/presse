@@ -77,7 +77,7 @@ export function ActionFocusView({
 
     setLoadingMessages(true);
     // Fetch users data
-     if (chat.members) {
+     if (chat.members && chat.members.length > 0) {
         const usersQuery = query(collection(firestore, 'users'), where('__name__', 'in', chat.members));
         const unsubscribeUsers = onSnapshot(usersQuery, (snapshot) => {
             const fetchedUsers: { [key: string]: User } = {};
