@@ -64,7 +64,9 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className="font-body antialiased h-full">
+      <body 
+        className="font-body antialiased h-full"
+      >
         <FirebaseClientProvider>
           <ThemeUpdater />
           {children}
