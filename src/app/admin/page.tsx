@@ -302,7 +302,10 @@ ${magicLink}
                         </p>
                     </div>
                 </div>
-                 <Button onClick={() => setIsAddMemberOpen(true)} className="gap-2 bg-primary/90 hover:bg-primary shadow-lg shadow-primary/20">
+                 <Button onClick={() => setIsAddMemberOpen(true)} size="icon" className="md:hidden gap-2 bg-primary/90 hover:bg-primary shadow-lg shadow-primary/20">
+                    <UserPlus />
+                </Button>
+                 <Button onClick={() => setIsAddMemberOpen(true)} className="hidden md:flex gap-2 bg-primary/90 hover:bg-primary shadow-lg shadow-primary/20">
                     <UserPlus />
                     Ajouter un membre
                 </Button>
@@ -494,5 +497,3 @@ ${magicLink}
         </div>
     );
 }
-
-    
