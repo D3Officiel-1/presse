@@ -13,7 +13,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { doc, setDoc, collection, onSnapshot, serverTimestamp, getDoc, query, where, getDocs, addDoc, updateDoc } from 'firebase/firestore';
+import { doc, setDoc, collection, onSnapshot, serverTimestamp, getDoc, query, where, getDocs, addDoc, updateDoc, collectionGroup } from 'firebase/firestore';
 import { useFirestore } from '@/firebase/provider';
 import { Separator } from '@/components/ui/separator';
 import Image from 'next/image';
@@ -66,12 +66,27 @@ export default function AdminPage() {
         phone: '',
     });
     const [searchTerm, setSearchTerm] = useState('');
+    const [totalMessages, setTotalMessages] = useState(0);
 
     const getTodayDateString = () => {
         const today = new Date();
         today.setHours(0, 0, 0, 0);
         return today.toISOString().split('T')[0];
     };
+    
+    useEffect(() => {
+        if (!firestore) return;
+
+        const messagesColGroup = collectionGroup(firestore, 'messages');
+        const unsubscribeMessages = onSnapshot(messagesColGroup, (snapshot) => {
+            setTotalMessages(snapshot.size);
+        }, (error) => {
+            console.error("Error fetching total messages count: ", error);
+        });
+
+        return () => unsubscribeMessages();
+    }, [firestore]);
+
 
     useEffect(() => {
         if (!firestore) return;
@@ -303,12 +318,12 @@ ${magicLink}
                     </Card>
                     <Card className='bg-card/30 backdrop-blur-md border-white/10 shadow-lg'>
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium text-muted-foreground">Messages (bientôt)</CardTitle>
+                            <CardTitle className="text-sm font-medium text-muted-foreground">Messages Total</CardTitle>
                             <MessageSquare className="h-5 w-5 text-muted-foreground" />
                         </CardHeader>
                         <CardContent>
-                            <div className="text-3xl font-bold">N/A</div>
-                            <p className="text-xs text-muted-foreground">Statistique à venir</p>
+                            <div className="text-3xl font-bold">{totalMessages}</div>
+                            <p className="text-xs text-muted-foreground">dans toutes les discussions</p>
                         </CardContent>
                     </Card>
                     <Card className='bg-card/30 backdrop-blur-md border-white/10 shadow-lg'>
@@ -455,3 +470,5 @@ ${magicLink}
         </div>
     );
 }
+
+    
