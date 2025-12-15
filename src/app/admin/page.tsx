@@ -365,25 +365,24 @@ ${magicLink}
                     </Card>
                 </motion.div>
 
+                <div className="mb-6">
+                    <div className="relative w-full max-w-lg mx-auto">
+                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                        <Input
+                            placeholder="Rechercher un membre par son nom..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            className="bg-card/30 backdrop-blur-md border-white/10 shadow-lg w-full pl-12 h-12 rounded-full text-base"
+                        />
+                    </div>
+                </div>
+
                 <Card className='bg-card/30 backdrop-blur-md border-white/10 shadow-lg'>
                     <CardHeader>
-                        <div className='flex justify-between items-start'>
-                            <div>
-                                <CardTitle className='text-xl'>Liste des Membres</CardTitle>
-                                <CardDescription>
-                                    Gérez la présence et les profils des membres.
-                                </CardDescription>
-                            </div>
-                             <div className="relative w-full max-w-sm">
-                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                                <Input
-                                    placeholder="Rechercher un membre..."
-                                    value={searchTerm}
-                                    onChange={(e) => setSearchTerm(e.target.value)}
-                                    className="bg-background/50 pl-10 rounded-full"
-                                />
-                            </div>
-                        </div>
+                        <CardTitle className='text-xl'>Liste des Membres</CardTitle>
+                        <CardDescription>
+                            Gérez la présence et les profils des membres.
+                        </CardDescription>
                     </CardHeader>
                     <CardContent>
                         {usersLoading ? (
