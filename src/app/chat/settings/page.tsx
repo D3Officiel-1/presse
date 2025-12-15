@@ -1,4 +1,3 @@
-
 'use client'
 
 import React, { useState, useEffect, useCallback } from 'react'
@@ -101,7 +100,7 @@ export default function SettingsPage() {
                             <div className="relative flex flex-col items-center justify-center p-8 text-center text-white">
                                 <Link href={`/chat/settings/${userData?.id}`} className="block">
                                     <Avatar className="w-24 h-24 border-4 border-background/50 shadow-2xl transition-transform group-hover:scale-105">
-                                        <AvatarImage src={userData?.avatar || `https://avatar.vercel.sh/${userData?.name}.png`} alt={userData?.name || 'User'} />
+                                        <AvatarImage src={userData?.avatar} alt={userData?.name || 'User'} />
                                         <AvatarFallback className="text-4xl">{userData?.name?.substring(0, 1)}</AvatarFallback>
                                     </Avatar>
                                 </Link>
@@ -125,7 +124,7 @@ export default function SettingsPage() {
                              <div className="bg-card rounded-xl border divide-y divide-border">
                                 <SettingsItem icon={KeyRound} text="Compte" href={`/chat/settings/${userData?.id}`} />
                                 <SettingsItem icon={Bell} text="Notifications et sons" href="#" />
-                                <SettingsItem icon={Palette} text="Apparence" href="#" />
+                                <SettingsItem icon={Palette} text="Apparence" href="/chat/settings/appearance" />
                              </div>
                          </div>
                          
