@@ -1,7 +1,7 @@
 
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
@@ -65,8 +65,9 @@ export function ActionFocusView({
   const { user: currentUser } = useUser();
   const firestore = useFirestore();
 
-  const [usersData, setUsersData] = useState<{[key: string]: User}>({});
+  const [usersData, setUsersData] = useState<{ [key: string]: User }>({});
   const [replyInfo, setReplyInfo] = useState<ReplyInfo | undefined>();
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
 
 
   useEffect(() => {
@@ -100,6 +101,15 @@ export function ActionFocusView({
 
     return () => unsubscribe();
   }, [firestore, chat]);
+
+  useEffect(() => {
+    if (!loadingMessages && messagesContainerRef.current) {
+        const timer = setTimeout(() => {
+            messagesContainerRef.current!.scrollTop = messagesContainerRef.current!.scrollHeight;
+        }, 0);
+        return () => clearTimeout(timer);
+    }
+  }, [loadingMessages]);
 
 
   const isCommunity = chat?.type === 'community';
@@ -195,7 +205,7 @@ export function ActionFocusView({
         <div className="flex flex-col h-full w-full bg-background">
             <ChatTopbar info={chatInfoForTopbar} isGroup={chat.type !== 'private'} />
             
-            <div className="flex-1 overflow-y-auto">
+            <div ref={messagesContainerRef} className="flex-1 overflow-y-auto">
                  <ChatMessages
                     messages={messages}
                     chatType={chat.type}
@@ -231,7 +241,6 @@ export function ActionFocusView({
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      onContextMenu={(e) => e.preventDefault()}
     >
       <div className="absolute inset-0 bg-background/50 backdrop-blur-sm" onClick={onClose} />
       <div className="relative flex flex-col items-center justify-center gap-6">
@@ -270,6 +279,7 @@ export function ActionFocusView({
         <motion.div
           layoutId={chat ? `chat-card-${chat.id}` : 'global-action-card'}
           className="w-80 h-96 rounded-2xl bg-card shadow-2xl ring-2 ring-primary/50 overflow-hidden"
+          onContextMenu={(e) => e.preventDefault()}
         >
              {loadingMessages ? (
                 <div className="flex h-full w-full items-center justify-center">
