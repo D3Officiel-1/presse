@@ -2,15 +2,18 @@
 
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
-import type { User, Chat } from '@/lib/types';
+import type { User, Chat, Message } from '@/lib/types';
 import type { LucideIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Bell, BellOff, Trash, LogOut } from 'lucide-react';
+import { ArrowLeft, Bell, BellOff, Trash, LogOut, Loader2, CheckCheck, Check } from 'lucide-react';
+import { useFirestore } from '@/firebase/provider';
+import { collection, query, orderBy, limit, onSnapshot } from 'firebase/firestore';
+import { useUser } from '@/firebase/auth/use-user';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export interface ActionItem {
   icon: LucideIcon;
@@ -51,7 +54,29 @@ export function ActionFocusView({
   onLogout,
   toast,
 }: ActionFocusViewProps) {
-  const [viewMode, setViewMode] = React.useState<'main' | 'mute' | 'delete' | 'logout'>('main');
+  const [viewMode, setViewMode] = useState<'main' | 'mute' | 'delete' | 'logout'>('main');
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [loadingMessages, setLoadingMessages] = useState(true);
+  const { user: currentUser } = useUser();
+  const firestore = useFirestore();
+
+  useEffect(() => {
+    if (!firestore || !chat) return;
+
+    setLoadingMessages(true);
+    const messagesRef = collection(firestore, 'chats', chat.id, 'messages');
+    const q = query(messagesRef, orderBy('timestamp', 'desc'), limit(5));
+
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const msgs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Message)).reverse();
+      setMessages(msgs);
+      setLoadingMessages(false);
+    });
+
+    return () => unsubscribe();
+  }, [firestore, chat]);
+
+
   const isCommunity = chat?.type === 'community';
   
   let finalTitle: string;
@@ -183,10 +208,38 @@ export function ActionFocusView({
                 />
              </div>
              <div className="absolute inset-0 flex flex-col p-4">
-                 <div className="flex-1 flex items-end">
-                    <p className="text-white/80 text-sm">{chat?.lastMessage?.content || "Aucun message récent"}</p>
-                 </div>
-                 <div className="flex items-center gap-3">
+                {/* Chat Preview */}
+                <div className="flex-1 flex flex-col justify-end gap-1 overflow-hidden">
+                    {loadingMessages ? (
+                        <div className="flex flex-col gap-2 items-start">
+                            <Skeleton className="h-8 w-3/4 rounded-lg" />
+                            <Skeleton className="h-10 w-1/2 rounded-lg" />
+                        </div>
+                    ) : messages.length > 0 ? (
+                        messages.map(msg => {
+                            const isOwn = msg.senderId === currentUser?.uid;
+                            const statusIcon = isOwn ? (msg.readBy?.length > 1 ? <CheckCheck className="w-4 h-4 text-green-400" /> : <Check className="w-4 h-4" />) : null;
+                            return (
+                                <div key={msg.id} className={cn("flex w-full", isOwn ? "justify-end" : "justify-start")}>
+                                    <div className={cn("max-w-[75%] rounded-xl px-3 py-2 text-sm", isOwn ? "bg-primary text-primary-foreground" : "bg-muted text-foreground")}>
+                                        <p>{msg.content}</p>
+                                        {isOwn && (
+                                            <div className="flex items-center justify-end gap-1 text-xs mt-1 opacity-70">
+                                                <span>{msg.timestamp?.toDate().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}</span>
+                                                {statusIcon}
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            )
+                        })
+                    ) : (
+                        <p className="text-white/50 text-sm text-center">Aucun message récent.</p>
+                    )}
+                </div>
+
+                 {/* Bottom Info */}
+                 <div className="flex items-center gap-3 mt-4 pt-4 border-t border-white/10">
                      <Avatar className="w-12 h-12 border-2 border-background">
                          <AvatarImage src={finalAvatarUrl} alt={finalTitle} />
                          <AvatarFallback>{finalAvatarFallback}</AvatarFallback>
