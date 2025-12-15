@@ -177,12 +177,6 @@ export function ActionFocusView({
       onClose();
   }
   
-  const navigateToChat = () => {
-    if (chat) {
-        router.push(`/chat/${chat.id}`);
-    }
-  }
-
   const actionsGrid = 'grid-cols-4';
 
   const muteDurationActions = [
@@ -198,10 +192,10 @@ export function ActionFocusView({
      }
 
      return (
-        <div className="flex flex-col h-full w-full bg-background" onClick={navigateToChat}>
+        <div className="flex flex-col h-full w-full bg-background">
             <ChatTopbar info={chatInfoForTopbar} isGroup={chat.type !== 'private'} />
             
-            <div className="flex-1 overflow-hidden pointer-events-none">
+            <div className="flex-1 overflow-y-auto">
                  <ChatMessages
                     messages={messages}
                     chatType={chat.type}
@@ -218,7 +212,8 @@ export function ActionFocusView({
                 />
             </div>
            
-            <div className="pointer-events-none">
+            <div className="relative">
+                 <div className="absolute inset-0 z-10 cursor-not-allowed" />
                 <ChatInput
                     chat={chat}
                     onSendMessage={() => {}}
