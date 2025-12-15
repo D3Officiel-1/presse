@@ -12,20 +12,33 @@ import { signOut } from 'firebase/auth'
 import Link from 'next/link'
 import { Switch } from '@/components/ui/switch'
 import { useToast } from '@/hooks/use-toast'
-import { doc, updateDoc } from 'firebase/firestore'
+import { doc, updateDoc, getDoc } from 'firebase/firestore'
 import { useFirestore } from '@/firebase/provider'
 import Image from 'next/image'
 import { motion } from 'framer-motion'
+import type { User as UserType } from '@/lib/types'
 
 export default function SettingsPage() {
     const router = useRouter()
-    const { user, loading } = useUser()
-    const auth = useAuth()
+    const { user: authUser, loading } = useUser()
+    const [userData, setUserData] = useState<UserType | null>(null)
     const firestore = useFirestore()
     const { toast } = useToast()
 
+    useEffect(() => {
+        if (authUser && firestore) {
+            const userRef = doc(firestore, 'users', authUser.uid);
+            const unsub = onSnapshot(userRef, (doc) => {
+                if (doc.exists()) {
+                    setUserData({ id: doc.id, ...doc.data() } as UserType);
+                }
+            });
+            return () => unsub();
+        }
+    }, [authUser, firestore]);
+
     const handleLogout = async () => {
-        if (!auth || !firestore || !user) {
+        if (!firestore || !authUser) {
             toast({
                 variant: "destructive",
                 title: "Erreur",
@@ -35,7 +48,7 @@ export default function SettingsPage() {
         }
 
         try {
-            const userRef = doc(firestore, 'users', user.uid);
+            const userRef = doc(firestore, 'users', authUser.uid);
             await updateDoc(userRef, { online: false, lastSeen: new Date() });
             localStorage.removeItem('userId');
             localStorage.removeItem('user');
@@ -48,7 +61,7 @@ export default function SettingsPage() {
         }
     }
 
-    if (loading) {
+    if (loading || !userData) {
         return (
             <div className="flex h-screen w-full items-center justify-center bg-background">
                 <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -67,7 +80,7 @@ export default function SettingsPage() {
 
             <main className="flex-1 overflow-auto p-4 md:p-6">
                 <div className="max-w-2xl mx-auto space-y-8">
-                    {user && (
+                    {userData && (
                         <motion.div 
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
@@ -76,7 +89,7 @@ export default function SettingsPage() {
                         >
                              <div className="absolute inset-0">
                                 <Image 
-                                    src={user?.photoURL || `https://avatar.vercel.sh/${user?.displayName}.png`} 
+                                    src={userData?.avatar || `https://avatar.vercel.sh/${userData?.name}.png`} 
                                     alt="Profile background" 
                                     layout="fill"
                                     objectFit="cover"
@@ -86,20 +99,20 @@ export default function SettingsPage() {
                             </div>
 
                             <div className="relative flex flex-col items-center justify-center p-8 text-center text-white">
-                                <Link href={`/chat/settings/${user?.uid}`} className="block">
+                                <Link href={`/chat/settings/${userData?.id}`} className="block">
                                     <Avatar className="w-24 h-24 border-4 border-background/50 shadow-2xl transition-transform group-hover:scale-105">
-                                        <AvatarImage src={user?.photoURL || `https://avatar.vercel.sh/${user?.displayName}.png`} alt={user?.displayName || 'User'} />
-                                        <AvatarFallback className="text-4xl">{user?.displayName?.substring(0, 1)}</AvatarFallback>
+                                        <AvatarImage src={userData?.avatar || `https://avatar.vercel.sh/${userData?.name}.png`} alt={userData?.name || 'User'} />
+                                        <AvatarFallback className="text-4xl">{userData?.name?.substring(0, 1)}</AvatarFallback>
                                     </Avatar>
                                 </Link>
-                                <h2 className="text-2xl font-bold mt-4 drop-shadow-md">{user?.displayName}</h2>
-                                <p className="text-sm text-white/80 drop-shadow-md">{user?.email}</p>
+                                <h2 className="text-2xl font-bold mt-4 drop-shadow-md">{userData?.name}</h2>
+                                <p className="text-sm text-white/80 drop-shadow-md">{authUser?.email}</p>
                             </div>
                             <Button 
                                 size="icon" 
                                 variant="ghost" 
                                 className="absolute top-4 right-4 h-9 w-9 rounded-full bg-white/10 text-white/80 hover:bg-white/20 hover:text-white"
-                                onClick={() => router.push(`/profile/${user?.id}/share`)}
+                                onClick={() => router.push(`/profile/${userData?.id}/share`)}
                             >
                                 <QrCode className="w-5 h-5" />
                             </Button>
@@ -110,7 +123,7 @@ export default function SettingsPage() {
                          <div className="space-y-2">
                              <h3 className="text-sm font-semibold text-muted-foreground px-2">Général</h3>
                              <div className="bg-card rounded-xl border divide-y divide-border">
-                                <SettingsItem icon={KeyRound} text="Compte" href="#" />
+                                <SettingsItem icon={KeyRound} text="Compte" href={`/chat/settings/${userData?.id}`} />
                                 <SettingsItem icon={Bell} text="Notifications et sons" href="#" />
                                 <SettingsItem icon={Palette} text="Apparence" href="#" />
                              </div>
@@ -169,3 +182,5 @@ const SettingsItem: React.FC<SettingsItemProps> = ({ icon: Icon, text, href, isS
 
     return <div {...commonProps}>{content}</div>
 }
+
+    
