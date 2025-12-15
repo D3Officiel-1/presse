@@ -4,7 +4,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Users, MessageSquare, Activity, UserPlus, Loader2, Check, X, Phone, Video, Search, FileText, History, Mail, MoreHorizontal, User as UserIcon } from 'lucide-react';
+import { ArrowLeft, Users, MessageSquare, Activity, UserPlus, Loader2, Check, X, Phone, Video, Search, FileText, History, Mail, MoreHorizontal, User as UserIcon, BookUser } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
@@ -447,23 +447,32 @@ ${magicLink}
 
             {/* Add Member Dialog */}
             <Dialog open={isAddMemberOpen} onOpenChange={setIsAddMemberOpen}>
-                <DialogContent>
+                <DialogContent className="sm:max-w-md bg-card/80 backdrop-blur-xl border-white/10 text-foreground">
                     <DialogHeader>
-                        <DialogTitle>Ajouter un nouveau membre</DialogTitle>
-                        <DialogDescription>
-                            Remplissez les informations ci-dessous pour créer un nouveau compte membre.
+                        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 mb-4">
+                            <UserPlus className="h-6 w-6 text-primary" />
+                        </div>
+                        <DialogTitle className="text-center text-xl">Ajouter un nouveau membre</DialogTitle>
+                        <DialogDescription className="text-center">
+                            Remplissez les informations pour créer un nouveau compte.
                         </DialogDescription>
                     </DialogHeader>
-                    <div className="grid gap-4 py-4">
-                        <div className="grid gap-2">
-                            <Label htmlFor="fullName">Nom et Prénom</Label>
-                            <Input id="fullName" value={newMember.fullName} onChange={handleInputChange} placeholder="John Doe" />
+                    <div className="space-y-4 py-4">
+                        <div className="space-y-2">
+                             <Label htmlFor="fullName" className="text-muted-foreground">Nom et Prénom</Label>
+                             <div className="relative">
+                                <UserIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                                <Input id="fullName" value={newMember.fullName} onChange={handleInputChange} placeholder="Ex: John Doe" className="bg-background/50 pl-10 h-11" />
+                            </div>
                         </div>
-                        <div className="grid gap-2">
-                            <Label htmlFor="class">Classe</Label>
-                            <Select onValueChange={handleClassChange} value={newMember.class}>
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Sélectionner une classe" />
+                        <div className="space-y-2">
+                             <Label htmlFor="class" className="text-muted-foreground">Classe</Label>
+                              <Select onValueChange={handleClassChange} value={newMember.class}>
+                                <SelectTrigger className="bg-background/50 h-11">
+                                    <div className="flex items-center gap-3">
+                                        <BookUser className="h-5 w-5 text-muted-foreground" />
+                                        <SelectValue placeholder="Sélectionner une classe" />
+                                    </div>
                                 </SelectTrigger>
                                 <SelectContent>
                                     <SelectItem value="1ère A1">1ère A1</SelectItem>
@@ -472,22 +481,22 @@ ${magicLink}
                                 </SelectContent>
                             </Select>
                         </div>
-                        <div className="grid gap-2">
-                            <Label htmlFor="phone">Téléphone</Label>
+                        <div className="space-y-2">
+                             <Label htmlFor="phone" className="text-muted-foreground">Téléphone</Label>
                             <div className="relative">
-                                <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none gap-2">
+                                <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none gap-2">
                                     <Image src="https://upload.wikimedia.org/wikipedia/commons/thumb/f/fe/Flag_of_C%C3%B4te_d%27Ivoire.svg/langfr-250px-Flag_of_C%C3%B4te_d%27Ivoire.svg.png" width={20} height={15} alt="Drapeau de la Côte d'Ivoire"/>
                                     <span className="text-muted-foreground">+225</span>
                                 </div>
-                                <Input id="phone" type="tel" value={newMember.phone} onChange={handleInputChange} placeholder="01 23 45 67 89" className="pl-24" />
+                                <Input id="phone" type="tel" value={newMember.phone} onChange={handleInputChange} placeholder="01 23 45 67 89" className="pl-24 bg-background/50 h-11" />
                             </div>
                         </div>
                     </div>
                     <DialogFooter>
-                        <Button variant="outline" onClick={() => setIsAddMemberOpen(false)}>Annuler</Button>
-                        <Button onClick={handleAddMember} disabled={isLoading} className="gap-2">
+                         <Button variant="ghost" onClick={() => setIsAddMemberOpen(false)}>Annuler</Button>
+                        <Button onClick={handleAddMember} disabled={isLoading} className="flex-1">
                             {isLoading ? <Loader2 className="animate-spin" /> : <UserPlus />}
-                            Ajouter
+                            Ajouter le membre
                         </Button>
                     </DialogFooter>
                 </DialogContent>
