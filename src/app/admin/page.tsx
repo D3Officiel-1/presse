@@ -21,7 +21,7 @@ import Image from 'next/image';
 import { AnimatePresence, motion } from 'framer-motion';
 import { ActionFocusView, type ActionItem } from '@/components/chat/action-focus-view';
 import { useUser } from '@/firebase/auth/use-user';
-import { handleSelectUser } from '@/lib/chat-actions';
+import { handleSelectUser } from '@/lib/chat-action';
 
 interface PresenceRecord {
     status: 'present' | 'absent';

@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
@@ -7,7 +8,7 @@ import { ArrowLeft, CameraOff, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
-import { handleSelectUser } from '@/lib/chat-actions';
+import { handleSelectUser } from '@/lib/chat-action';
 import { useUser } from '@/firebase/auth/use-user';
 import { useFirestore } from '@/firebase/provider';
 import { Html5Qrcode } from 'html5-qrcode';

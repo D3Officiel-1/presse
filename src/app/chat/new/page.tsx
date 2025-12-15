@@ -1,11 +1,12 @@
 
+
 'use client';
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Loader2, Search, User as UserIcon, FileText, BookUser, Check, History, QrCode, Phone } from 'lucide-react';
+import { ArrowLeft, Loader2, Search, User as UserIcon, FileText, BookUser, Check, History, QrCode, Phone, X } from 'lucide-react';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
 import { useFirestore } from '@/firebase/provider';
@@ -16,7 +17,7 @@ import { Card } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import { Separator } from '@/components/ui/separator';
 import Image from 'next/image';
-import { handleSelectUser } from '@/lib/chat-actions';
+import { handleSelectUser } from '@/lib/chat-action';
 
 interface FirestoreUser {
     id: string;
