@@ -14,6 +14,7 @@ import { collection, query, where, orderBy, limit, onSnapshot, getDocs } from 'f
 import { useUser } from '@/firebase/auth/use-user';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useRouter } from 'next/navigation';
+import { Separator } from '@/components/ui/separator';
 
 import { ChatInput } from '@/components/chat/chat-input';
 import { ChatMessages, type ReplyInfo } from '@/components/chat/chat-messages';
@@ -23,6 +24,7 @@ export interface ActionItem {
   icon: LucideIcon;
   label: string;
   action: (arg?: any) => void;
+  className?: string;
 }
 
 interface ActionFocusViewProps {
@@ -97,7 +99,9 @@ export function ActionFocusView({
     };
     
     // Initial fetch for members
-    fetchAssociatedUsers(chat.members || []);
+    if (chat.members && chat.members.length > 0) {
+      fetchAssociatedUsers(chat.members);
+    }
 
     const messagesRef = collection(firestore, 'chats', chat.id, 'messages');
     const q = query(messagesRef, orderBy('timestamp', 'asc'));
@@ -105,10 +109,11 @@ export function ActionFocusView({
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const msgs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Message));
       setMessages(msgs);
-      setLoadingMessages(false);
       
       const messageUserIds = msgs.map(m => m.senderId);
       fetchAssociatedUsers(messageUserIds);
+      
+      setLoadingMessages(false);
     });
 
     return () => unsubscribe();
@@ -214,7 +219,7 @@ export function ActionFocusView({
      }
 
      return (
-        <div className="flex flex-col h-full w-full bg-background">
+        <div className="relative flex flex-col h-full w-full bg-background overflow-hidden">
             <ChatTopbar info={chatInfoForTopbar} isGroup={chat.type !== 'private'} />
             
             <div ref={messagesContainerRef} className="flex-1 overflow-y-auto">
@@ -254,7 +259,7 @@ export function ActionFocusView({
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
     >
-      <div className="absolute inset-0 bg-background/50 backdrop-blur-sm" />
+      <div className="absolute inset-0 bg-background/50 backdrop-blur-sm" onClick={onClose} />
       <div className="relative flex flex-col items-center justify-center gap-6">
         {navActions && navActions.length > 0 && (
           <motion.div
@@ -302,30 +307,31 @@ export function ActionFocusView({
              )}
         </motion.div>
 
-        <div className="relative w-full" style={{ minHeight: '150px' }}>
+        <div className="relative w-80" style={{ minHeight: '150px' }}>
           <AnimatePresence mode="wait">
             {viewMode === 'main' && (
               <motion.div
                 key="main-actions"
-                className={cn("grid gap-x-4 gap-y-6 absolute w-full", actionsGrid)}
+                className="absolute w-full bg-background/80 backdrop-blur-lg rounded-2xl shadow-lg border overflow-hidden"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -20 }}
                 transition={{ duration: 0.2 }}
               >
-                {mainActions.map((item) => (
-                  <div key={item.label}>
-                    <button
-                      className="flex flex-col items-center gap-2 text-center text-xs w-20"
-                      onClick={() => handleAction(item.action, item.label)}
-                    >
-                      <div className="w-14 h-14 flex items-center justify-center rounded-full bg-background/80 backdrop-blur-lg shadow-lg border">
-                        <item.icon className="w-6 h-6" />
-                      </div>
-                      <span>{item.label}</span>
-                    </button>
-                  </div>
-                ))}
+                <ul className="text-base">
+                    {mainActions.map((item, index) => (
+                        <React.Fragment key={item.label}>
+                            <li
+                              onClick={() => handleAction(item.action, item.label)}
+                              className={cn("flex items-center justify-between p-4 cursor-pointer hover:bg-muted/50", item.className)}
+                            >
+                                <span className="font-medium">{item.label}</span>
+                                <item.icon className="w-5 h-5 text-muted-foreground" />
+                            </li>
+                            {index < mainActions.length - 1 && <Separator className="bg-border/50" />}
+                        </React.Fragment>
+                    ))}
+                </ul>
               </motion.div>
             )}
 
