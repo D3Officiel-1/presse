@@ -1,5 +1,4 @@
 
-
 'use client'
 
 import React, { useState, useEffect } from 'react';
@@ -22,6 +21,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { ActionFocusView, type ActionItem } from '@/components/chat/action-focus-view';
 import { useUser } from '@/firebase/auth/use-user';
 import { handleSelectUser } from '@/lib/chat-action';
+import { cn } from '@/lib/utils';
 
 interface PresenceRecord {
     status: 'present' | 'absent';
@@ -65,6 +65,7 @@ export default function AdminPage() {
         class: '',
         phone: '',
     });
+    const [searchTerm, setSearchTerm] = useState('');
 
     const getTodayDateString = () => {
         const today = new Date();
@@ -126,9 +127,6 @@ export default function AdminPage() {
             }, { merge: true });
 
             if (!newStatus) {
-                // If we're un-setting the presence, we might want to ensure it reflects that
-                // This logic might need adjustment based on desired behavior for toggling off.
-                // For now, setting to absent is a safe default.
                 toast({ description: "Présence retirée." });
             }
 
@@ -249,22 +247,25 @@ ${magicLink}
         { icon: UserIcon, label: "Profil", action: () => router.push(`/chat/settings/${selectedUser.id}`) },
     ] : [];
 
+    const filteredUsers = allUsers.filter(user =>
+        user.name.toLowerCase().includes(searchTerm.toLowerCase())
+    );
 
     return (
-        <div className="flex flex-col h-full bg-muted/20">
-            <header className="p-4 border-b flex items-center justify-between bg-background sticky top-0 z-10 shrink-0">
+        <div className="flex flex-col h-full bg-gradient-to-br from-background via-background to-muted/20 text-foreground">
+            <header className="p-4 border-b border-white/5 flex items-center justify-between bg-transparent sticky top-0 z-20 backdrop-blur-sm">
                 <div className="flex items-center gap-4">
-                    <Button variant="ghost" size="icon" onClick={() => router.push('/chat')} className="size-8">
+                    <Button variant="ghost" size="icon" onClick={() => router.push('/chat')} className="size-9 bg-white/5 hover:bg-white/10">
                         <ArrowLeft size={20} />
                     </Button>
                     <div className="flex flex-col">
-                        <h1 className="font-semibold text-xl tracking-tight">Panneau d'administration</h1>
+                        <h1 className="font-bold text-2xl tracking-tight">Tableau de bord</h1>
                         <p className="text-sm text-muted-foreground">
                             Gestion du Club de Presse
                         </p>
                     </div>
                 </div>
-                 <Button onClick={() => setIsAddMemberOpen(true)} className="gap-2">
+                 <Button onClick={() => setIsAddMemberOpen(true)} className="gap-2 bg-primary/90 hover:bg-primary shadow-lg shadow-primary/20">
                     <UserPlus />
                     Ajouter un membre
                 </Button>
@@ -282,47 +283,65 @@ ${magicLink}
             </AnimatePresence>
 
             <main className="flex-1 overflow-auto p-4 md:p-6" onClick={() => selectedUser && setSelectedUser(null)}>
-                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 mb-6">
-                    <Card>
+                <motion.div 
+                    className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 mb-6"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5 }}
+                >
+                    <Card className='bg-card/30 backdrop-blur-md border-white/10 shadow-lg'>
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium">Membres Total</CardTitle>
-                            <Users className="h-4 w-4 text-muted-foreground" />
+                            <CardTitle className="text-sm font-medium text-muted-foreground">Membres Total</CardTitle>
+                            <Users className="h-5 w-5 text-muted-foreground" />
                         </CardHeader>
                         <CardContent>
-                            <div className="text-2xl font-bold">{allUsers.length}</div>
+                            <div className="text-3xl font-bold">{allUsers.length}</div>
                             <p className="text-xs text-muted-foreground">
                                 +{allUsers.filter(u => u.online).length} en ligne
                             </p>
                         </CardContent>
                     </Card>
-                    <Card>
+                    <Card className='bg-card/30 backdrop-blur-md border-white/10 shadow-lg'>
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium">Messages (bientôt)</CardTitle>
-                            <MessageSquare className="h-4 w-4 text-muted-foreground" />
+                            <CardTitle className="text-sm font-medium text-muted-foreground">Messages (bientôt)</CardTitle>
+                            <MessageSquare className="h-5 w-5 text-muted-foreground" />
                         </CardHeader>
                         <CardContent>
-                            <div className="text-2xl font-bold">N/A</div>
+                            <div className="text-3xl font-bold">N/A</div>
                             <p className="text-xs text-muted-foreground">Statistique à venir</p>
                         </CardContent>
                     </Card>
-                    <Card>
+                    <Card className='bg-card/30 backdrop-blur-md border-white/10 shadow-lg'>
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium">Taux d'activité</CardTitle>
-                            <Activity className="h-4 w-4 text-muted-foreground" />
+                            <CardTitle className="text-sm font-medium text-muted-foreground">Taux d'activité</CardTitle>
+                            <Activity className="h-5 w-5 text-muted-foreground" />
                         </CardHeader>
                         <CardContent>
-                            <div className="text-2xl font-bold">Élevée</div>
+                            <div className="text-3xl font-bold">Élevée</div>
                             <p className="text-xs text-muted-foreground">Basé sur la présence</p>
                         </CardContent>
                     </Card>
-                </div>
+                </motion.div>
 
-                <Card>
+                <Card className='bg-card/30 backdrop-blur-md border-white/10 shadow-lg'>
                     <CardHeader>
-                        <CardTitle>Liste des Membres</CardTitle>
-                        <CardDescription>
-                            Gérez la présence et les profils des membres du club de presse.
-                        </CardDescription>
+                        <div className='flex justify-between items-start'>
+                            <div>
+                                <CardTitle className='text-xl'>Liste des Membres</CardTitle>
+                                <CardDescription>
+                                    Gérez la présence et les profils des membres.
+                                </CardDescription>
+                            </div>
+                             <div className="relative w-full max-w-sm">
+                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                <Input
+                                    placeholder="Rechercher un membre..."
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                    className="bg-background/50 pl-10 rounded-full"
+                                />
+                            </div>
+                        </div>
                     </CardHeader>
                     <CardContent>
                         {usersLoading ? (
@@ -330,60 +349,55 @@ ${magicLink}
                                 <Loader2 className="h-8 w-8 animate-spin text-primary" />
                             </div>
                         ) : (
-                        <div className="overflow-x-auto">
-                            <Table>
-                                <TableHeader>
-                                    <TableRow>
-                                        <TableHead>Nom du Membre</TableHead>
-                                        <TableHead>Présence du jour</TableHead>
-                                        <TableHead className="text-right">Actions</TableHead>
-                                    </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                    {allUsers.map((user) => (
-                                        <TableRow key={user.id} className="hover:bg-muted/50">
-                                            <TableCell>
-                                                <div className="flex items-center gap-4">
-                                                    <Avatar className="w-10 h-10 border-2 border-background shadow-sm">
-                                                        <AvatarImage src={user.avatar} alt={user.name} />
-                                                        <AvatarFallback>{user.name.substring(0,2)}</AvatarFallback>
-                                                    </Avatar>
-                                                    <div>
-                                                        <div className="font-medium">{user.name}</div>
-                                                        <div className="text-xs text-muted-foreground">{user.class}</div>
-                                                    </div>
-                                                </div>
-                                            </TableCell>
-                                            <TableCell>
-                                                <div className="flex gap-2">
-                                                    <Button 
-                                                        size="sm" 
-                                                        variant={user.todayPresence === 'present' ? 'default' : 'outline'}
-                                                        onClick={() => handlePresenceChange(user.id, 'present')}
-                                                        className={`gap-2 transition-all ${user.todayPresence === 'present' ? 'bg-green-500 hover:bg-green-600 text-white' : ''}`}
-                                                        >
-                                                        <Check className="h-4 w-4" /> Présent
-                                                    </Button>
-                                                    <Button 
-                                                        size="sm" 
-                                                        variant={user.todayPresence === 'absent' ? 'destructive' : 'outline'}
-                                                        onClick={() => handlePresenceChange(user.id, 'absent')}
-                                                        className="gap-2 transition-all"
-                                                    >
-                                                        <X className="h-4 w-4" /> Absent
-                                                    </Button>
-                                                </div>
-                                            </TableCell>
-                                            <TableCell className="text-right">
-                                                <Button variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); handleViewProfile(user);}}>
-                                                    <MoreHorizontal className="h-4 w-4" />
-                                                    <span className="sr-only">Voir le profil</span>
-                                                </Button>
-                                            </TableCell>
-                                        </TableRow>
-                                    ))}
-                                </TableBody>
-                            </Table>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                            <AnimatePresence>
+                            {filteredUsers.map((user, i) => (
+                                <motion.div
+                                    key={user.id}
+                                    layout
+                                    initial={{ opacity: 0, scale: 0.9 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    exit={{ opacity: 0, scale: 0.9 }}
+                                    transition={{ duration: 0.3, delay: i * 0.05 }}
+                                >
+                                <Card className="group relative overflow-hidden bg-background/50 hover:bg-background/70 transition-all duration-300">
+                                    <CardContent className="p-4 flex flex-col items-center text-center">
+                                        <div className="relative mb-3">
+                                            <Avatar className="w-20 h-20 border-2 shadow-sm">
+                                                <AvatarImage src={user.avatar} alt={user.name} />
+                                                <AvatarFallback>{user.name.substring(0,2)}</AvatarFallback>
+                                            </Avatar>
+                                            <span className={cn("absolute bottom-0 right-0 block h-4 w-4 rounded-full ring-2 ring-background", user.online ? "bg-green-500" : "bg-gray-500")} />
+                                        </div>
+                                        <div className="font-bold truncate w-full">{user.name}</div>
+                                        <div className="text-xs text-muted-foreground">{user.class}</div>
+                                        
+                                        <div className='flex gap-2 mt-4'>
+                                            <Button 
+                                                size="sm" 
+                                                variant={user.todayPresence === 'present' ? 'default' : 'outline'}
+                                                onClick={() => handlePresenceChange(user.id, 'present')}
+                                                className={cn(`gap-2 text-xs h-8 px-3 rounded-full transition-all`, user.todayPresence === 'present' ? 'bg-green-500/80 hover:bg-green-500 text-white' : '')}
+                                                >
+                                                <Check className="h-4 w-4" /> P
+                                            </Button>
+                                            <Button 
+                                                size="sm" 
+                                                variant={user.todayPresence === 'absent' ? 'destructive' : 'outline'}
+                                                onClick={() => handlePresenceChange(user.id, 'absent')}
+                                                className="gap-2 text-xs h-8 px-3 rounded-full transition-all"
+                                            >
+                                                <X className="h-4 w-4" /> A
+                                            </Button>
+                                        </div>
+                                    </CardContent>
+                                     <Button variant="ghost" size="icon" className="absolute top-2 right-2 h-7 w-7 text-muted-foreground hover:bg-white/10" onClick={(e) => { e.stopPropagation(); handleViewProfile(user);}}>
+                                        <MoreHorizontal className="h-4 w-4" />
+                                    </Button>
+                                </Card>
+                                </motion.div>
+                            ))}
+                            </AnimatePresence>
                         </div>
                         )}
                     </CardContent>
@@ -441,4 +455,3 @@ ${magicLink}
         </div>
     );
 }
-
