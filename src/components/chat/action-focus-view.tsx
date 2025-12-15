@@ -2,7 +2,7 @@
 
 'use client';
 
-import React, from 'react';
+import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -132,6 +132,7 @@ export function ActionFocusView({
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
+      onContextMenu={(e) => e.preventDefault()}
     >
       <div className="absolute inset-0 bg-background/50 backdrop-blur-sm" onClick={onClose} />
       <div className="relative flex flex-col items-center justify-center gap-6">
@@ -169,24 +170,33 @@ export function ActionFocusView({
 
         <motion.div
           layoutId={chat ? `chat-card-${chat.id}` : 'global-action-card'}
-          className={cn(
-            'flex items-center p-4 rounded-2xl transition-colors duration-300 w-80',
-            'bg-card shadow-2xl ring-2 ring-primary/50'
-          )}
+          className="w-80 h-96 rounded-2xl bg-card shadow-2xl ring-2 ring-primary/50 overflow-hidden"
         >
-          {finalAvatarUrl ? (
-            <Avatar className="w-12 h-12 border">
-              <AvatarImage src={finalAvatarUrl} alt={finalTitle} />
-              <AvatarFallback>{finalAvatarFallback}</AvatarFallback>
-            </Avatar>
-          ) : (
-            <Skeleton className="h-12 w-12 rounded-full" />
-          )}
-
-          <div className="ml-4 flex-1 min-w-0">
-            <span className="font-semibold truncate block text-lg">{finalTitle}</span>
-            {subtitle && <span className="text-sm text-muted-foreground">{subtitle}</span>}
-          </div>
+             <div className="absolute inset-0 w-full h-full pointer-events-none">
+                <div
+                    className="w-full h-full bg-cover bg-center"
+                    style={{ 
+                        backgroundImage: `url(${finalAvatarUrl})`,
+                        filter: 'blur(20px) brightness(0.4)',
+                        transform: 'scale(1.2)'
+                    }}
+                />
+             </div>
+             <div className="absolute inset-0 flex flex-col p-4">
+                 <div className="flex-1 flex items-end">
+                    <p className="text-white/80 text-sm">{chat?.lastMessage?.content || "Aucun message récent"}</p>
+                 </div>
+                 <div className="flex items-center gap-3">
+                     <Avatar className="w-12 h-12 border-2 border-background">
+                         <AvatarImage src={finalAvatarUrl} alt={finalTitle} />
+                         <AvatarFallback>{finalAvatarFallback}</AvatarFallback>
+                     </Avatar>
+                     <div>
+                         <h2 className="font-bold text-lg text-white">{finalTitle}</h2>
+                         <p className="text-sm text-white/70">{subtitle || (chat?.type === 'private' ? (user?.online ? 'En ligne' : 'Hors ligne') : `${chat?.members?.length} membres`)}</p>
+                     </div>
+                 </div>
+             </div>
         </motion.div>
 
         <div className="relative w-full" style={{ minHeight: '150px' }}>
