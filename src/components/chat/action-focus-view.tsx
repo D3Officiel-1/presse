@@ -81,8 +81,7 @@ export function ActionFocusView({
     setLoadingMessages(true);
 
     const fetchAssociatedUsers = async (userIds: string[]) => {
-        if (userIds.length === 0) return;
-        const usersToFetch = userIds.filter(id => !usersData[id]);
+        const usersToFetch = userIds.filter(id => id && !usersData[id]);
         if (usersToFetch.length === 0) return;
 
         try {
@@ -108,8 +107,10 @@ export function ActionFocusView({
       const msgs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Message));
       setMessages(msgs);
       
-      msgs.forEach(m => userIdsToFetch.add(m.senderId));
-      fetchAssociatedUsers(Array.from(userIdsToFetch));
+      const messageSenderIds = msgs.map(m => m.senderId);
+      const allUserIds = Array.from(new Set([...userIdsToFetch, ...messageSenderIds]));
+      
+      fetchAssociatedUsers(allUserIds);
       
       setLoadingMessages(false);
     });
@@ -215,6 +216,18 @@ export function ActionFocusView({
      if (!chat || !currentUser) {
        return <div className="flex-1 flex items-center justify-center text-muted-foreground text-sm">Pas d'aperçu disponible.</div>;
      }
+     
+     const allChatUsers = chat.members.map(id => usersData[id]).filter(Boolean);
+     if (isCommunity) {
+         const messageSenders = messages.map(m => m.senderId);
+         const uniqueSenders = Array.from(new Set(messageSenders));
+         uniqueSenders.forEach(id => {
+            if (!allChatUsers.find(u => u.id === id)) {
+                const userData = usersData[id];
+                if (userData) allChatUsers.push(userData);
+            }
+         });
+     }
 
      return (
         <div className="relative flex flex-col h-full w-full bg-background overflow-hidden">
@@ -227,7 +240,7 @@ export function ActionFocusView({
                     loggedInUser={currentUser}
                     otherUser={otherUserForMessages!}
                     isTyping={chat.typing?.[otherUserForMessages?.id || ''] || false}
-                    chatMembers={chat.members.map(id => usersData[id]).filter(Boolean) as User[]}
+                    chatMembers={allChatUsers}
                     onReply={() => {}}
                     onDeleteForMe={() => {}}
                     onDeleteForEveryone={() => {}}
@@ -279,46 +292,27 @@ export function ActionFocusView({
             {viewMode === 'main' && (
               <motion.div
                 key="main-actions"
-                className="absolute w-full flex flex-col gap-2"
+                className="absolute w-full"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -20 }}
                 transition={{ duration: 0.2 }}
               >
-                 {(navActions && navActions.length > 0) && (
-                    <div className="grid grid-cols-4 gap-2">
-                        {navActions.map((item) => (
-                          <motion.button
-                            key={item.label}
-                            className="flex flex-col items-center justify-center gap-2 text-center text-xs w-full aspect-square bg-background/80 backdrop-blur-lg rounded-2xl shadow-lg border"
-                            onClick={() => handleAction(item.action, item.label)}
-                            variants={{
-                              hidden: { opacity: 0, y: 20 },
-                              visible: { opacity: 1, y: 0 },
-                            }}
-                          >
-                              <item.icon className="w-6 h-6" />
-                              <span className='truncate'>{item.label}</span>
-                          </motion.button>
-                        ))}
-                    </div>
-                 )}
-
-                <div className="bg-background/80 backdrop-blur-lg rounded-2xl shadow-lg border overflow-hidden">
-                    <ul className="text-base">
-                        {mainActions.map((item, index) => (
-                            <React.Fragment key={item.label}>
-                                <li
-                                onClick={() => handleAction(item.action, item.label)}
-                                className={cn("flex items-center justify-between p-4 cursor-pointer hover:bg-muted/50", item.className)}
-                                >
-                                    <span className="font-medium">{item.label}</span>
-                                    <item.icon className="w-5 h-5 text-muted-foreground" />
-                                </li>
-                                {index < mainActions.length - 1 && <Separator className="bg-border/50" />}
-                            </React.Fragment>
-                        ))}
-                    </ul>
+                 <div className="grid grid-cols-4 gap-4 p-4">
+                    {(navActions || mainActions).map((item) => (
+                      <motion.div
+                        key={item.label}
+                        className="flex flex-col items-center justify-center gap-2 text-center text-xs"
+                        onClick={() => handleAction(item.action, item.label)}
+                        whileHover={{ scale: 1.1 }}
+                        whileTap={{ scale: 0.95 }}
+                      >
+                          <div className={cn("flex items-center justify-center w-14 h-14 bg-background/80 backdrop-blur-lg rounded-full shadow-lg border", item.className)}>
+                            <item.icon className="w-6 h-6" />
+                          </div>
+                          <span className='truncate text-foreground/80 mt-1'>{item.label}</span>
+                      </motion.div>
+                    ))}
                 </div>
               </motion.div>
             )}
