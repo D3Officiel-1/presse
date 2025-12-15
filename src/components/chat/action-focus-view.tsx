@@ -6,11 +6,11 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
 import type { User, Chat, Message } from '@/lib/types';
-import type { LucideIcon } from 'lucide-react';
+import { LucideIcon, MoreHorizontal } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Bell, BellOff, Trash, LogOut, Loader2, CheckCheck, Check } from 'lucide-react';
 import { useFirestore } from '@/firebase/provider';
-import { collection, query, where, orderBy, limit, getDocs, onSnapshot } from 'firebase/firestore';
+import { collection, query, orderBy, onSnapshot, getDocs, where } from 'firebase/firestore';
 import { useUser } from '@/firebase/auth/use-user';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useRouter } from 'next/navigation';
@@ -61,7 +61,7 @@ export function ActionFocusView({
   toast,
 }: ActionFocusViewProps) {
   const router = useRouter();
-  const [viewMode, setViewMode] = useState<'main' | 'mute' | 'delete' | 'logout'>('main');
+  const [viewMode, setViewMode] = useState<'main' | 'mute' | 'delete' | 'logout' | 'more'>('main');
   const [messages, setMessages] = useState<Message[]>([]);
   const [loadingMessages, setLoadingMessages] = useState(true);
   const { user: currentUser } = useUser();
@@ -99,6 +99,11 @@ export function ActionFocusView({
     
     // Initial fetch for members, including community members from messages
     let userIdsToFetch = new Set<string>(chat.members || []);
+    if (chat.members.length === 0) {
+        // For chats with no members list, like community, we need to fetch all users.
+        // This is not efficient, but it's a fallback.
+        // A better approach would be to get members from messages.
+    }
 
     const messagesRef = collection(firestore, 'chats', chat.id, 'messages');
     const q = query(messagesRef, orderBy('timestamp', 'asc'));
@@ -113,6 +118,9 @@ export function ActionFocusView({
       fetchAssociatedUsers(allUserIds);
       
       setLoadingMessages(false);
+    }, (error) => {
+        console.error("Error fetching messages:", error);
+        setLoadingMessages(false);
     });
 
     return () => unsubscribe();
@@ -211,23 +219,20 @@ export function ActionFocusView({
     { label: '8 heures', action: () => handleMuteDuration('pour 8 heures') },
     { label: 'Toujours', action: () => handleMuteDuration('pour toujours') },
   ];
+  
+  const allActions = navActions || mainActions;
+  const primaryActions = allActions.slice(0, 3);
+  const secondaryActions = allActions.slice(3);
+
 
   const ChatPreview = () => {
      if (!chat || !currentUser) {
        return <div className="flex-1 flex items-center justify-center text-muted-foreground text-sm">Pas d'aperçu disponible.</div>;
      }
      
-     const allChatUsers = chat.members.map(id => usersData[id]).filter(Boolean);
-     if (isCommunity) {
-         const messageSenders = messages.map(m => m.senderId);
-         const uniqueSenders = Array.from(new Set(messageSenders));
-         uniqueSenders.forEach(id => {
-            if (!allChatUsers.find(u => u.id === id)) {
-                const userData = usersData[id];
-                if (userData) allChatUsers.push(userData);
-            }
-         });
-     }
+     const allChatUsers = Array.from(new Set([...chat.members, ...messages.map(m => m.senderId)]))
+        .map(id => usersData[id])
+        .filter(Boolean) as User[];
 
      return (
         <div className="relative flex flex-col h-full w-full bg-background overflow-hidden">
@@ -299,7 +304,7 @@ export function ActionFocusView({
                 transition={{ duration: 0.2 }}
               >
                  <div className="grid grid-cols-4 gap-4 p-4">
-                    {(navActions || mainActions).map((item) => (
+                    {primaryActions.map((item) => (
                       <motion.div
                         key={item.label}
                         className="flex flex-col items-center justify-center gap-2 text-center text-xs"
@@ -307,13 +312,57 @@ export function ActionFocusView({
                         whileHover={{ scale: 1.1 }}
                         whileTap={{ scale: 0.95 }}
                       >
-                          <div className={cn("flex items-center justify-center w-14 h-14 bg-background/80 backdrop-blur-lg rounded-full shadow-lg border", item.className)}>
+                          <div className={cn("flex items-center justify-center w-14 h-14 bg-background/80 backdrop-blur-lg rounded-full shadow-lg border cursor-pointer", item.className)}>
                             <item.icon className="w-6 h-6" />
                           </div>
-                          <span className='truncate text-foreground/80 mt-1'>{item.label}</span>
                       </motion.div>
                     ))}
+                    {secondaryActions.length > 0 && (
+                        <motion.div
+                            className="flex flex-col items-center justify-center gap-2 text-center text-xs"
+                            onClick={() => setViewMode('more')}
+                            whileHover={{ scale: 1.1 }}
+                            whileTap={{ scale: 0.95 }}
+                        >
+                            <div className="flex items-center justify-center w-14 h-14 bg-background/80 backdrop-blur-lg rounded-full shadow-lg border cursor-pointer">
+                                <MoreHorizontal className="w-6 h-6" />
+                            </div>
+                        </motion.div>
+                    )}
                 </div>
+              </motion.div>
+            )}
+
+            {viewMode === 'more' && (
+              <motion.div
+                key="more-actions"
+                className="absolute w-full flex flex-col items-center gap-3"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.2 }}
+              >
+                <div className="w-full max-w-sm bg-background/80 backdrop-blur-lg rounded-xl border">
+                    {secondaryActions.map((item, index) => (
+                        <React.Fragment key={item.label}>
+                            <div
+                                onClick={() => handleAction(item.action, item.label)}
+                                className={cn("flex items-center justify-between p-4 cursor-pointer hover:bg-muted/50", item.className)}
+                            >
+                                <span>{item.label}</span>
+                                <item.icon className="w-5 h-5 text-muted-foreground" />
+                            </div>
+                            {index < secondaryActions.length - 1 && <Separator />}
+                        </React.Fragment>
+                    ))}
+                </div>
+                <Button 
+                    variant="ghost" 
+                    className="mt-2 rounded-full bg-background/80 backdrop-blur-lg h-12 w-12 p-0 flex items-center justify-center border"
+                    onClick={() => setViewMode('main')}
+                  >
+                    <ArrowLeft className="w-6 h-6"/>
+                </Button>
               </motion.div>
             )}
 
