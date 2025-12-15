@@ -1,0 +1,21 @@
+{
+    "name": "Club de Presse - Leader's Club",
+    "short_name": "Club Presse",
+    "description": "L'application de chat dédiée aux membres du Club de Presse du Leader's Club.",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#ffffff",
+    "theme_color": "#FF2700",
+    "icons": [
+        {
+            "src": "https://i.postimg.cc/fbtSZFWz/icon-256x256.png",
+            "sizes": "192x192",
+            "type": "image/png"
+        },
+        {
+            "src": "https://i.postimg.cc/fbtSZFWz/icon-256x256.png",
+            "sizes": "512x512",
+            "type": "image/png"
+        }
+    ]
+}

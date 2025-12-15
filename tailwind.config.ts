@@ -88,10 +88,56 @@ export default {
             height: '0',
           },
         },
+        'fade-in-scale': {
+          '0%': { opacity: '0', transform: 'scale(0.8)' },
+          '100%': { opacity: '1', transform: 'scale(1)' },
+        },
+        'ping-slow-once': {
+          '0%': { transform: 'scale(1)', opacity: '1' },
+          '75%, 100%': { transform: 'scale(2)', opacity: '0' },
+        },
+        'spin-slow': {
+          'from': { transform: 'rotate(0deg)' },
+          'to': { transform: 'rotate(360deg)' },
+        },
+        'pulse-subtle': {
+          '0%, 100%': { transform: 'scale(1)' },
+          '50%': { transform: 'scale(0.98)' },
+        },
+        'ripple-1': {
+          '0%': { transform: 'scale(0.8)', opacity: '1' },
+          '100%': { transform: 'scale(2)', opacity: '0' },
+        },
+        'ripple-2': {
+          '0%': { transform: 'scale(0.8)', opacity: '1' },
+          '100%': { transform: 'scale(3)', opacity: '0' },
+        },
+         "fade-up": {
+          "0%": {
+            opacity: "0",
+            transform: "translateY(10px)",
+          },
+          "100%": {
+            opacity: "1",
+            transform: "translateY(0)",
+          },
+        },
+        "wave": {
+            "0%, 100%": { height: '4px' },
+            "50%": { height: '16px' },
+        }
       },
       animation: {
         'accordion-down': 'accordion-down 0.2s ease-out',
         'accordion-up': 'accordion-up 0.2s ease-out',
+        'fade-in-scale': 'fade-in-scale 1.2s cubic-bezier(0.25, 1, 0.5, 1) forwards',
+        'ping-slow-once': 'ping-slow-once 1.5s cubic-bezier(0, 0, 0.2, 1) forwards',
+        'spin-slow': 'spin-slow 3s linear infinite',
+        'pulse-subtle': 'pulse-subtle 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+        'ripple-1': 'ripple-1 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+        'ripple-2': 'ripple-2 2s cubic-bezier(0.4, 0, 0.6, 1) infinite 0.5s',
+        "fade-up": "fade-up 0.5s ease-out forwards",
+        'wave': 'wave 1.2s cubic-bezier(0.45, 0, 0.55, 1) infinite',
       },
     },
   },
