@@ -166,7 +166,7 @@ export default function UserProfilePage() {
 
       {/* Profile Hero Section */}
       <motion.div 
-        className="relative w-full h-[45vh] overflow-hidden"
+        className="relative w-full h-[35vh] overflow-hidden"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.5 }}
@@ -231,7 +231,7 @@ export default function UserProfilePage() {
       </motion.div>
 
       {/* Main Content */}
-      <main className="px-4 md:px-6 pb-8 -mt-6">
+      <main className="px-4 md:px-6 pb-8 relative z-10">
         <motion.div 
           className="max-w-2xl mx-auto space-y-4"
           initial="hidden"
@@ -323,5 +323,3 @@ export default function UserProfilePage() {
     </div>
   );
 }
-
-    
