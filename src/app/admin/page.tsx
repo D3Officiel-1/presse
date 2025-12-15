@@ -266,6 +266,28 @@ ${magicLink}
         user.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
+    const getActivityRate = () => {
+        if (usersLoading || allUsers.length === 0) {
+            return { label: "Calcul...", percentage: 'N/A' };
+        }
+        
+        const presentCount = allUsers.filter(u => u.todayPresence === 'present').length;
+        const totalUsers = allUsers.length;
+        const rate = (presentCount / totalUsers) * 100;
+
+        let label = "Faible";
+        if (rate > 75) {
+            label = "Élevée";
+        } else if (rate >= 30) {
+            label = "Moyenne";
+        }
+        
+        return { label, percentage: `${Math.round(rate)}%` };
+    };
+
+    const activity = getActivityRate();
+
+
     return (
         <div className="flex flex-col h-full bg-gradient-to-br from-background via-background to-muted/20 text-foreground">
             <header className="p-4 border-b border-white/5 flex items-center justify-between bg-transparent sticky top-0 z-20 backdrop-blur-sm">
@@ -328,12 +350,14 @@ ${magicLink}
                     </Card>
                     <Card className='bg-card/30 backdrop-blur-md border-white/10 shadow-lg'>
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium text-muted-foreground">Taux d'activité</CardTitle>
+                            <CardTitle className="text-sm font-medium text-muted-foreground">Taux d'activité (Aujourd'hui)</CardTitle>
                             <Activity className="h-5 w-5 text-muted-foreground" />
                         </CardHeader>
                         <CardContent>
-                            <div className="text-3xl font-bold">Élevée</div>
-                            <p className="text-xs text-muted-foreground">Basé sur la présence</p>
+                            <div className="text-3xl font-bold">{activity.label}</div>
+                            <p className="text-xs text-muted-foreground">
+                                Taux de présence de {activity.percentage}
+                            </p>
                         </CardContent>
                     </Card>
                 </motion.div>
