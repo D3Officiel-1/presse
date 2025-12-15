@@ -12,7 +12,7 @@ import { signOut } from 'firebase/auth'
 import Link from 'next/link'
 import { Switch } from '@/components/ui/switch'
 import { useToast } from '@/hooks/use-toast'
-import { doc, updateDoc, getDoc } from 'firebase/firestore'
+import { doc, updateDoc, getDoc, onSnapshot } from 'firebase/firestore'
 import { useFirestore } from '@/firebase/provider'
 import Image from 'next/image'
 import { motion } from 'framer-motion'
@@ -182,5 +182,3 @@ const SettingsItem: React.FC<SettingsItemProps> = ({ icon: Icon, text, href, isS
 
     return <div {...commonProps}>{content}</div>
 }
-
-    
