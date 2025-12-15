@@ -9,6 +9,27 @@ import { useToast } from '@/hooks/use-toast';
 import { v4 as uuidv4 } from 'uuid';
 import { Loader2, AlertTriangle, CheckCircle } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { motion, AnimatePresence } from 'framer-motion';
+
+const StatusIcon = ({ status }: { status: 'loading' | 'success' | 'error' }) => {
+  const iconVariants = {
+    hidden: { scale: 0.5, opacity: 0 },
+    visible: { 
+      scale: 1, 
+      opacity: 1, 
+      transition: { type: 'spring', stiffness: 260, damping: 20 } 
+    },
+  };
+
+  return (
+    <motion.div variants={iconVariants} initial="hidden" animate="visible" className="flex items-center justify-center">
+      {status === 'loading' && <Loader2 className="h-16 w-16 text-primary animate-spin" />}
+      {status === 'success' && <CheckCircle className="h-16 w-16 text-green-500" />}
+      {status === 'error' && <AlertTriangle className="h-16 w-16 text-destructive" />}
+    </motion.div>
+  );
+};
+
 
 function AutoLoginHandler() {
   const router = useRouter();
@@ -42,22 +63,18 @@ function AutoLoginHandler() {
         }
 
         const userData = userDoc.data();
-        // Security check: Verify that the data in the URL matches the data in Firestore
         if (userData.name !== name || userData.class !== userClass || userData.phone !== phone) {
             throw new Error("Les informations du lien ne correspondent pas. Connexion refusée.");
         }
 
-        // All checks passed, proceed with login
         let deviceId = localStorage.getItem('deviceId');
         if (!deviceId) {
             deviceId = uuidv4();
             localStorage.setItem('deviceId', deviceId);
         }
 
-        // Update the deviceId in Firestore to take over the session
         await updateDoc(userRef, { deviceId });
         
-        // Store user data locally to establish the session
         localStorage.setItem('userId', userDoc.id);
         localStorage.setItem('user', JSON.stringify({ uid: userDoc.id, ...userData}));
 
@@ -84,43 +101,61 @@ function AutoLoginHandler() {
   }, [searchParams, firestore, router, toast]);
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-background p-4">
-      <Card className="w-full max-w-md text-center">
-        <CardHeader>
-          <CardTitle>Connexion par Lien Magique</CardTitle>
-          <CardDescription>Traitement de votre lien de connexion sécurisé.</CardDescription>
-        </CardHeader>
-        <CardContent className="flex flex-col items-center gap-4 py-8">
-          {status === 'loading' && (
-            <>
-              <Loader2 className="h-12 w-12 animate-spin text-primary" />
-              <p>{message}</p>
-            </>
-          )}
-          {status === 'success' && (
-            <>
-              <CheckCircle className="h-12 w-12 text-green-500" />
-              <p className="text-lg font-semibold">Succès !</p>
-              <p className="text-muted-foreground">{message}</p>
-            </>
-          )}
-          {status === 'error' && (
-            <>
-              <AlertTriangle className="h-12 w-12 text-destructive" />
-              <p className="text-lg font-semibold">Erreur</p>
-              <p className="text-muted-foreground">{message}</p>
-            </>
-          )}
-        </CardContent>
-      </Card>
+    <div className="relative flex items-center justify-center min-h-screen overflow-hidden bg-background text-foreground p-4">
+        <video
+          src="https://cdn.pixabay.com/video/2024/05/20/212953-944519999_large.mp4"
+          autoPlay
+          loop
+          muted
+          playsInline
+          className="absolute top-0 left-0 w-full h-full object-cover -z-10 opacity-20"
+        />
+        <div className="absolute inset-0 bg-background/70 -z-10" />
+
+      <motion.div
+         initial={{ opacity: 0, y: 20, scale: 0.95 }}
+         animate={{ opacity: 1, y: 0, scale: 1 }}
+         transition={{ duration: 0.5, ease: 'easeOut' }}
+      >
+        <Card className="w-full max-w-sm text-center bg-card/60 backdrop-blur-xl border-white/10 shadow-2xl">
+            <CardHeader>
+                <CardTitle className="text-2xl font-bold">Connexion Magique</CardTitle>
+                <CardDescription className='text-muted-foreground/80'>Veuillez patienter, nous vérifions votre identité.</CardDescription>
+            </CardHeader>
+            <CardContent className="flex flex-col items-center gap-4 py-12">
+                <AnimatePresence mode="wait">
+                    <motion.div
+                        key={status}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.2 }}
+                        className="flex flex-col items-center justify-center gap-4"
+                    >
+                        <StatusIcon status={status} />
+                         <p className="text-lg font-semibold">
+                            {status === 'loading' && "Vérification..."}
+                            {status === 'success' && "Succès !"}
+                            {status === 'error' && "Erreur de Connexion"}
+                        </p>
+                        <p className="text-muted-foreground min-h-[40px]">{message}</p>
+                    </motion.div>
+                </AnimatePresence>
+            </CardContent>
+        </Card>
+      </motion.div>
     </div>
   );
 }
 
 export default function AutoLoginPage() {
     return (
-        <Suspense fallback={<div className="flex items-center justify-center min-h-screen"><Loader2 className="h-8 w-8 animate-spin" /></div>}>
+        <Suspense fallback={
+            <div className="flex items-center justify-center min-h-screen bg-background">
+                <Loader2 className="h-8 w-8 animate-spin" />
+            </div>
+        }>
             <AutoLoginHandler />
         </Suspense>
-    )
+    );
 }
