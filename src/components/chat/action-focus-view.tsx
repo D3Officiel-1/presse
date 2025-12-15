@@ -132,6 +132,7 @@ export function ActionFocusView({
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
+      onContextMenu={(e) => e.preventDefault()}
     >
       <div className="absolute inset-0 bg-background/50 backdrop-blur-sm" onClick={onClose} />
       <div className="relative flex flex-col items-center justify-center gap-6">
