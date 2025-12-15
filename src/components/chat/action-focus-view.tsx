@@ -97,14 +97,8 @@ export function ActionFocusView({
         }
     };
     
-    // Initial fetch for members, including community members from messages
     let userIdsToFetch = new Set<string>(chat.members || []);
-    if (chat.members.length === 0) {
-        // For chats with no members list, like community, we need to fetch all users.
-        // This is not efficient, but it's a fallback.
-        // A better approach would be to get members from messages.
-    }
-
+    
     const messagesRef = collection(firestore, 'chats', chat.id, 'messages');
     const q = query(messagesRef, orderBy('timestamp', 'asc'));
 
@@ -278,19 +272,21 @@ export function ActionFocusView({
       <div className="absolute inset-0 bg-background/50 backdrop-blur-sm" onClick={onClose} />
       <div className="relative flex flex-col items-center justify-center gap-4">
 
-        <motion.div
-          layoutId={chat ? `chat-card-${chat.id}` : 'global-action-card'}
-          className="w-80 h-96 rounded-2xl bg-card shadow-2xl ring-2 ring-primary/50 overflow-hidden"
-          onContextMenu={(e) => e.preventDefault()}
-        >
-             {loadingMessages ? (
-                <div className="flex h-full w-full items-center justify-center">
-                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                </div>
-             ) : (
-                <ChatPreview />
-             )}
-        </motion.div>
+        {chat && (
+            <motion.div
+              layoutId={chat ? `chat-card-${chat.id}` : 'global-action-card'}
+              className="w-80 h-96 rounded-2xl bg-card shadow-2xl ring-2 ring-primary/50 overflow-hidden"
+              onContextMenu={(e) => e.preventDefault()}
+            >
+                {loadingMessages ? (
+                    <div className="flex h-full w-full items-center justify-center">
+                        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                    </div>
+                ) : (
+                    <ChatPreview />
+                )}
+            </motion.div>
+        )}
 
         <div className="relative w-80" style={{ minHeight: '150px' }}>
           <AnimatePresence mode="wait">
