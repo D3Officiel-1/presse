@@ -375,6 +375,7 @@ function EditorComponent() {
                          </motion.div>
                          <motion.footer 
                             className="absolute bottom-4 left-4 right-4"
+                            layout
                             variants={{
                                 collapsed: { height: "auto" },
                                 expanded: { height: 250 },
@@ -429,17 +430,21 @@ function EditorComponent() {
                                         animate={{ opacity: 1 }}
                                         exit={{ opacity: 0 }}
                                     >
-                                        {fontStyles.slice(0, 5).map((font) => (
-                                            <Button
-                                                key={font.class}
-                                                variant="ghost"
-                                                size="sm"
-                                                onClick={() => setFontFamily(font.class)}
-                                                className={cn("rounded-full text-white shrink-0", font.class, fontFamily === font.class && "bg-white text-black")}
-                                            >
-                                                {font.label}
-                                            </Button>
-                                        ))}
+                                        <div className="flex-1 overflow-x-auto no-scrollbar">
+                                            <div className="flex items-center gap-2">
+                                                {fontStyles.slice(0, 5).map((font) => (
+                                                    <Button
+                                                        key={font.class}
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        onClick={() => setFontFamily(font.class)}
+                                                        className={cn("rounded-full text-white shrink-0", font.class, fontFamily === font.class && "bg-white text-black")}
+                                                    >
+                                                        {font.label}
+                                                    </Button>
+                                                ))}
+                                            </div>
+                                        </div>
                                         <Button
                                             variant="ghost"
                                             size="sm"
