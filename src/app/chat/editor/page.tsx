@@ -373,90 +373,90 @@ function EditorComponent() {
                                 autoFocus
                             />
                          </motion.div>
-                         <motion.footer 
-                            className="absolute bottom-4 left-4 right-4"
+                        <motion.footer
                             layout
-                            variants={{
-                                collapsed: { height: "auto" },
-                                expanded: { height: 250 },
-                            }}
-                            initial="collapsed"
-                            animate={fontListExpanded ? "expanded" : "collapsed"}
+                            className="absolute bottom-4 left-4 right-4 bg-black/30 backdrop-blur-md rounded-2xl border border-white/10"
+                            initial={{ height: "auto" }}
+                            animate={{ height: fontListExpanded ? 250 : "auto" }}
                             transition={{ type: "spring", stiffness: 400, damping: 40 }}
                         >
-                            <div className={cn(
-                                "relative bg-black/30 backdrop-blur-md rounded-2xl border border-white/10 transition-all",
-                                fontListExpanded && "p-2"
-                            )}>
-                                <AnimatePresence mode="wait">
+                            <AnimatePresence mode="wait">
                                 {fontListExpanded ? (
-                                    <motion.div 
-                                        key="expanded-list"
-                                        initial={{ opacity: 0 }}
-                                        animate={{ opacity: 1 }}
-                                        exit={{ opacity: 0 }}
+                                <motion.div
+                                    key="list-expanded"
+                                    className="h-full flex flex-col"
+                                    initial={{ opacity: 0 }}
+                                    animate={{ opacity: 1 }}
+                                    exit={{ opacity: 0 }}
+                                >
+                                    <div className="flex justify-end p-2">
+                                    <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className="rounded-full"
+                                        onClick={() => setFontListExpanded(false)}
                                     >
-                                        <div className="flex justify-end mb-2">
-                                             <Button
-                                                variant="ghost"
-                                                size="icon"
-                                                className="rounded-full"
-                                                onClick={() => setFontListExpanded(false)}
-                                            >
-                                                <ChevronDown className="h-5 w-5 text-white" />
-                                            </Button>
-                                        </div>
-                                        <ScrollArea className="h-[180px] pr-2">
+                                        <ChevronDown className="h-5 w-5 text-white" />
+                                    </Button>
+                                    </div>
+                                    <ScrollArea className="flex-1 px-2 pb-2">
+                                    {fontStyles.map((font) => (
+                                        <Button
+                                        key={`list-${font.class}`}
+                                        variant="ghost"
+                                        onClick={() => {
+                                            setFontFamily(font.class);
+                                            setFontListExpanded(false);
+                                        }}
+                                        className={cn(
+                                            "w-full justify-start text-white text-lg h-12",
+                                            font.class,
+                                            fontFamily === font.class && "bg-white/20"
+                                        )}
+                                        >
+                                        {font.label}
+                                        </Button>
+                                    ))}
+                                    </ScrollArea>
+                                </motion.div>
+                                ) : (
+                                <motion.div
+                                    key="list-collapsed"
+                                    className="flex items-center p-2"
+                                    initial={{ opacity: 0 }}
+                                    animate={{ opacity: 1 }}
+                                    exit={{ opacity: 0 }}
+                                >
+                                    <div className="flex-1 overflow-x-auto no-scrollbar">
+                                        <div className="flex items-center gap-2">
                                             {fontStyles.map((font) => (
                                                 <Button
-                                                    key={`list-${font.class}`}
+                                                    key={font.class}
                                                     variant="ghost"
-                                                    onClick={() => {
-                                                        setFontFamily(font.class);
-                                                        setFontListExpanded(false);
-                                                    }}
-                                                    className={cn("w-full justify-start text-white text-lg h-12", font.class, fontFamily === font.class && "bg-white/20")}
+                                                    size="sm"
+                                                    onClick={() => setFontFamily(font.class)}
+                                                    className={cn(
+                                                    "rounded-full text-white shrink-0",
+                                                    font.class,
+                                                    fontFamily === font.class && "bg-white text-black"
+                                                    )}
                                                 >
                                                     {font.label}
                                                 </Button>
                                             ))}
-                                        </ScrollArea>
-                                    </motion.div>
-                                ) : (
-                                    <motion.div 
-                                        key="collapsed-list"
-                                        className="flex items-center justify-center gap-2 p-2"
-                                        initial={{ opacity: 0 }}
-                                        animate={{ opacity: 1 }}
-                                        exit={{ opacity: 0 }}
-                                    >
-                                        <div className="flex-1 overflow-x-auto no-scrollbar">
-                                            <div className="flex items-center gap-2">
-                                                {fontStyles.slice(0, 5).map((font) => (
-                                                    <Button
-                                                        key={font.class}
-                                                        variant="ghost"
-                                                        size="sm"
-                                                        onClick={() => setFontFamily(font.class)}
-                                                        className={cn("rounded-full text-white shrink-0", font.class, fontFamily === font.class && "bg-white text-black")}
-                                                    >
-                                                        {font.label}
-                                                    </Button>
-                                                ))}
-                                            </div>
                                         </div>
-                                        <Button
-                                            variant="ghost"
-                                            size="sm"
-                                            className="rounded-full"
-                                            onClick={() => setFontListExpanded(true)}
-                                        >
-                                            <ChevronUp className="h-5 w-5 text-white" />
-                                        </Button>
-                                    </motion.div>
+                                    </div>
+                                    <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="rounded-full"
+                                    onClick={() => setFontListExpanded(true)}
+                                    >
+                                    <ChevronUp className="h-5 w-5 text-white" />
+                                    </Button>
+                                </motion.div>
                                 )}
-                                </AnimatePresence>
-                            </div>
+                            </AnimatePresence>
                         </motion.footer>
                     </motion.div>
                 )}
