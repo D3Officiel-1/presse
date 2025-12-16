@@ -24,6 +24,7 @@ import {
   CheckCheck,
   Edit,
   X,
+  Send,
 } from 'lucide-react';
 import { ChatMessageStatus } from './chat-message-status';
 import { useToast } from '@/hooks/use-toast';
@@ -31,6 +32,8 @@ import Image from 'next/image';
 import type { ActionItem } from './action-focus-view';
 import { Separator } from '../ui/separator';
 import { Skeleton } from '../ui/skeleton';
+import { Textarea } from '../ui/textarea';
+import { Timestamp } from 'firebase/firestore';
 
 
 const ReactionEmojis = ['👍', '❤️', '😂', '😮', '😢', '🙏'];
@@ -60,6 +63,7 @@ interface ChatMessagesProps {
   onDeleteForEveryone: (messageId: string) => void;
   onToggleStar: (messageId: string, isStarred: boolean) => void;
   onTogglePin: (message: Message, isPinned: boolean) => void;
+  onEditMessage: (messageId: string, newContent: string) => void;
   allUsersInApp: User[];
   isAdmin: boolean;
   onScrollToMessage: (messageId: string) => void;
@@ -188,7 +192,10 @@ const ChatMessage = ({
   isFirstInGroup,
   isLastInGroup,
   onOpenContextMenu,
-  onReply
+  onReply,
+  isEditing,
+  onSaveEdit,
+  onCancelEdit
 }: {
   message: Message;
   position: 'left' | 'right';
@@ -196,14 +203,21 @@ const ChatMessage = ({
   isLastInGroup: boolean;
   onOpenContextMenu: (e: React.MouseEvent | React.TouchEvent, message: Message) => void;
   onReply: () => void;
+  isEditing: boolean;
+  onSaveEdit: (newContent: string) => void;
+  onCancelEdit: () => void;
 }) => {
   const isOwn = position === 'right';
   const longPressTimer = useRef<NodeJS.Timeout>();
   const { onScrollToMessage } = React.useContext(ChatContext);
+  const [editedContent, setEditedContent] = useState(message.content);
 
+  useEffect(() => {
+    setEditedContent(message.content);
+  }, [message.content, isEditing]);
 
   const handlePointerDown = (e: React.PointerEvent) => {
-    if (e.pointerType === 'touch') {
+    if (e.pointerType === 'touch' && !isEditing) {
       longPressTimer.current = setTimeout(() => {
         onOpenContextMenu(e, message);
       }, 500);
@@ -217,11 +231,20 @@ const ChatMessage = ({
   };
   
   const onDragEnd = (event: any, info: any) => {
+    if (isEditing) return;
     const dragThreshold = 60;
     const dragDistance = info.offset.x;
     
     if ( (isOwn && dragDistance < -dragThreshold) || (!isOwn && dragDistance > dragThreshold) ) {
       onReply();
+    }
+  };
+
+  const handleSave = () => {
+    if (editedContent.trim() !== message.content) {
+      onSaveEdit(editedContent.trim());
+    } else {
+      onCancelEdit();
     }
   };
 
@@ -248,44 +271,71 @@ const ChatMessage = ({
         initial={{ opacity: 0, scale: 0.9, y: 10 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         transition={{ duration: 0.3 }}
-        onContextMenu={(e) => onOpenContextMenu(e, message)}
+        onContextMenu={(e) => !isEditing && onOpenContextMenu(e, message)}
         onPointerDown={handlePointerDown}
         onPointerUp={handlePointerUp}
         onPointerLeave={handlePointerUp}
         className={cn('group flex items-end gap-2 w-full', isOwn ? 'justify-end' : 'justify-start')}
     >
       <motion.div
-        drag="x"
+        drag={isEditing ? false : "x"}
         dragConstraints={{ left: 0, right: 0 }}
         dragElastic={0.2}
         onDragEnd={onDragEnd}
         className={bubbleClasses}
       >
-        {message.replyTo?.messageId && (
-            <div 
-              className="border-l-2 border-primary/50 pl-2 text-xs opacity-80 mb-1.5 cursor-pointer"
-              onClick={() => onScrollToMessage(message.replyTo!.messageId)}
-            >
-                <p className="font-bold">{message.replyTo.senderName}</p>
-                <p className="truncate">{message.replyTo.message}</p>
+        {isEditing ? (
+            <div className="space-y-2">
+                <Textarea
+                    value={editedContent}
+                    onChange={(e) => setEditedContent(e.target.value)}
+                    autoFocus
+                    className="bg-transparent border-0 focus-visible:ring-0 p-0 text-primary-foreground resize-none"
+                    onKeyDown={(e) => {
+                        if (e.key === 'Enter' && !e.shiftKey) {
+                            e.preventDefault();
+                            handleSave();
+                        }
+                        if (e.key === 'Escape') {
+                            onCancelEdit();
+                        }
+                    }}
+                />
+                <div className="flex justify-end gap-2">
+                    <Button size="sm" variant="ghost" className="h-7" onClick={onCancelEdit}>Annuler</Button>
+                    <Button size="sm" className="h-7" onClick={handleSave}>Enregistrer</Button>
+                </div>
             </div>
+        ) : (
+            <>
+                {message.replyTo?.messageId && (
+                    <div 
+                      className="border-l-2 border-primary/50 pl-2 text-xs opacity-80 mb-1.5 cursor-pointer"
+                      onClick={() => onScrollToMessage(message.replyTo!.messageId)}
+                    >
+                        <p className="font-bold">{message.replyTo.senderName}</p>
+                        <p className="truncate">{message.replyTo.message}</p>
+                    </div>
+                )}
+
+                {message.type === 'text' && <p className="whitespace-pre-wrap text-sm">{message.content}</p>}
+                
+                {message.type === 'image' && (
+                    <div className="relative w-64 h-64 rounded-md overflow-hidden my-1">
+                        <Image src={message.content} alt="Image partagée" layout="fill" className="object-cover" />
+                        <div className="absolute inset-0 bg-black/10"></div>
+                    </div>
+                )}
+
+                {message.type === 'audio' && <AudioPlayer src={message.content} metadata={message.audioMetadata} />}
+
+                <div className="flex items-center justify-end gap-1.5 mt-1 float-right">
+                    {message.editedAt && <span className="text-xs opacity-70 italic mr-1">modifié</span>}
+                    <span className="text-xs opacity-70">{formatTimestamp(message.timestamp)}</span>
+                    {isOwn && <ChatMessageStatus message={message} otherUser={(React.useContext(ChatContext) as any).otherUser} />}
+                </div>
+            </>
         )}
-
-        {message.type === 'text' && <p className="whitespace-pre-wrap text-sm">{message.content}</p>}
-        
-        {message.type === 'image' && (
-            <div className="relative w-64 h-64 rounded-md overflow-hidden my-1">
-                <Image src={message.content} alt="Image partagée" layout="fill" className="object-cover" />
-                <div className="absolute inset-0 bg-black/10"></div>
-            </div>
-        )}
-
-        {message.type === 'audio' && <AudioPlayer src={message.content} metadata={message.audioMetadata} />}
-
-        <div className="flex items-center justify-end gap-1.5 mt-1 float-right">
-            <span className="text-xs opacity-70">{formatTimestamp(message.timestamp)}</span>
-            {isOwn && <ChatMessageStatus message={message} otherUser={(React.useContext(ChatContext) as any).otherUser} />}
-        </div>
       </motion.div>
     </motion.div>
   );
@@ -299,7 +349,8 @@ const MessageFocusView = ({
     onDeleteForMe,
     onDeleteForEveryone,
     onToggleStar,
-    onTogglePin
+    onTogglePin,
+    onEdit
 }: {
     message: Message | null;
     onClose: () => void;
@@ -308,6 +359,7 @@ const MessageFocusView = ({
     onDeleteForEveryone: () => void;
     onToggleStar: () => void;
     onTogglePin: () => void;
+    onEdit: () => void;
 }) => {
     const chatContext = React.useContext(ChatContext);
     const [viewMode, setViewMode] = React.useState<'main' | 'delete'>('main');
@@ -319,6 +371,9 @@ const MessageFocusView = ({
     const isStarred = message.starredBy?.includes(chatContext.loggedInUser.uid) ?? false;
     const isCommunity = chatContext.chat.type === 'community';
     const isPinned = chatContext.chat.pinnedMessages?.some((m: Message) => m.id === message.id) ?? false;
+    
+    const timeSinceSent = (Timestamp.now().seconds - message.timestamp.seconds) / 60; // in minutes
+    const canEdit = isOwnMessage && timeSinceSent < 10 && message.type === 'text';
 
     const handleActionClick = (action: () => void, label: string) => {
         if (label === 'Supprimer') {
@@ -335,7 +390,7 @@ const MessageFocusView = ({
     };
 
     const mainActions: ActionItem[] = [
-        { label: 'Modifier', icon: Edit, action: () => {} },
+        ...(canEdit ? [{ label: 'Modifier', icon: Edit, action: onEdit }] : []),
         { label: 'Copier', icon: Copy, action: () => navigator.clipboard.writeText(message.content) },
         { label: 'Transférer', icon: Share2, action: () => {} },
         { label: isStarred ? 'Retirer' : 'Important', icon: Star, action: onToggleStar },
@@ -406,6 +461,9 @@ const MessageFocusView = ({
                             onReply={() => {}}
                             isFirstInGroup={true}
                             isLastInGroup={true}
+                            isEditing={false}
+                            onSaveEdit={() => {}}
+                            onCancelEdit={() => {}}
                         />
                     </div>
 
@@ -465,6 +523,7 @@ export function ChatMessages({
   onDeleteForEveryone,
   onToggleStar,
   onTogglePin,
+  onEditMessage,
   allUsersInApp,
   isAdmin,
   onScrollToMessage,
@@ -474,6 +533,7 @@ export function ChatMessages({
   const { toast } = useToast();
 
   const [selectedMessage, setSelectedMessage] = useState<Message | null>(null);
+  const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
 
   const [avatarInView, setAvatarInView] = useState<User | null>(null);
 
@@ -485,6 +545,20 @@ export function ChatMessages({
   const handleCloseContextMenu = useCallback(() => {
     setSelectedMessage(null);
   }, []);
+
+  const handleEdit = () => {
+    if (selectedMessage) {
+        setEditingMessageId(selectedMessage.id);
+        setSelectedMessage(null);
+    }
+  };
+
+  const handleSaveEdit = (newContent: string) => {
+    if (editingMessageId) {
+        onEditMessage(editingMessageId, newContent);
+        setEditingMessageId(null);
+    }
+  };
 
   useEffect(() => {
     const processMessages = () => {
@@ -635,6 +709,9 @@ export function ChatMessages({
                         isLastInGroup={msgIndex === senderGroup.messages.length - 1}
                         onOpenContextMenu={handleOpenContextMenu}
                         onReply={() => onReply(message)}
+                        isEditing={editingMessageId === message.id}
+                        onSaveEdit={handleSaveEdit}
+                        onCancelEdit={() => setEditingMessageId(null)}
                       />
                     ))}
                   </div>
@@ -675,6 +752,7 @@ export function ChatMessages({
                     onDeleteForEveryone={() => onDeleteForEveryone(selectedMessage.id)}
                     onToggleStar={() => onToggleStar(selectedMessage.id, selectedMessage.starredBy?.includes(loggedInUser.uid) ?? false)}
                     onTogglePin={() => onTogglePin(selectedMessage, chat.pinnedMessages?.some(m => m.id === selectedMessage.id) ?? false)}
+                    onEdit={handleEdit}
                 />
             )}
         </AnimatePresence>

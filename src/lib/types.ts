@@ -44,6 +44,7 @@ export type Message = {
     date: Timestamp;
     description?: string;
   };
+  editedAt?: Timestamp;
 };
 
 export type Chat = {

@@ -221,6 +221,16 @@ function ChatPageContent() {
     toast({ description: 'Message supprimé pour tout le monde.' });
   };
 
+  const handleEditMessage = async (messageId: string, newContent: string) => {
+    if (!firestore || !chatId) return;
+    const msgRef = doc(firestore, 'chats', chatId, 'messages', messageId);
+    await updateDoc(msgRef, {
+      content: newContent,
+      editedAt: serverTimestamp(),
+    });
+    toast({ description: 'Message modifié.' });
+  };
+
   const handleToggleStar = async (messageId: string, isStarred: boolean) => {
     if (!firestore || !chatId || !currentUser) return;
     const msgRef = doc(firestore, 'chats', chatId, 'messages', messageId);
@@ -316,6 +326,7 @@ function ChatPageContent() {
           onDeleteForEveryone={handleDeleteForEveryone}
           onToggleStar={handleToggleStar}
           onTogglePin={handleTogglePin}
+          onEditMessage={handleEditMessage}
           onShare={()=>{}}
           allUsersInApp={allUsersInApp}
           isAdmin={isAdmin}
