@@ -65,6 +65,7 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
   const firestore = useFirestore();
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const longPressTimerRef = useRef<NodeJS.Timeout | null>(null);
   
   const [view, setView] = useState<'closed' | 'attachments' | 'emoji'>('closed');
   const [activeMainTab, setActiveMainTab] = useState('emoji');
@@ -120,6 +121,9 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
       if (recordingIntervalRef.current) {
         clearInterval(recordingIntervalRef.current);
       }
+      if (longPressTimerRef.current) {
+        clearTimeout(longPressTimerRef.current);
+      }
     };
   }, []);
 
@@ -169,13 +173,34 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
     setMessage(prev => Array.from(prev).slice(0, -1).join(''));
   };
   
+  const handleClearMessage = () => {
+    setMessage('');
+  };
+  
+  const handlePointerDownBackspace = () => {
+      longPressTimerRef.current = setTimeout(() => {
+          handleClearMessage();
+      }, 700);
+  };
+  
+  const handlePointerUpBackspace = () => {
+      if (longPressTimerRef.current) {
+          clearTimeout(longPressTimerRef.current);
+          longPressTimerRef.current = null;
+      }
+  };
+
+
   const toggleView = (newView: 'attachments' | 'emoji') => {
-    if (view === newView) {
-      setView('closed');
-    } else {
-      setView(newView);
-      document.activeElement instanceof HTMLElement && document.activeElement.blur();
-    }
+      if (view === newView) {
+        setView('closed');
+      } else {
+        setView(newView);
+        // Blur any active input to hide the native keyboard
+        if (document.activeElement instanceof HTMLElement) {
+          document.activeElement.blur();
+        }
+      }
   };
 
   const handleAttachmentAction = (action: string) => {
@@ -220,6 +245,7 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
            <TextareaAutosize
             value={message}
             onChange={handleInputChange}
+            onFocus={() => setView('closed')}
             placeholder="Message"
             maxRows={5}
             className="w-full resize-none bg-transparent border-0 focus:ring-0 focus:outline-none text-base placeholder:text-muted-foreground px-2 py-2"
@@ -338,7 +364,7 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
                                 <Button variant="ghost" size="icon" className="h-9 w-9" onClick={() => setSearchMode(!searchMode)}>
                                    <Search className="w-5 h-5"/>
                                 </Button>
-                                <div className="flex-1 flex justify-center">
+                               <div className="flex-1 flex justify-center">
                                    <div className="flex gap-1 bg-black/20 p-1 rounded-full border">
                                        {mainTabs.map(tab => (
                                            <Button key={tab.name} variant={activeMainTab === tab.name ? 'secondary' : 'ghost'} size="icon" className="h-8 w-8 rounded-full" onClick={() => setActiveMainTab(tab.name)}>
@@ -346,7 +372,7 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
                                            </Button>
                                        ))}
                                    </div>
-                                </div>
+                               </div>
                                 <div className="w-9"></div>
                            </div>
                            {searchMode ? (
@@ -377,7 +403,16 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
                                 </div>
                            </div>
                            <div className="p-2 border-t flex items-center justify-between">
-                               <Button variant="ghost" size="icon" onClick={handleBackspace}><Delete className="w-5 h-5"/></Button>
+                                <Button 
+                                    variant="ghost" 
+                                    size="icon" 
+                                    onClick={handleBackspace}
+                                    onPointerDown={handlePointerDownBackspace}
+                                    onPointerUp={handlePointerUpBackspace}
+                                    onPointerLeave={handlePointerUpBackspace}
+                                >
+                                    <Delete className="w-5 h-5"/>
+                                </Button>
                                 <div className="w-9" />
                            </div>
                        </div>
