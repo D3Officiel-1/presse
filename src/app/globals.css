@@ -107,6 +107,15 @@ body {
     @apply shadow-2xl shadow-black/10;
     @apply z-50;
   }
+
+  .text-stroke-2 {
+    -webkit-text-stroke: 2px black;
+    paint-order: stroke fill;
+  }
+
+  .text-stroke-black {
+    -webkit-text-stroke: 2px black;
+  }
 }
 
 .setting-card {

@@ -4,7 +4,7 @@
 import React, { useState, useRef, useEffect, Suspense } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { Loader2, ArrowLeft, Crop, RotateCw, Send, Type, Brush, X, Check, Smile } from 'lucide-react';
+import { Loader2, ArrowLeft, Crop, RotateCw, Send, Type, Brush, X, Check, Smile, AlignLeft, AlignCenter, AlignRight } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import Image from 'next/image';
 import ReactCrop, { type Crop as CropType, centerCrop, makeAspectCrop } from 'react-image-crop';
@@ -14,6 +14,7 @@ import { Input } from '@/components/ui/input';
 import * as htmlToImage from 'html-to-image';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Textarea } from '@/components/ui/textarea';
+import { cn } from '@/lib/utils';
 
 
 function centerAspectCrop(
@@ -57,6 +58,8 @@ function EditorComponent() {
     const [isAddingText, setIsAddingText] = useState(false);
     const [textInputValue, setTextInputValue] = useState('');
     const [overlayText, setOverlayText] = useState<string | null>(null);
+    const [textAlign, setTextAlign] = useState<'center' | 'left' | 'right'>('center');
+    const [textStyle, setTextStyle] = useState<'none' | 'solid' | 'outline'>('none');
 
     useEffect(() => {
         const mediaData = sessionStorage.getItem('media-to-edit');
@@ -134,19 +137,16 @@ function EditorComponent() {
             setIsCropping(false);
         }, 'image/webp', 0.9);
     };
-
-    const cleanupSessionStorage = () => {
-        sessionStorage.removeItem('media-to-edit');
-        sessionStorage.removeItem('media-type-to-edit');
-    };
     
     const handleBack = () => {
-        cleanupSessionStorage();
+        sessionStorage.removeItem('media-to-edit');
+        sessionStorage.removeItem('media-type-to-edit');
         router.back();
     };
 
     const handleSend = () => {
-        cleanupSessionStorage();
+        sessionStorage.removeItem('media-to-edit');
+        sessionStorage.removeItem('media-type-to-edit');
         toast({
             title: "Fonctionnalité à venir",
             description: "L'envoi de médias sera bientôt disponible."
@@ -275,10 +275,22 @@ function EditorComponent() {
                         />
                     )}
                     {overlayText && (
-                        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                        <div className={cn(
+                            "absolute inset-0 flex items-center p-4 pointer-events-none",
+                            textAlign === 'center' && 'justify-center',
+                            textAlign === 'left' && 'justify-start',
+                            textAlign === 'right' && 'justify-end',
+                        )}>
                             <span 
-                                className="text-white text-4xl font-bold text-center"
-                                style={{ textShadow: '2px 2px 4px rgba(0,0,0,0.7)'}}
+                                className={cn(
+                                    "text-white text-4xl font-bold whitespace-pre-wrap",
+                                    textStyle === 'solid' && 'bg-black/70 px-2 py-1 rounded-md',
+                                    textStyle === 'outline' && 'text-stroke-2 text-stroke-black',
+                                    textAlign === 'center' && 'text-center',
+                                    textAlign === 'left' && 'text-left',
+                                    textAlign === 'right' && 'text-right',
+                                )}
+                                style={{textShadow: textStyle === 'none' ? '2px 2px 4px rgba(0,0,0,0.7)' : 'none' }}
                             >
                                 {overlayText}
                             </span>
@@ -291,7 +303,7 @@ function EditorComponent() {
             <AnimatePresence>
                 {isAddingText && (
                     <motion.div
-                        className="absolute inset-0 z-30 flex flex-col items-center justify-center bg-background/80 backdrop-blur-sm"
+                        className="absolute inset-0 z-30 flex flex-col items-center justify-center bg-black/80 backdrop-blur-sm p-4"
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
@@ -300,13 +312,21 @@ function EditorComponent() {
                             <Button variant="ghost" size="icon" onClick={() => setIsAddingText(false)} className="h-10 w-10 rounded-full bg-black/30 hover:bg-black/50">
                                 <X />
                             </Button>
+                             <div className="flex items-center gap-2">
+                                <Button variant="ghost" size="icon" onClick={() => setTextStyle('none')} className={cn("h-10 w-10 rounded-full", textStyle === 'none' && 'bg-white text-black')}>Aa</Button>
+                                <Button variant="ghost" size="icon" onClick={() => setTextStyle('solid')} className={cn("h-10 w-10 rounded-full", textStyle === 'solid' && 'bg-white text-black')}>[Aa]</Button>
+                                <Button variant="ghost" size="icon" onClick={() => setTextStyle('outline')} className={cn("h-10 w-10 rounded-full", textStyle === 'outline' && 'bg-white text-black')}>A</Button>
+                                <Button variant="ghost" size="icon" onClick={() => setTextAlign('left')} className={cn("h-10 w-10 rounded-full", textAlign === 'left' && 'bg-white text-black')}><AlignLeft/></Button>
+                                <Button variant="ghost" size="icon" onClick={() => setTextAlign('center')} className={cn("h-10 w-10 rounded-full", textAlign === 'center' && 'bg-white text-black')}><AlignCenter/></Button>
+                                <Button variant="ghost" size="icon" onClick={() => setTextAlign('right')} className={cn("h-10 w-10 rounded-full", textAlign === 'right' && 'bg-white text-black')}><AlignRight/></Button>
+                            </div>
                             <Button onClick={handleAddText}>
                                 <Check className="w-4 h-4 mr-2" />
                                 Enregistrer
                             </Button>
                         </header>
                          <motion.div
-                            className="w-full px-4"
+                            className="w-full"
                             initial={{ opacity: 0, scale: 0.8 }}
                             animate={{ opacity: 1, scale: 1 }}
                             transition={{ delay: 0.1, type: 'spring' }}
@@ -315,7 +335,12 @@ function EditorComponent() {
                                 value={textInputValue}
                                 onChange={(e) => setTextInputValue(e.target.value)}
                                 placeholder="Votre texte..."
-                                className="w-full bg-transparent border-0 text-3xl md:text-5xl text-center font-bold text-white placeholder:text-white/50 focus-visible:ring-0 resize-none"
+                                className={cn(
+                                    "w-full bg-transparent border-0 text-3xl md:text-5xl font-bold text-white placeholder:text-white/50 focus-visible:ring-0 resize-none",
+                                    textAlign === 'center' && 'text-center',
+                                    textAlign === 'left' && 'text-left',
+                                    textAlign === 'right' && 'text-right'
+                                )}
                                 autoFocus
                             />
                          </motion.div>
