@@ -3,7 +3,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Paperclip, Mic, Send, X, Smile, Image as ImageIcon, Camera, MapPin, User, FileText, Music, Vote, Calendar, Keyboard, Sprout, Pizza, ToyBrick, Dumbbell, Film, FileImage, UserCircle, Clock, Search, Delete, ArrowUp, CornerDownLeft, Grip, StickyNote, Clipboard, Settings, Palette, Menu } from 'lucide-react';
+import { Paperclip, Mic, Send, X, Smile, Image as ImageIcon, Camera, MapPin, User, FileText, Music, Vote, Calendar, Keyboard, Sprout, Pizza, ToyBrick, Dumbbell, Film, FileImage, UserCircle, Clock, Search, Delete, ArrowUp, CornerDownLeft, Grip, StickyNote, Clipboard, Settings, Palette, Menu, Voicemail } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import type { ReplyInfo } from './chat-messages';
 import type { Chat as ChatType } from '@/lib/types';
@@ -42,7 +42,7 @@ const mainTabs = [
 const emojiCategories = [
     { name: 'Récents', icon: Clock, emojis: ['👍', '❤️', '😂', '😮', '😢', '🙏', '🔥', '🎉', '😊', '🤔', '🤣', '😎'] },
     { name: 'Smileys & Émotion', icon: Smile, emojis: ['😀', '😃', '😄', '😁', '😆', '😅', '😂', '🤣', '😊', '😇', '🙂', '🙃', '😉', '😌', '😍', '🥰', '😘', '😗', '😙', '😚', '😋', '😛', '😝', '😜', '🤪', '🤨', '🧐', '🤓', '😎', '🤩', '🥳', '😏', '😒', '😞', '😔', '😟', '😕', '🙁', '☹️', '😣', '😖', '😫', '😩', '🥺', '😢', '😭', '😤', '😠', '😡', '🤬', '🤯', '😳', '🥵', '🥶', '😱', '😨', '😰', '😥', '😓', '🤗', '🤔', '🤭', '🤫', '🤥', '😶', '😐', '😑', '😬', '🙄', '😯', '😦', '😧', '😮', '😲', '🥱', '😴', '🤤', '😪', '😵', '🤐', '🥴', '🤢', '🤮', '🤧', '😷', '🤒', '🤕', '🤑', '🤠'] },
-    { name: 'Personnes & Corps', icon: User, emojis: ['👋', '🤚', '🖐️', '✋', '🖖', '👌', '🤌', '🤏', '✌️', '🤞', '🤟', '🤘', '🤙', '👈', '👉', '👆', '🖕', '👇', '☝️', '👍', '👎', '✊', '👊', '🤛', '🤜', '👏', '🙌', '👐', '🤲', '🤝', '🙏', '✍️', '💅', '🤳', '💪', '🦾', '🦵', '🦿', '🦶', '👣', '👂', '🦻', '👃', '🧠', '🫀', '', '🦷', '🦴', '👀', '👁️', '👅', '👄', '💋', '👶', '🧒', '👦', '👧', '🧑', '👱', '👨', '🧔', '👨‍🦰', '👨‍', '👨‍🦳', '👨‍🦲', '👩', '👩‍🦰', '🧑‍🦰', '👩‍🦱', '🧑‍🦱', '👩‍🦳', '🧑‍🦳', '👩‍🦲', '🧑‍🦲', '👱‍♀️', '👱‍♂️', '🧓', '👴', '👵'] },
+    { name: 'Personnes & Corps', icon: User, emojis: ['👋', '🤚', '🖐️', '✋', '🖖', '👌', '🤌', '🤏', '✌️', '🤞', '🤟', '🤘', '🤙', '👈', '👉', '👆', '🖕', '👇', '☝️', '👍', '👎', '✊', '👊', '🤛', '🤜', '👏', '🙌', '👐', '🤲', '🤝', '🙏', '✍️', '💅', '🤳', '💪', '🦾', '🦵', '🦿', '🦶', '👣', '👂', '🦻', '👃', '🧠', '🫀', '', '🦷', '🦴', '👀', '👁️', '👅', '👄', '💋', '👶', '🧒', '👦', '👧', '🧑', '👱', '👨', '🧔', '👨‍🦰', '👨‍', '👨‍🦳', '👨‍🦲', '👩', '👩‍🦰', '🧑‍🦰', '👩‍🦱', '🧑‍🦱', '👩‍🦳', '🧑‍🦳', '👩‍', '🧑‍🦲', '👱‍♀️', '👱‍♂️', '🧓', '👴', '👵'] },
     { name: 'Animaux & Nature', icon: Sprout, emojis: ['🙈', '🙉', '🙊', '🐵', '🐒', '🦍', '🦧', '🐶', '🐕', '🦮', '🐕‍', '🐩', '🐺', '🦊', '🦝', '🐱', '🐈', '🐈‍⬛', '🦁', '🐯', '🐅', '🐆', '🐴', '🐎', '🦄', '🦓', '🦌', '🦬', '🐮', '🐂', '🐃', '🐄', '🐷', '🐖', '🐗', '🐽', '🐏', '🐑', '🐐', '🐪', '🐫', '🦙', '🦒', '🐘', '🦣', '🦏', '🦛', '🐭', '🐁', '🐀', '🐹', '🐰', '🐇', '🐿️', '🦫', '🦔', '🦇', '🐻', '🐻‍❄️', '🐨', '🐼', '🦥', '🦦', '🦨', '🦘', '🦡', '🐾', '🦃', '🐔', '🐓', '🐣', '🐤', '🐥', '🐦', '🐧', '🕊️', '🦅', '🦆', '🦢', '🦉', '🦤', '🪶', '🐸', '🐊', '🐢', '🦎', '🐍', '🐲', '🐉', '🦕', '🦖', '🐳', '🐋', '🐬', '🦭', '🐟', '🐠', '🐡', '🦈', '🐙', '🐚', '🐌', '🦋', '🐛', '🐜', '🐝', '🪲', '🐞', '🦗', '🪳', '🕷️', '🕸️', '🦂', '🦟', '🪰', '🪱', '🦠', '💐', '🌸', '💮', '🏵️', '🌹', '🥀', '🌺', '🌻', '🌼', '🌷', '🌱', '🪴', '🌲', '🌳', '🌴', '🌵', '🌾', '🌿', '☘️', '🍀', '🍁', '🍂', '🍃'] },
     { name: 'Nourriture & Boisson', icon: Pizza, emojis: ['🍇', '🍈', '🍉', '🍊', '🍋', '🍌', '🍍', '🥭', '🍎', '🍏', '🍐', '🍑', '🍒', '🍓', '🥝', '🍅', '🥥', '🥑', '🍆', '🥔', '🥕', '🌽', '🌶️', '🥒', '🥬', '🥦', '🧄', '🧅', '🍄', '🥜', '🌰', '🍞', '🥐', '🥖', '🥨', '🥯', '🥞', '🧇', '🧀', '🍖', '🍗', '🥩', '🥓', '🍔', '🍟', '🍕', '🌭', '🥪', '🌮', '🌯', '🥙', '🧆', '🥚', '🍳', '🥘', '🍲', '🥣', '🥗', '🍿', '🧈', '🧂', '🥫', '🍱', '🍘', '🍙', '🍚', '🍛', '🍜', '🍝', '🍠', '🍢', '🍣', '🍤', '🍥', '🥮', '🍡', '🥟', '🥠', '🥡', '🦀', '🦞', '🦐', '🦑', '🦪', '🍦', '🍧', '🍨', '🍩', '🍪', '🎂', '🍰', '🧁', '🥧', '🍫', '🍬', '🍭', '🍮', '🍯', '🍼', '🥛', '☕', '🍵', '🍶', '🍾', '🍷', '🍸', '🍹', '🍺', '🍻', '🥂', '🥃', '🥤', '🧃', '🧉', '🧊', '🥢', '🍽️', '🍴', '🥄', '🔪', '🏺'] },
     { name: 'Activités', icon: Dumbbell, emojis: ['🤺', '🤸', '⛹️', '𤾾', '🧘', '🧗', '🏌️', '🏄', '🚣', '🏊', '🤽', '🚴', '🚵', '🤹', '🎭', '🎨', '🎬', '🎤', '🎧', '🎼', '🎹', '🥁', '🎷', '🎺', '🎸', '🪕', '🎻', '🎲', '♟️', '🎯', '🎳', '🎮', '🎰', '🧩'] },
@@ -76,13 +76,30 @@ const superscriptMap: { [key: string]: string } = {
     'y': '6', 'u': '7', 'i': '8', 'o': '9', 'p': '0'
 };
 
+const longPressChars: { [key: string]: string[] } = {
+    'a': ['ä', 'ã', 'å', 'ā', 'ª', 'à', 'â', '1', 'æ', 'á'],
+    'z': ['2'],
+    'e': ['ė', '3', 'ę', 'ē', 'ê', 'é', 'è', 'ë'],
+    'r': ['4'],
+    't': ['5'],
+    'y': ['6', 'ÿ'],
+    'u': ['ū', 'ú', 'ũ', '7', 'ù', 'û', 'ü'],
+    'i': ['Ī', 'į', 'í', 'ĩ', 'ì', 'ï', 'î', '8'],
+    'o': ['º', 'ō', 'ø', 'õ', 'ó', 'ò', 'ö', '9', 'œ', 'ô'],
+    'p': ['0'],
+    'c': ['č', 'ç', 'ć'],
+    "'": ['‚', '‘', '’', '‹', '›'],
+    '.': ['&', '%', '+', '·', '"', '_', ';', '/', '-', ':', "'", '@', '(', ')', '#', '!', ',', '?']
+};
+
+
 const CustomKeyboard = ({ onKeyPress, onBackspace, onEnter, onSpace }: { onKeyPress: (key: string) => void, onBackspace: () => void, onEnter: () => void, onSpace: () => void }) => {
     const [layout, setLayout] = useState<'letters' | 'numbers'>('letters');
     const [isShift, setIsShift] = useState(false);
     const [longPressedKey, setLongPressedKey] = useState<string | null>(null);
     const longPressTimer = useRef<NodeJS.Timeout>();
 
-    const keysWithLongPress = ['a', 'z', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p', 'c', "'", '.'];
+    const keysWithLongPress = Object.keys(longPressChars);
 
     const handlePointerDown = (key: string) => {
         if (!keysWithLongPress.includes(key)) return;
@@ -107,6 +124,11 @@ const CustomKeyboard = ({ onKeyPress, onBackspace, onEnter, onSpace }: { onKeyPr
         }
         setLongPressedKey(null);
     };
+    
+    const handleSpecialKeyPress = (char: string) => {
+        onKeyPress(char);
+        setLongPressedKey(null);
+    }
 
     const handleKeyPress = (key: string) => {
         onKeyPress(isShift ? key.toUpperCase() : key);
@@ -141,11 +163,15 @@ const CustomKeyboard = ({ onKeyPress, onBackspace, onEnter, onSpace }: { onKeyPr
                         >
                             {longPressedKey === key && (
                                 <motion.div 
-                                    className="absolute -top-10 left-1/2 -translate-x-1/2 bg-popover text-popover-foreground rounded-md px-3 py-1 shadow-lg text-lg"
+                                    className="absolute -top-12 left-1/2 -translate-x-1/2 bg-popover text-popover-foreground rounded-md p-1 shadow-lg flex gap-1"
                                     initial={{ opacity: 0, y: 10 }}
                                     animate={{ opacity: 1, y: 0 }}
                                 >
-                                    {isShift ? key.toUpperCase() : key}
+                                    {(longPressChars[key] || []).map(char => (
+                                        <Button key={char} variant="ghost" size="icon" className="w-8 h-8" onPointerUp={(e) => { e.stopPropagation(); handleSpecialKeyPress(char); }}>
+                                            {char}
+                                        </Button>
+                                    ))}
                                 </motion.div>
                             )}
                             {isShift ? key.toUpperCase() : key}
@@ -156,7 +182,7 @@ const CustomKeyboard = ({ onKeyPress, onBackspace, onEnter, onSpace }: { onKeyPr
                     ))}
                     {rowIndex === 2 && layout === 'letters' && (
                         <Button 
-                            onClick={() => handleKeyPress("'")} 
+                            onClick={() => {}}
                             onPointerDown={() => handlePointerDown("'")}
                             onPointerUp={() => handlePointerUp("'")}
                             onPointerLeave={handlePointerLeave}
@@ -164,11 +190,15 @@ const CustomKeyboard = ({ onKeyPress, onBackspace, onEnter, onSpace }: { onKeyPr
                         >
                              {longPressedKey === "'" && (
                                 <motion.div 
-                                    className="absolute -top-10 left-1/2 -translate-x-1/2 bg-popover text-popover-foreground rounded-md px-3 py-1 shadow-lg text-lg"
-                                    initial={{ opacity: 0, y: 10 }}
-                                    animate={{ opacity: 1, y: 0 }}
+                                     className="absolute -top-12 left-1/2 -translate-x-1/2 bg-popover text-popover-foreground rounded-md p-1 shadow-lg flex gap-1"
+                                     initial={{ opacity: 0, y: 10 }}
+                                     animate={{ opacity: 1, y: 0 }}
                                 >
-                                    '
+                                     {(longPressChars["'"] || []).map(char => (
+                                        <Button key={char} variant="ghost" size="icon" className="w-8 h-8" onPointerUp={(e) => { e.stopPropagation(); handleSpecialKeyPress(char); }}>
+                                            {char}
+                                        </Button>
+                                    ))}
                                 </motion.div>
                             )}
                             '
@@ -195,7 +225,7 @@ const CustomKeyboard = ({ onKeyPress, onBackspace, onEnter, onSpace }: { onKeyPr
                     Espace
                 </Button>
                 <Button 
-                    onClick={() => handleKeyPress('.')} 
+                    onClick={() => {}} 
                     onPointerDown={() => handlePointerDown('.')}
                     onPointerUp={() => handlePointerUp('.')}
                     onPointerLeave={handlePointerLeave}
@@ -203,11 +233,15 @@ const CustomKeyboard = ({ onKeyPress, onBackspace, onEnter, onSpace }: { onKeyPr
                 >
                     {longPressedKey === "." && (
                         <motion.div 
-                            className="absolute -top-10 left-1/2 -translate-x-1/2 bg-popover text-popover-foreground rounded-md px-3 py-1 shadow-lg text-lg"
+                            className="absolute -top-12 left-1/2 -translate-x-1/2 bg-popover text-popover-foreground rounded-md p-1 shadow-lg flex gap-1 flex-wrap w-48 justify-center"
                             initial={{ opacity: 0, y: 10 }}
                             animate={{ opacity: 1, y: 0 }}
                         >
-                            .
+                             {(longPressChars['.'] || []).map(char => (
+                                <Button key={char} variant="ghost" size="icon" className="w-8 h-8" onPointerUp={(e) => { e.stopPropagation(); handleSpecialKeyPress(char); }}>
+                                    {char}
+                                </Button>
+                            ))}
                         </motion.div>
                     )}
                     .
@@ -463,18 +497,23 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
 
       
       {view === 'closed' ? (
-          <div className="p-4 pt-2">
-              <div
-                  className={cn(
-                      "relative bg-background/50 backdrop-blur-sm shadow-lg border flex flex-col rounded-3xl",
-                      replyInfo ? 'rounded-t-none' : ''
-                  )}
-              >
-                  {mainInputSection}
-              </div>
+          <div
+              className={cn(
+                  "relative bg-background/50 backdrop-blur-sm shadow-lg border flex flex-col",
+                  replyInfo ? 'rounded-t-none rounded-b-3xl' : 'rounded-3xl'
+              )}
+          >
+              {mainInputSection}
           </div>
       ) : (
-          mainInputSection
+        <div
+            className={cn(
+                "relative bg-background/50 backdrop-blur-sm shadow-lg border flex flex-col",
+                replyInfo ? 'rounded-t-none' : ''
+            )}
+        >
+          {mainInputSection}
+        </div>
       )}
 
       <input
