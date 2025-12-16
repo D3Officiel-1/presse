@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
@@ -25,6 +26,7 @@ import {
   X,
   Send,
   CornerUpLeft,
+  Loader2,
 } from 'lucide-react';
 import { ChatMessageStatus } from './chat-message-status';
 import { useToast } from '@/hooks/use-toast';
@@ -33,7 +35,7 @@ import type { ActionItem } from './action-focus-view';
 import { Separator } from '../ui/separator';
 import { Skeleton } from '../ui/skeleton';
 import { Textarea } from '../ui/textarea';
-import { Timestamp } from 'firebase/firestore';
+import { Timestamp, collection, getDocs, query, where } from 'firebase/firestore';
 
 
 const ReactionEmojis = ['👍', '❤️', '😂', '😮', '😢', '🙏'];
@@ -374,6 +376,41 @@ const MessageFocusView = ({
     const chatContext = React.useContext(ChatContext);
     const [viewMode, setViewMode] = React.useState<'main' | 'delete' | 'share'>('main');
     const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
+    const [shareList, setShareList] = useState<{ recent: User[], all: User[] }>({ recent: [], all: [] });
+    const [loadingShare, setLoadingShare] = useState(false);
+
+    useEffect(() => {
+        if (viewMode !== 'share' || !chatContext.firestore || !chatContext.loggedInUser) return;
+        
+        const fetchShareList = async () => {
+            setLoadingShare(true);
+            const userChatsQuery = query(
+                collection(chatContext.firestore, 'chats'),
+                where('type', '==', 'private'),
+                where('members', 'array-contains', chatContext.loggedInUser.uid)
+            );
+            
+            const chatSnap = await getDocs(userChatsQuery);
+            const recentChatUserIds = new Set<string>();
+            chatSnap.forEach(doc => {
+                const otherMember = doc.data().members.find((m: string) => m !== chatContext.loggedInUser.uid);
+                if (otherMember) {
+                    recentChatUserIds.add(otherMember);
+                }
+            });
+
+            const allUsers: User[] = chatContext.allUsersInApp.filter((u: User) => u.id !== chatContext.loggedInUser.uid);
+            
+            const recent = allUsers.filter(u => recentChatUserIds.has(u.id));
+            const all = allUsers.filter(u => !recentChatUserIds.has(u.id));
+
+            setShareList({ recent, all });
+            setLoadingShare(false);
+        };
+
+        fetchShareList();
+
+    }, [viewMode, chatContext.firestore, chatContext.loggedInUser, chatContext.allUsersInApp]);
 
 
     if (!message) return null;
@@ -538,33 +575,37 @@ const MessageFocusView = ({
                         exit={{ opacity: 0, y: -50 }}
                         className="w-full max-w-md bg-background/80 backdrop-blur-lg rounded-2xl border shadow-2xl flex flex-col h-[70vh]"
                     >
-                        <div className="p-4 border-b">
+                        <div className="p-4 border-b flex justify-between items-center">
+                            <Button variant="ghost" size="icon" onClick={onClose}><X className="w-4 h-4"/></Button>
                             <h3 className="font-semibold text-center">Transférer à...</h3>
+                            <div className="w-9"></div>
                         </div>
-                        <div className="flex-1 overflow-y-auto p-2">
-                             {chatContext.allUsersInApp
-                                .filter((u: User) => u.id !== chatContext.loggedInUser.uid)
-                                .map((user: User) => (
-                                    <div 
-                                        key={user.id} 
-                                        className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50 cursor-pointer"
-                                        onClick={() => handleToggleUserSelection(user.id)}
-                                    >
-                                        <div className="relative">
-                                            <Avatar>
-                                                <AvatarImage src={user.avatar} />
-                                                <AvatarFallback>{user.name.substring(0,1)}</AvatarFallback>
-                                            </Avatar>
-                                            {selectedUsers.includes(user.id) && (
-                                                <div className="absolute -bottom-1 -right-1 bg-primary text-primary-foreground rounded-full h-5 w-5 flex items-center justify-center border-2 border-background">
-                                                    <Check className="w-3 h-3" />
-                                                </div>
-                                            )}
-                                        </div>
+                        {loadingShare ? (
+                            <div className="flex-1 flex items-center justify-center">
+                                <Loader2 className="w-6 h-6 animate-spin"/>
+                            </div>
+                        ) : (
+                            <div className="flex-1 overflow-y-auto p-2">
+                                {shareList.recent.length > 0 && (
+                                    <div className="mb-4">
+                                        <h4 className="text-sm font-semibold text-muted-foreground px-2 mb-2">Discussions récentes</h4>
+                                        {shareList.recent.map((user: User) => (
+                                            <div key={user.id} className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50 cursor-pointer" onClick={() => handleToggleUserSelection(user.id)}>
+                                                <div className="relative"><Avatar><AvatarImage src={user.avatar} /><AvatarFallback>{user.name.substring(0,1)}</AvatarFallback></Avatar>{selectedUsers.includes(user.id) && (<div className="absolute -bottom-1 -right-1 bg-primary text-primary-foreground rounded-full h-5 w-5 flex items-center justify-center border-2 border-background"><Check className="w-3 h-3" /></div>)}</div>
+                                                <span className="font-medium">{user.name}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                                <h4 className="text-sm font-semibold text-muted-foreground px-2 mb-2">Autres membres</h4>
+                                {shareList.all.map((user: User) => (
+                                    <div key={user.id} className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50 cursor-pointer" onClick={() => handleToggleUserSelection(user.id)}>
+                                        <div className="relative"><Avatar><AvatarImage src={user.avatar} /><AvatarFallback>{user.name.substring(0,1)}</AvatarFallback></Avatar>{selectedUsers.includes(user.id) && (<div className="absolute -bottom-1 -right-1 bg-primary text-primary-foreground rounded-full h-5 w-5 flex items-center justify-center border-2 border-background"><Check className="w-3 h-3" /></div>)}</div>
                                         <span className="font-medium">{user.name}</span>
                                     </div>
-                             ))}
-                        </div>
+                                ))}
+                            </div>
+                        )}
                         {selectedUsers.length > 0 && (
                             <div className="p-3 border-t">
                                 <Button className="w-full" onClick={handleConfirmShare}>
