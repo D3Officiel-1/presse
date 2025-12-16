@@ -99,8 +99,8 @@ export default function ArchivedChatsPage() {
   if (loading || userLoading) {
     return (
       <div className="flex flex-col h-full bg-background">
-        <header className="p-4 border-b flex items-center gap-4 bg-background sticky top-0 z-10 shrink-0">
-            <Button variant="ghost" size="icon" onClick={() => router.back()} className="size-8">
+        <header className="p-4 border-b flex items-center gap-4 bg-background/80 backdrop-blur-sm sticky top-0 z-10 shrink-0">
+            <Button variant="ghost" size="icon" onClick={() => router.back()} className="size-9 rounded-full">
               <ArrowLeft size={20} />
             </Button>
             <h1 className="font-semibold text-xl tracking-tight">Discussions archivées</h1>
@@ -122,8 +122,8 @@ export default function ArchivedChatsPage() {
 
   return (
     <div className="flex flex-col h-full bg-background">
-      <header className="p-4 border-b flex items-center gap-4 bg-background sticky top-0 z-10 shrink-0">
-        <Button variant="ghost" size="icon" onClick={() => router.back()} className="size-8">
+       <header className="p-4 border-b flex items-center gap-4 bg-background/80 backdrop-blur-sm sticky top-0 z-10 shrink-0">
+        <Button variant="ghost" size="icon" onClick={() => router.back()} className="size-9 rounded-full">
           <ArrowLeft size={20} />
         </Button>
         <h1 className="font-semibold text-xl tracking-tight">Discussions archivées</h1>
@@ -148,19 +148,21 @@ export default function ArchivedChatsPage() {
                 <div key={chat.id} className="group flex items-center p-3 rounded-lg hover:bg-muted/50">
                     <Link href={`/chat/${chat.id}`} className="flex-1 flex items-center gap-3 min-w-0">
                         {chatAvatarUser ? (
-                            <ChatAvatar user={chatAvatarUser} isGroup={chat.type === 'group'} />
+                            <ChatAvatar user={chatAvatarUser} isGroup={chat.type !== 'private'} />
                         ) : <Skeleton className="h-12 w-12 rounded-full" />}
                         <div className="flex-1 min-w-0">
                             <p className="font-semibold truncate">{chatName}</p>
                             <p className="text-sm text-muted-foreground truncate">{chat.lastMessage?.content || 'Aucun message'}</p>
                         </div>
+                    </Link>
+                    <div className="flex items-center gap-4">
                         <span className="text-xs text-muted-foreground ml-auto whitespace-nowrap">
                             {formatTimestamp(chat.lastMessageTimestamp)}
                         </span>
-                    </Link>
-                    <Button variant="ghost" size="icon" className="ml-2" onClick={() => handleUnarchive(chat.id)}>
-                        <ArchiveRestore className="w-5 h-5 text-primary"/>
-                    </Button>
+                        <Button variant="ghost" size="icon" className="opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => handleUnarchive(chat.id)}>
+                            <ArchiveRestore className="w-5 h-5 text-primary"/>
+                        </Button>
+                    </div>
                 </div>
               );
             })}
