@@ -27,10 +27,6 @@ function EditorComponent() {
             setMediaSrc(mediaData);
             setMediaType(typeData as 'image' | 'video');
             setIsLoading(false);
-            
-            // Clean up session storage after use
-            sessionStorage.removeItem('media-to-edit');
-            sessionStorage.removeItem('media-type-to-edit');
         } else {
             toast({
                 variant: 'destructive',
@@ -39,6 +35,13 @@ function EditorComponent() {
             });
             router.back();
         }
+
+        // Cleanup function: this will run when the component is unmounted
+        return () => {
+            sessionStorage.removeItem('media-to-edit');
+            sessionStorage.removeItem('media-type-to-edit');
+        };
+
     }, [router, toast]);
 
     const handleCroppedImage = (imageBlob: Blob | null) => {
@@ -51,6 +54,9 @@ function EditorComponent() {
     };
 
     const handleSend = () => {
+        // When send logic is implemented, cleanup should also happen here.
+        sessionStorage.removeItem('media-to-edit');
+        sessionStorage.removeItem('media-type-to-edit');
         toast({
             title: "Fonctionnalité à venir",
             description: "L'envoi de médias sera bientôt disponible."
