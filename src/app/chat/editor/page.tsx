@@ -451,7 +451,7 @@ function EditorComponent() {
                                 >
                                     <div className="flex-1 overflow-x-auto no-scrollbar">
                                         <div className="flex items-center gap-2">
-                                            {fontStyles.map((font) => (
+                                            {fontStyles.slice(0,5).map((font) => (
                                                 <Button
                                                     key={font.class}
                                                     variant="ghost"
@@ -507,5 +507,3 @@ export default function EditorPage() {
         </Suspense>
     );
 }
-
-    
