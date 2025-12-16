@@ -3,7 +3,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Paperclip, Mic, Send, X, Smile, Image as ImageIcon, Camera, MapPin, User, FileText, Music, Vote, Calendar, Keyboard, Sprout, Pizza, ToyBrick, Dumbbell, Film, FileImage, UserCircle, Clock, Search, Delete, ArrowUp, CornerDownLeft, Grip, StickyNote, Clipboard, Settings, Palette, Menu, Voicemail, Heart, Flag, Trash2 } from 'lucide-react';
+import { Paperclip, Mic, Send, X, Smile, Image as ImageIcon, Camera, MapPin, User, FileText, Music, Vote, Calendar, Keyboard, Sprout, Pizza, ToyBrick, Dumbbell, Film, FileImage, UserCircle, Clock, Search, Delete, ArrowUp, CornerDownLeft, Grip, StickyNote, Clipboard, Settings, Palette, Menu, Voicemail, Heart, Flag, Trash2, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import type { ReplyInfo } from './chat-messages';
 import type { Chat as ChatType } from '@/lib/types';
@@ -84,11 +84,13 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
   // Voice recording state
   const [isRecording, setIsRecording] = useState(false);
   const [recordingTime, setRecordingTime] = useState(0);
-  const [isCancelling, setIsCancelling] = useState(false);
+  const [audioWaveform, setAudioWaveform] = useState<number[]>([]);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
   const recordingIntervalRef = useRef<NodeJS.Timeout | null>(null);
-  const cancelAreaRef = useRef<HTMLDivElement>(null);
+  const audioContextRef = useRef<AudioContext | null>(null);
+  const analyserRef = useRef<AnalyserNode | null>(null);
+  const animationFrameRef = useRef<number | null>(null);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const value = e.target.value;
@@ -113,11 +115,16 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
 
   useEffect(() => {
     return () => {
+      // Cleanup all timers and refs
       if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
       if (recordingIntervalRef.current) clearInterval(recordingIntervalRef.current);
       if (longPressTimerRef.current) clearTimeout(longPressTimerRef.current);
       if (mediaRecorderRef.current && mediaRecorderRef.current.state === "recording") {
         mediaRecorderRef.current.stop();
+      }
+      if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current);
+      if (audioContextRef.current && audioContextRef.current.state !== 'closed') {
+        audioContextRef.current.close();
       }
     };
   }, []);
@@ -136,20 +143,51 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
     const resetRecordingState = () => {
         setIsRecording(false);
         setRecordingTime(0);
+        setAudioWaveform([]);
         if (recordingIntervalRef.current) clearInterval(recordingIntervalRef.current);
+        if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current);
         audioChunksRef.current = [];
         if (mediaRecorderRef.current && mediaRecorderRef.current.state === "recording") {
             mediaRecorderRef.current.stop();
         }
+        if (audioContextRef.current && audioContextRef.current.state !== 'closed') {
+            audioContextRef.current.close();
+        }
     };
 
+    const visualizeAudio = (stream: MediaStream) => {
+        if (!audioContextRef.current) {
+            audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
+        }
+        if (!analyserRef.current) {
+            analyserRef.current = audioContextRef.current.createAnalyser();
+        }
+        const source = audioContextRef.current.createMediaStreamSource(stream);
+        source.connect(analyserRef.current);
+        analyserRef.current.fftSize = 256;
+        const bufferLength = analyserRef.current.frequencyBinCount;
+        const dataArray = new Uint8Array(bufferLength);
+
+        const draw = () => {
+            animationFrameRef.current = requestAnimationFrame(draw);
+            analyserRef.current?.getByteFrequencyData(dataArray);
+            // Slice and map to create a waveform effect
+            const waveform = Array.from(dataArray.slice(0, 32)).map(v => v / 255);
+            setAudioWaveform(waveform);
+        };
+        draw();
+    };
 
     const startRecording = async () => {
+        if (isRecording) return;
+        
         try {
             const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            visualizeAudio(stream);
+
             const mediaRecorder = new MediaRecorder(stream);
             mediaRecorderRef.current = mediaRecorder;
-            audioChunksRef.current = []; // Reset chunks
+            audioChunksRef.current = [];
 
             mediaRecorder.ondataavailable = (event) => {
                 if (event.data.size > 0) {
@@ -167,16 +205,7 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
 
             mediaRecorder.onstop = () => {
                 stream.getTracks().forEach(track => track.stop());
-                if (!isCancelling) {
-                    const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
-                    const reader = new FileReader();
-                    reader.onload = () => {
-                        const base64Audio = reader.result as string;
-                        onSendMessage(base64Audio, 'audio', { duration: recordingTime });
-                    };
-                    reader.readAsDataURL(audioBlob);
-                }
-                resetRecordingState();
+                // The sending logic will be handled by a dedicated button now
             };
             
             mediaRecorder.start();
@@ -192,54 +221,35 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
         }
     };
 
-    const stopRecording = (cancelled = false) => {
-        setIsCancelling(cancelled);
+    const stopAndSendRecording = () => {
         if (mediaRecorderRef.current && mediaRecorderRef.current.state === "recording") {
+            mediaRecorderRef.current.addEventListener('stop', () => {
+                const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+                const reader = new FileReader();
+                reader.onload = () => {
+                    const base64Audio = reader.result as string;
+                    onSendMessage(base64Audio, 'audio', { duration: recordingTime });
+                    resetRecordingState();
+                };
+                reader.readAsDataURL(audioBlob);
+            }, { once: true });
             mediaRecorderRef.current.stop();
+        } else {
+           resetRecordingState(); // Reset if something went wrong
         }
     };
 
-    const handlePointerDown = (e: React.PointerEvent) => {
-        if (e.pointerType === 'touch' || e.button === 0) { // Only for touch and left-click
-            e.preventDefault();
-            setIsCancelling(false);
-            startRecording();
+    const cancelRecording = () => {
+        if (mediaRecorderRef.current && mediaRecorderRef.current.state === "recording") {
+             mediaRecorderRef.current.addEventListener('stop', () => {
+                resetRecordingState();
+                toast({ description: "Enregistrement annulé." });
+            }, { once: true });
+            mediaRecorderRef.current.stop();
+        } else {
+             resetRecordingState();
         }
     };
-
-    const handlePointerUp = () => {
-        if (isRecording) {
-            stopRecording(isCancelling);
-        }
-    };
-    
-    const handlePointerMove = (e: React.PointerEvent) => {
-        if (isRecording && cancelAreaRef.current) {
-            const cancelRect = cancelAreaRef.current.getBoundingClientRect();
-            if (e.clientX < cancelRect.right) {
-                 setIsCancelling(true);
-            } else {
-                 setIsCancelling(false);
-            }
-        }
-    };
-    
-    const handlePointerLeave = (e: React.PointerEvent) => {
-        if (isRecording) {
-            // Treat leaving the button area as a potential cancellation if they are in the cancel zone
-            if (cancelAreaRef.current) {
-                const cancelRect = cancelAreaRef.current.getBoundingClientRect();
-                if (e.clientX < cancelRect.right) {
-                    stopRecording(true);
-                } else {
-                    stopRecording(false);
-                }
-            } else {
-                 stopRecording(false);
-            }
-        }
-    }
-
 
   const handleEmojiClick = (emoji: string) => {
     if (inputMode === 'message') {
@@ -336,23 +346,33 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
 
     const RecordingUI = () => (
       <motion.div 
-          className="flex-1 flex items-center justify-between px-4"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
+          className="flex-1 flex items-center justify-between px-2"
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.95 }}
+          transition={{ duration: 0.2 }}
       >
-          <div className="flex items-center gap-2">
-              <Mic className="text-destructive w-5 h-5 animate-pulse" />
-              <p className="font-mono text-lg">{formatTime(recordingTime)}</p>
+          <Button variant="ghost" size="icon" onClick={cancelRecording} className="text-destructive h-12 w-12 rounded-full">
+              <Trash2 size={24}/>
+          </Button>
+
+          <div className="flex flex-col items-center">
+              <div className="font-mono text-lg">{formatTime(recordingTime)}</div>
+              <div className="flex items-center justify-center h-8 gap-0.5 w-32">
+                {audioWaveform.map((v, i) => (
+                    <motion.div
+                        key={i}
+                        className="w-1 bg-primary rounded-full"
+                        animate={{ height: `${Math.max(2, v * 100)}%` }}
+                        transition={{ duration: 0.1 }}
+                    />
+                ))}
+              </div>
           </div>
-          <motion.div
-            ref={cancelAreaRef}
-            animate={{ x: isCancelling ? -10 : 0 }}
-            className="flex items-center gap-2 text-muted-foreground"
-          >
-              <Trash2 className={cn("w-5 h-5", isCancelling && 'text-destructive')} />
-              <span>Glisser pour annuler</span>
-          </motion.div>
+          
+           <Button size="icon" onClick={stopAndSendRecording} className="h-12 w-12 rounded-full bg-green-500 hover:bg-green-600 text-white">
+              <Check size={24} />
+           </Button>
       </motion.div>
     );
 
@@ -391,46 +411,43 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
                 <Smile className="w-5 h-5" />
               </Button>
             )}
+          
+            <div className="relative h-10 w-10 shrink-0">
+              <AnimatePresence>
+                {message && inputMode === 'message' && !isRecording ? (
+                  <motion.div
+                    key="send"
+                    initial={{ scale: 0, rotate: -90 }}
+                    animate={{ scale: 1, rotate: 0 }}
+                    exit={{ scale: 0, rotate: 90 }}
+                    className="absolute inset-0"
+                  >
+                    <Button size="icon" className="h-10 w-10 rounded-full bg-primary text-primary-foreground" onClick={handleSend}>
+                      <Send className="w-5 h-5" />
+                    </Button>
+                  </motion.div>
+                ) : inputMode === 'message' ? (
+                  <motion.div
+                    key="mic"
+                    initial={{ scale: 0, rotate: 90 }}
+                    animate={{ scale: 1, rotate: 0 }}
+                    exit={{ scale: 0, rotate: -90 }}
+                    className="absolute inset-0"
+                  >
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      onClick={startRecording}
+                      className="h-10 w-10 rounded-full text-muted-foreground"
+                    >
+                      <Mic className="w-5 h-5" />
+                    </Button>
+                  </motion.div>
+                ) : null}
+              </AnimatePresence>
+            </div>
           </>
         )}
-
-        <div className="relative h-10 w-10 shrink-0">
-          <AnimatePresence>
-            {message && inputMode === 'message' && !isRecording ? (
-              <motion.div
-                key="send"
-                initial={{ scale: 0, rotate: -90 }}
-                animate={{ scale: 1, rotate: 0 }}
-                exit={{ scale: 0, rotate: 90 }}
-                className="absolute inset-0"
-              >
-                <Button size="icon" className="h-10 w-10 rounded-full bg-primary text-primary-foreground" onClick={handleSend}>
-                  <Send className="w-5 h-5" />
-                </Button>
-              </motion.div>
-            ) : inputMode === 'message' ? (
-              <motion.div
-                key="mic"
-                initial={{ scale: 0, rotate: 90 }}
-                animate={{ scale: isRecording ? 1.2 : 1, rotate: 0 }}
-                exit={{ scale: 0, rotate: -90 }}
-                className="absolute inset-0"
-                onPointerDown={handlePointerDown}
-                onPointerUp={handlePointerUp}
-                onPointerMove={handlePointerMove}
-                onPointerLeave={handlePointerLeave}
-              >
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  className={cn("h-10 w-10 rounded-full text-muted-foreground transition-colors", isRecording && 'bg-primary text-primary-foreground')}
-                >
-                  <Mic className="w-5 h-5" />
-                </Button>
-              </motion.div>
-            ) : null}
-          </AnimatePresence>
-        </div>
       </div>
   );
 
@@ -482,7 +499,7 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
       
       <div
           className={cn(
-              "relative bg-background/50 backdrop-blur-sm shadow-lg border flex flex-col",
+              "relative bg-background/50 backdrop-blur-sm shadow-lg border flex flex-col transition-[border-radius]",
               replyInfo ? 'rounded-t-none' : '',
               view === 'closed' && (replyInfo ? 'rounded-b-3xl' : 'rounded-3xl'),
               view !== 'closed' && 'rounded-t-3xl'
