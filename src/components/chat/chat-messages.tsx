@@ -176,8 +176,7 @@ const ChatMessage = ({
   isFirstInGroup,
   isLastInGroup,
   onOpenContextMenu,
-  onReply,
-  otherUser
+  onReply
 }: {
   message: Message;
   position: 'left' | 'right';
@@ -185,7 +184,6 @@ const ChatMessage = ({
   isLastInGroup: boolean;
   onOpenContextMenu: (e: React.MouseEvent | React.TouchEvent, message: Message) => void;
   onReply: () => void;
-  otherUser: User | undefined;
 }) => {
   const isOwn = position === 'right';
   const longPressTimer = useRef<NodeJS.Timeout>();
@@ -268,7 +266,7 @@ const ChatMessage = ({
 
         <div className="flex items-center justify-end gap-1.5 mt-1 float-right">
             <span className="text-xs opacity-70">{formatTimestamp(message.timestamp)}</span>
-            {isOwn && <ChatMessageStatus message={message} otherUser={otherUser} />}
+            {isOwn && <ChatMessageStatus message={message} otherUser={(React.useContext(ChatContext) as any).otherUser} />}
         </div>
       </motion.div>
     </motion.div>
@@ -318,43 +316,39 @@ const MessageFocusView = ({
         { label: 'Répondre', icon: CornerUpLeft, action: onReply },
         { label: 'Copier', icon: Copy, action: () => navigator.clipboard.writeText(message.content) },
         { label: 'Transférer', icon: Share2, action: () => {} },
-        { label: isStarred ? 'Retirer de l\'important' : 'Marquer important', icon: Star, action: onToggleStar },
+        { label: isStarred ? 'Important' : 'Important', icon: Star, action: onToggleStar },
         { label: 'Supprimer', icon: Trash2, action: () => {}, className: 'text-destructive' },
     ];
     if (isOwnMessage) {
        mainActions.push({ label: 'Épingler', icon: Pin, action: () => {} });
     }
 
+    const itemVariants = {
+        hidden: { opacity: 0, scale: 0.5 },
+        visible: (i: number) => ({
+            opacity: 1,
+            scale: 1,
+            transition: { delay: i * 0.05, type: 'spring', stiffness: 300, damping: 20 },
+        }),
+    };
+
     return (
         <AnimatePresence>
              <motion.div
-                className="fixed inset-0 z-50 flex flex-col items-center justify-end p-4"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
+                className="fixed inset-0 z-50 flex flex-col items-center justify-center p-4"
+                initial={{ opacity: 0, backdropFilter: 'blur(0px)' }}
+                animate={{ opacity: 1, backdropFilter: 'blur(8px)' }}
+                exit={{ opacity: 0, backdropFilter: 'blur(0px)' }}
             >
-                <div className="absolute inset-0 bg-background/50 backdrop-blur-sm" onClick={onClose} />
+                <div className="absolute inset-0 bg-background/50" onClick={onClose} />
                 
                 <motion.div 
-                    className="relative flex flex-col items-center gap-2 w-full max-w-md"
-                    initial={{ y: "100%" }}
-                    animate={{ y: 0 }}
-                    exit={{ y: "100%" }}
-                    transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+                    className="relative flex flex-col items-center gap-6 w-full max-w-md"
+                    initial={{ scale: 0.9, y: 50 }}
+                    animate={{ scale: 1, y: 0 }}
+                    exit={{ scale: 0.9, y: 50 }}
+                    transition={{ type: 'spring', stiffness: 400, damping: 40 }}
                 >
-                     <div className="bg-background/80 backdrop-blur-lg p-2 rounded-full flex items-center gap-2 shadow-lg border">
-                        {ReactionEmojis.map(emoji => (
-                            <motion.button 
-                                key={emoji} 
-                                className="text-2xl"
-                                whileHover={{ scale: 1.3 }}
-                                whileTap={{ scale: 0.9 }}
-                            >
-                                {emoji}
-                            </motion.button>
-                        ))}
-                    </div>
-
                     <div className={cn("w-full flex", sender.id === chatContext.loggedInUser.uid ? 'justify-end' : 'justify-start')}>
                         <ChatMessage 
                             message={{...message, sender}} 
@@ -363,26 +357,64 @@ const MessageFocusView = ({
                             onReply={() => {}}
                             isFirstInGroup={true}
                             isLastInGroup={true}
-                            otherUser={chatContext.otherUser}
                         />
                     </div>
-                    
-                    <div className="bg-background/80 backdrop-blur-lg w-full rounded-2xl shadow-lg border overflow-hidden">
-                       <ul className="text-base">
-                           {mainActions.map((item, index) => (
-                               <React.Fragment key={item.label}>
-                                   <li
-                                     onClick={() => handleActionClick(item.action, item.label)}
-                                     className={cn("flex items-center justify-between p-4 cursor-pointer hover:bg-muted/50", item.className)}
-                                   >
-                                       <span>{item.label}</span>
-                                       <item.icon className="w-5 h-5 text-muted-foreground" />
-                                   </li>
-                                   {index < mainActions.length -1 && <Separator className="bg-border/50" />}
-                               </React.Fragment>
-                           ))}
-                       </ul>
-                    </div>
+                     <motion.div 
+                        className="flex items-center gap-4 bg-background/80 backdrop-blur-lg p-2 rounded-full shadow-lg border"
+                        variants={{
+                            hidden: { opacity: 0 },
+                            visible: {
+                                opacity: 1,
+                                transition: { staggerChildren: 0.05, delayChildren: 0.2 }
+                            }
+                        }}
+                        initial="hidden"
+                        animate="visible"
+                    >
+                        {ReactionEmojis.map((emoji, i) => (
+                            <motion.button 
+                                key={emoji} 
+                                className="text-2xl"
+                                variants={itemVariants}
+                                custom={i}
+                                whileHover={{ scale: 1.3, rotate: Math.random() * 20 - 10 }}
+                                whileTap={{ scale: 0.9 }}
+                            >
+                                {emoji}
+                            </motion.button>
+                        ))}
+                    </motion.div>
+                </motion.div>
+                
+                 <motion.div
+                    className="absolute bottom-1/4 left-1/2 -translate-x-1/2 w-[300px] h-[300px] pointer-events-none"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1, transition: { delay: 0.1 } }}
+                    exit={{ opacity: 0 }}
+                >
+                    {mainActions.map((item, index) => {
+                         const angle = -150 + (index * 30);
+                         return (
+                            <motion.div
+                                key={item.label}
+                                className="absolute top-0 left-1/2 -translate-x-1/2"
+                                style={{ originY: '150px' }}
+                                initial={{ opacity: 0, scale: 0, rotate: angle }}
+                                animate={{ opacity: 1, scale: 1, rotate: angle, transition: { delay: 0.2 + index * 0.05, type: 'spring', stiffness: 300, damping: 20 } }}
+                                exit={{ opacity: 0, scale: 0, rotate: angle, transition: { duration: 0.1 } }}
+                            >
+                                <motion.div
+                                    className={cn("flex items-center justify-center w-14 h-14 bg-background/80 backdrop-blur-lg rounded-full shadow-lg border cursor-pointer pointer-events-auto", item.className)}
+                                    onClick={() => handleActionClick(item.action, item.label)}
+                                    whileHover={{ scale: 1.15, boxShadow: '0px 0px 15px rgba(255,255,255,0.2)' }}
+                                    whileTap={{ scale: 0.95 }}
+                                    style={{ rotate: -angle }}
+                                >
+                                    <item.icon className="w-6 h-6" />
+                                </motion.div>
+                           </motion.div>
+                         );
+                    })}
                 </motion.div>
             </motion.div>
         </AnimatePresence>
@@ -536,7 +568,6 @@ export function ChatMessages({
                         isLastInGroup={msgIndex === senderGroup.messages.length - 1}
                         onOpenContextMenu={handleOpenContextMenu}
                         onReply={() => onReply(message)}
-                        otherUser={otherUser}
                       />
                     ))}
                   </div>
