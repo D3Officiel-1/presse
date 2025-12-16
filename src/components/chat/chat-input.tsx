@@ -309,18 +309,30 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
                         />
                         <div className="relative h-10 w-10 shrink-0">
                             <AnimatePresence>
-                                {message && (
-                                <motion.div
-                                    key="send"
-                                    initial={{ scale: 0, rotate: -90 }}
-                                    animate={{ scale: 1, rotate: 0 }}
-                                    exit={{ scale: 0, rotate: 90 }}
-                                    className="absolute inset-0"
-                                >
-                                    <Button size="icon" className="h-10 w-10 rounded-full bg-primary text-primary-foreground" onClick={handleSend}>
-                                    <Send className="w-5 h-5" />
-                                    </Button>
-                                </motion.div>
+                                {message ? (
+                                    <motion.div
+                                        key="send-emoji"
+                                        initial={{ scale: 0, opacity: 0 }}
+                                        animate={{ scale: 1, opacity: 1 }}
+                                        exit={{ scale: 0, opacity: 0 }}
+                                        className="absolute inset-0"
+                                    >
+                                        <Button size="icon" className="h-10 w-10 rounded-full bg-primary text-primary-foreground" onClick={handleSend}>
+                                            <Send className="w-5 h-5" />
+                                        </Button>
+                                    </motion.div>
+                                ) : (
+                                    <motion.div
+                                        key="keyboard-emoji"
+                                        initial={{ scale: 0, opacity: 0 }}
+                                        animate={{ scale: 1, opacity: 1 }}
+                                        exit={{ scale: 0, opacity: 0 }}
+                                        className="absolute inset-0"
+                                    >
+                                         <Button variant="ghost" size="icon" className="h-10 w-10 shrink-0 text-muted-foreground rounded-full" onClick={toggleEmojiMenu}>
+                                            <Keyboard className="w-5 h-5" />
+                                        </Button>
+                                    </motion.div>
                                 )}
                             </AnimatePresence>
                         </div>
@@ -329,7 +341,7 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
                         {emojiCategories.map(category => (
                             <div key={category.name}>
                                 <h3 className="text-sm font-semibold text-muted-foreground my-2">{category.name}</h3>
-                                <div className="grid grid-cols-8 gap-1">
+                                <div className="grid grid-cols-6 sm:grid-cols-8 gap-1">
                                     {category.emojis.map((emoji) => (
                                         <Button
                                             key={emoji}
@@ -351,6 +363,9 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
                   <Button variant="ghost" size="icon" className="h-10 w-10 shrink-0 text-muted-foreground" onClick={toggleAttachmentMenu}>
                       <Paperclip className="w-5 h-5" />
                   </Button>
+                   <Button variant="ghost" size="icon" className="h-10 w-10 shrink-0 text-muted-foreground" onClick={toggleEmojiMenu}>
+                      <Smile className="w-5 h-5" />
+                  </Button>
                   <TextareaAutosize
                     ref={input => input && !replyInfo && input.focus()}
                     value={message}
@@ -360,9 +375,6 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
                     maxRows={5}
                     className="flex-1 resize-none bg-transparent border-0 focus:ring-0 focus:outline-none text-base placeholder:text-muted-foreground px-2"
                   />
-                   <Button variant="ghost" size="icon" className="h-10 w-10 shrink-0 text-muted-foreground" onClick={toggleEmojiMenu}>
-                      <Smile className="w-5 h-5" />
-                  </Button>
                   <div className="relative h-10 w-10 shrink-0">
                     <AnimatePresence>
                       {message ? (
@@ -409,9 +421,9 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
             {isAttachmentMenuOpen && (
                 <motion.div
                     className="absolute top-2 right-2 z-10"
-                    initial={{ opacity: 0, scale: 0.5 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.5 }}
+                    initial={{ opacity: 0, scale: 0.5, rotate: -90 }}
+                    animate={{ opacity: 1, scale: 1, rotate: 0 }}
+                    exit={{ opacity: 0, scale: 0.5, rotate: 90 }}
                 >
                     <Button
                         variant="ghost" size="icon"
@@ -419,22 +431,6 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
                         onClick={toggleAttachmentMenu}
                     >
                          <X className="w-5 h-5" />
-                    </Button>
-                </motion.div>
-            )}
-             {isEmojiMenuOpen && (
-                <motion.div
-                    className="absolute top-2 right-2 z-10"
-                    initial={{ opacity: 0, scale: 0.5 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.5 }}
-                >
-                    <Button
-                        variant="ghost" size="icon"
-                        className="h-10 w-10 shrink-0 text-muted-foreground rounded-full"
-                        onClick={toggleEmojiMenu}
-                    >
-                         <Keyboard className="w-5 h-5" />
                     </Button>
                 </motion.div>
             )}
