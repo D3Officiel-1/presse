@@ -4,7 +4,7 @@
 import React, { useState, useRef, useEffect, Suspense, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { Loader2, ArrowLeft, Crop, RotateCw, Send, Type, Brush, X, Check, Smile, AlignLeft, AlignCenter, AlignRight, ChevronUp, ChevronDown, Trash2 } from 'lucide-react';
+import { Loader2, ArrowLeft, Crop, RotateCw, Send, Type, Brush, X, Check, Smile, AlignLeft, AlignCenter, AlignRight, ChevronUp, ChevronDown, Trash2, Minus, Wind } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import Image from 'next/image';
 import ReactCrop, { type Crop as CropType, centerCrop, makeAspectCrop } from 'react-image-crop';
@@ -135,6 +135,7 @@ function EditorComponent() {
     const [isDrawing, setIsDrawing] = useState(false);
     const [drawColor, setDrawColor] = useState('#FFFFFF');
     const [lineWidth, setLineWidth] = useState(5);
+    const [drawMode, setDrawMode] = useState<'draw' | 'pixelate'>('draw');
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const contextRef = useRef<CanvasRenderingContext2D | null>(null);
     const isDrawingRef = useRef(false);
@@ -159,13 +160,14 @@ function EditorComponent() {
     
     // Setup drawing canvas
     useEffect(() => {
-        if (isDrawing && canvasRef.current) {
+        if (isDrawing && canvasRef.current && imageContainerRef.current) {
             const canvas = canvasRef.current;
+            canvas.width = imageContainerRef.current.clientWidth;
+            canvas.height = imageContainerRef.current.clientHeight;
             const context = canvas.getContext('2d');
             if (context) {
-                canvas.width = imageContainerRef.current?.clientWidth || 500;
-                canvas.height = imageContainerRef.current?.clientHeight || 500;
                 context.lineCap = 'round';
+                context.lineJoin = 'round';
                 context.strokeStyle = drawColor;
                 context.lineWidth = lineWidth;
                 contextRef.current = context;
@@ -173,31 +175,72 @@ function EditorComponent() {
         }
     }, [isDrawing, drawColor, lineWidth]);
 
-    const startDrawing = ({ nativeEvent }: React.MouseEvent | React.TouchEvent) => {
-        const { offsetX, offsetY } = nativeEvent as MouseEvent; // Simplified for mouse
-        if (contextRef.current) {
+    const pixelate = (ctx: CanvasRenderingContext2D, x: number, y: number, size: number) => {
+        const pixelSize = Math.max(5, lineWidth / 2);
+        const sourceCtx = document.createElement('canvas').getContext('2d');
+        if (!sourceCtx || !imageContainerRef.current) return;
+        
+        const img = imageContainerRef.current.querySelector('img');
+        if (!img) return;
+
+        sourceCtx.canvas.width = img.naturalWidth;
+        sourceCtx.canvas.height = img.naturalHeight;
+        sourceCtx.drawImage(img, 0, 0, img.naturalWidth, img.naturalHeight);
+
+        const canvas = ctx.canvas;
+        const scaleX = img.naturalWidth / canvas.clientWidth;
+        const scaleY = img.naturalHeight / canvas.clientHeight;
+        
+        const sourceX = Math.floor(x * scaleX);
+        const sourceY = Math.floor(y * scaleY);
+
+        const imageData = sourceCtx.getImageData(sourceX, sourceY, 1, 1).data;
+        ctx.fillStyle = `rgba(${imageData[0]}, ${imageData[1]}, ${imageData[2]}, ${imageData[3] / 255})`;
+        
+        ctx.fillRect(Math.floor(x/pixelSize)*pixelSize, Math.floor(y/pixelSize)*pixelSize, pixelSize, pixelSize);
+    };
+
+    const startDrawing = (e: React.MouseEvent | React.TouchEvent) => {
+        const canvas = canvasRef.current;
+        if (!canvas || !contextRef.current) return;
+        const rect = canvas.getBoundingClientRect();
+        const pos = 'touches' in e.nativeEvent ? e.nativeEvent.touches[0] : e.nativeEvent;
+        const offsetX = pos.clientX - rect.left;
+        const offsetY = pos.clientY - rect.top;
+
+        isDrawingRef.current = true;
+        if (drawMode === 'draw') {
             contextRef.current.beginPath();
             contextRef.current.moveTo(offsetX, offsetY);
-            isDrawingRef.current = true;
+        } else if (drawMode === 'pixelate') {
+            pixelate(contextRef.current, offsetX, offsetY, lineWidth);
         }
     };
 
     const finishDrawing = () => {
-        if (contextRef.current) {
+        if (contextRef.current && drawMode === 'draw') {
             contextRef.current.closePath();
-            isDrawingRef.current = false;
         }
+        isDrawingRef.current = false;
     };
 
-    const draw = ({ nativeEvent }: React.MouseEvent | React.TouchEvent) => {
-        if (!isDrawingRef.current || !contextRef.current) {
-            return;
-        }
-        const { offsetX, offsetY } = nativeEvent as MouseEvent;
-        contextRef.current.lineTo(offsetX, offsetY);
-        contextRef.current.stroke();
-    };
+    const draw = (e: React.MouseEvent | React.TouchEvent) => {
+        if (!isDrawingRef.current || !contextRef.current) return;
+        const canvas = canvasRef.current;
+        if (!canvas) return;
+        const rect = canvas.getBoundingClientRect();
+        const pos = 'touches' in e.nativeEvent ? e.nativeEvent.touches[0] : e.nativeEvent;
+        const offsetX = pos.clientX - rect.left;
+        const offsetY = pos.clientY - rect.top;
 
+        if (drawMode === 'draw') {
+            contextRef.current.lineTo(offsetX, offsetY);
+            contextRef.current.stroke();
+        } else if (drawMode === 'pixelate') {
+            pixelate(contextRef.current, offsetX, offsetY, lineWidth);
+        }
+    };
+    
     const confirmDrawing = async () => {
         if (!canvasRef.current || !imageContainerRef.current) return;
         
@@ -213,11 +256,10 @@ function EditorComponent() {
 
         finalCtx.drawImage(imageElement, 0, 0);
 
-        // Scale and draw the drawing canvas onto the final canvas
         finalCtx.drawImage(
             drawingCanvas, 
-            0, 0, drawingCanvas.width, drawingCanvas.height, // Source
-            0, 0, finalCanvas.width, finalCanvas.height // Destination
+            0, 0, drawingCanvas.width, drawingCanvas.height,
+            0, 0, finalCanvas.width, finalCanvas.height
         );
 
         const dataUrl = finalCanvas.toDataURL('image/png');
@@ -302,11 +344,6 @@ function EditorComponent() {
                 title: "Fonctionnalité à venir",
                 description: "L'envoi de médias sera bientôt disponible."
             });
-            // Example: onSendMessage(dataUrl, 'image');
-            
-            sessionStorage.removeItem('media-to-edit');
-            sessionStorage.removeItem('media-type-to-edit');
-            // router.back();
 
         } catch (error) {
             console.error('oops, something went wrong!', error);
@@ -373,7 +410,7 @@ function EditorComponent() {
             setOverlayText(null);
             toast({ description: "Texte supprimé." });
         } else {
-            // No need to update textPosition state here as framer-motion handles it
+            // framer-motion handles the position
         }
     };
 
@@ -453,7 +490,26 @@ function EditorComponent() {
                                 Terminer
                             </Button>
                         </header>
-                         <ColorSlider onColorChange={setDrawColor} />
+                         <ColorSlider onColorChange={(color) => { setDrawMode('draw'); setDrawColor(color); }} />
+                          <motion.div 
+                            className="absolute bottom-4 left-1/2 -translate-x-1/2 w-fit bg-black/30 backdrop-blur-md rounded-full border border-white/10 p-2 flex items-center gap-2"
+                            initial={{ y: 50, opacity: 0 }}
+                            animate={{ y: 0, opacity: 1 }}
+                            exit={{ y: 50, opacity: 0 }}
+                          >
+                            <Button variant="ghost" size="icon" className={cn('rounded-full', lineWidth === 5 && drawMode === 'draw' && 'bg-white/20')} onClick={() => { setDrawMode('draw'); setLineWidth(5); }}>
+                                <Minus className="w-3 h-3" />
+                            </Button>
+                            <Button variant="ghost" size="icon" className={cn('rounded-full', lineWidth === 10 && drawMode === 'draw' && 'bg-white/20')} onClick={() => { setDrawMode('draw'); setLineWidth(10); }}>
+                                <Minus className="w-5 h-5" />
+                            </Button>
+                            <Button variant="ghost" size="icon" className={cn('rounded-full', lineWidth === 20 && drawMode === 'draw' && 'bg-white/20')} onClick={() => { setDrawMode('draw'); setLineWidth(20); }}>
+                                <Minus className="w-7 h-7" />
+                            </Button>
+                             <Button variant="ghost" size="icon" className={cn('rounded-full', drawMode === 'pixelate' && 'bg-white/20')} onClick={() => setDrawMode('pixelate')}>
+                                <Wind className="w-5 h-5" />
+                            </Button>
+                        </motion.div>
                     </motion.div>
                 )}
             </AnimatePresence>
@@ -473,7 +529,6 @@ function EditorComponent() {
             )}
             </AnimatePresence>
             
-
             {/* Media Preview */}
             <div ref={dragConstraintsRef} className="flex-1 flex items-center justify-center p-16 overflow-hidden">
                  <div ref={imageContainerRef} className="relative w-fit h-fit">
@@ -541,9 +596,10 @@ function EditorComponent() {
                     {isDrawing && (
                         <canvas
                             ref={canvasRef}
-                            className="absolute top-0 left-0 w-full h-full"
+                            className="absolute top-0 left-0 w-full h-full cursor-crosshair"
                             onMouseDown={startDrawing}
                             onMouseUp={finishDrawing}
+                            onMouseLeave={finishDrawing}
                             onMouseMove={draw}
                             onTouchStart={startDrawing}
                             onTouchEnd={finishDrawing}
