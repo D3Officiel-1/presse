@@ -196,7 +196,7 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
   return (
     <div className="relative p-4 pt-2">
       <AnimatePresence>
-        {replyInfo && !isAttachmentMenuOpen && (
+        {replyInfo && (
           <motion.div
             initial={{ opacity: 0, y: 20, height: 0 }}
             animate={{ opacity: 1, y: 0, height: 'auto' }}
@@ -219,18 +219,18 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
 
       <motion.div
         layout
-        transition={{ type: 'spring', stiffness: 400, damping: 35 }}
+        transition={{ type: 'spring', stiffness: 500, damping: 30 }}
         className="relative bg-background/50 backdrop-blur-sm rounded-3xl shadow-lg border"
       >
         <AnimatePresence mode="wait">
           {isAttachmentMenuOpen ? (
             <motion.div
               key="attachment-menu"
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              transition={{ duration: 0.2 }}
-              className="p-6"
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+              className="p-6 overflow-hidden"
             >
               <div className="grid grid-cols-4 gap-x-4 gap-y-6">
                 {attachmentActions.map((action, index) => (
@@ -241,7 +241,7 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
                     animate={(i) => ({
                       opacity: 1,
                       y: 0,
-                      transition: { delay: i * 0.03 },
+                      transition: { delay: i * 0.03 + 0.1 },
                     })}
                     className="flex flex-col items-center gap-2 text-center cursor-pointer group"
                   >
@@ -262,8 +262,10 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
               transition={{ duration: 0.2, delay: 0.1 }}
               className="flex items-center gap-1 p-2"
             >
-              <Button variant="ghost" size="icon" className="h-10 w-10 shrink-0 text-muted-foreground">
-                <Smile className="w-5 h-5" />
+              <Button variant="ghost" size="icon" className="h-10 w-10 shrink-0 text-muted-foreground" onClick={() => setIsAttachmentMenuOpen(prev => !prev)}>
+                  <motion.div animate={{ rotate: isAttachmentMenuOpen ? 135 : 0 }} transition={{type: 'spring', stiffness: 400, damping: 20}}>
+                      <Paperclip className="w-5 h-5" />
+                  </motion.div>
               </Button>
               <TextareaAutosize
                 ref={input => input && !replyInfo && input.focus()}
@@ -272,8 +274,11 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
                 onKeyDown={handleKeyDown}
                 placeholder="Message"
                 maxRows={5}
-                className="flex-1 resize-none bg-transparent border-0 focus:ring-0 focus:outline-none text-base placeholder:text-muted-foreground"
+                className="flex-1 resize-none bg-transparent border-0 focus:ring-0 focus:outline-none text-base placeholder:text-muted-foreground px-2"
               />
+               <Button variant="ghost" size="icon" className="h-10 w-10 shrink-0 text-muted-foreground">
+                  <Smile className="w-5 h-5" />
+              </Button>
               <div className="relative h-10 w-10 shrink-0">
                 <AnimatePresence>
                   {message ? (
@@ -315,13 +320,16 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
           )}
         </AnimatePresence>
         
-        <div className="absolute top-1/2 left-2 -translate-y-1/2">
-            <Button variant="ghost" size="icon" className="h-10 w-10 shrink-0 text-muted-foreground" onClick={() => setIsAttachmentMenuOpen(prev => !prev)}>
-                <motion.div animate={{ rotate: isAttachmentMenuOpen ? 135 : 0 }}>
-                    <Paperclip className="w-5 h-5" />
-                </motion.div>
+         <motion.div 
+            className="absolute top-2 right-2"
+            animate={{ rotate: isAttachmentMenuOpen ? 180 : 0 }}
+            transition={{type: 'spring', stiffness: 400, damping: 20}}
+         >
+            <Button variant="ghost" size="icon" className="h-10 w-10 shrink-0 text-muted-foreground" onClick={() => isAttachmentMenuOpen && setIsAttachmentMenuOpen(false)}>
+                 {isAttachmentMenuOpen && <X className="w-5 h-5" />}
             </Button>
-        </div>
+        </motion.div>
+
 
       </motion.div>
 
