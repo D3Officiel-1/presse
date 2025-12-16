@@ -4,22 +4,21 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useFirestore } from '@/firebase/provider';
-import { collection, doc, getDoc, onSnapshot, query, orderBy } from 'firebase/firestore';
+import { collection, doc, onSnapshot, query, orderBy, Timestamp } from 'firebase/firestore';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Calendar, CheckCircle, XCircle, Loader2, User, Activity, BarChart3, TrendingUp, TrendingDown } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { ArrowLeft, Calendar as CalendarIcon, CheckCircle, XCircle, Loader2, User, Activity, BarChart3, TrendingUp, TrendingDown } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import { format, startOfMonth, endOfMonth, eachDayOfInterval } from 'date-fns';
+import { format, startOfMonth, endOfMonth, eachDayOfInterval, getMonth, getYear } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Separator } from '@/components/ui/separator';
 
 interface PresenceRecord {
     id: string;
     status: 'present' | 'absent';
-    timestamp: {
-        toDate: () => Date;
-    };
+    timestamp: Timestamp;
 }
 
 interface UserData {
@@ -38,12 +37,6 @@ export default function HistoryPage() {
     const [presenceRecords, setPresenceRecords] = useState<PresenceRecord[]>([]);
     const [loading, setLoading] = useState(true);
     const [currentMonth, setCurrentMonth] = useState(new Date());
-
-    const presentDays = presenceRecords.filter(r => r.status === 'present').map(r => r.timestamp.toDate());
-    const absentDays = presenceRecords.filter(r => r.status === 'absent').map(r => r.timestamp.toDate());
-    
-    const totalPresent = presentDays.length;
-    const totalAbsent = absentDays.length;
 
     useEffect(() => {
         if (!userId || !firestore) return;
@@ -75,6 +68,26 @@ export default function HistoryPage() {
         };
 
     }, [userId, firestore]);
+    
+    const presentDays = presenceRecords
+        .filter(r => r.status === 'present')
+        .map(r => r.timestamp.toDate());
+    
+    const absentDays = presenceRecords
+        .filter(r => r.status === 'absent')
+        .map(r => r.timestamp.toDate());
+    
+    const totalPresent = presentDays.length;
+    const totalAbsent = absentDays.length;
+
+    const monthlyStats = React.useMemo(() => {
+        const month = getMonth(currentMonth);
+        const year = getYear(currentMonth);
+        const presentCount = presentDays.filter(d => getMonth(d) === month && getYear(d) === year).length;
+        const absentCount = absentDays.filter(d => getMonth(d) === month && getYear(d) === year).length;
+        return { presentCount, absentCount };
+    }, [currentMonth, presentDays, absentDays]);
+
 
     if (loading) {
         return (
@@ -138,7 +151,7 @@ export default function HistoryPage() {
                  >
                     <Card className='bg-card/30 backdrop-blur-md border-white/10 shadow-lg'>
                         <CardHeader>
-                            <CardTitle className="flex items-center gap-2 text-xl"><Calendar className="w-5 h-5 text-muted-foreground"/> Calendrier</CardTitle>
+                            <CardTitle className="flex items-center gap-2 text-xl"><CalendarIcon className="w-5 h-5 text-muted-foreground"/> Calendrier d'Activité</CardTitle>
                         </CardHeader>
                         <CardContent className="flex justify-center">
                            <CalendarComponent
@@ -157,6 +170,19 @@ export default function HistoryPage() {
                                 className="p-0"
                             />
                         </CardContent>
+                        <CardFooter className="flex-col items-start gap-4 border-t border-white/10 pt-4">
+                            <div className="text-sm font-semibold">Résumé pour {format(currentMonth, 'MMMM yyyy', { locale: fr })}</div>
+                            <div className="flex w-full justify-around">
+                                <div className="text-center">
+                                    <div className="text-2xl font-bold text-green-400">{monthlyStats.presentCount}</div>
+                                    <div className="text-xs text-muted-foreground">Présences</div>
+                                </div>
+                                <div className="text-center">
+                                     <div className="text-2xl font-bold text-red-400">{monthlyStats.absentCount}</div>
+                                    <div className="text-xs text-muted-foreground">Absences</div>
+                                </div>
+                            </div>
+                        </CardFooter>
                     </Card>
                 </motion.div>
 
@@ -164,7 +190,7 @@ export default function HistoryPage() {
                     <h2 className="text-xl font-semibold flex items-center gap-2"><BarChart3 className="w-5 h-5 text-muted-foreground"/> Chronologie des pointages</h2>
                     {presenceRecords.length === 0 ? (
                         <div className="flex flex-col items-center justify-center text-center text-muted-foreground py-16 bg-card/20 rounded-xl border border-dashed">
-                            <Calendar className="w-12 h-12 mb-4" />
+                            <CalendarIcon className="w-12 h-12 mb-4" />
                             <h3 className="text-lg font-semibold">Aucun enregistrement</h3>
                             <p className="text-sm">Cet historique est vide pour le moment.</p>
                         </div>
@@ -210,34 +236,33 @@ export default function HistoryPage() {
 
 // Custom styles for calendar days
 const calendarDayStyles = `
-  .day-present:not(.day-outside) {
-    background-color: hsl(var(--primary) / 0.1);
-    color: hsl(var(--primary));
-    font-weight: 700;
+  .day-present > div::after, .day-absent > div::after {
+    content: '';
+    position: absolute;
+    bottom: 4px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 6px;
+    height: 6px;
+    border-radius: 9999px;
   }
-  .day-present:not(.day-outside)::after {
-    display: none;
-  }
-  .day-present.rdp-day_selected {
+  .day-present > div::after {
     background-color: hsl(var(--primary));
-    color: hsl(var(--primary-foreground));
   }
-  .day-absent:not(.day-outside) {
-    background-color: hsl(var(--destructive) / 0.1);
-    color: hsl(var(--destructive));
-    font-weight: 700;
-  }
-  .day-absent:not(.day-outside)::after {
-    display: none;
-  }
-  .day-absent.rdp-day_selected {
+  .day-absent > div::after {
     background-color: hsl(var(--destructive));
-    color: hsl(var(--destructive-foreground));
+  }
+  .rdp-day {
+      position: relative;
   }
 `;
 const styleSheet = typeof window !== 'undefined' ? document.createElement("style") : null;
 if (styleSheet) {
-    styleSheet.innerText = calendarDayStyles;
-    document.head.appendChild(styleSheet);
+    if (!document.getElementById('calendar-styles')) {
+        styleSheet.id = 'calendar-styles';
+        styleSheet.innerText = calendarDayStyles;
+        document.head.appendChild(styleSheet);
+    }
 }
+
 
