@@ -4,7 +4,7 @@
 import React, { useState, useRef, useEffect, Suspense } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { Loader2, ArrowLeft, Crop, RotateCw, Send, Type, Brush, X, Check, Smile, AlignLeft, AlignCenter, AlignRight } from 'lucide-react';
+import { Loader2, ArrowLeft, Crop, RotateCw, Send, Type, Brush, X, Check, Smile, AlignLeft, AlignCenter, AlignRight, ChevronDown } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import Image from 'next/image';
 import ReactCrop, { type Crop as CropType, centerCrop, makeAspectCrop } from 'react-image-crop';
@@ -14,6 +14,7 @@ import * as htmlToImage from 'html-to-image';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 
 function centerAspectCrop(
@@ -38,11 +39,12 @@ function centerAspectCrop(
 
 const fontStyles = [
     { label: 'Normal', class: 'font-sans' },
-    { label: 'Manuscrit', class: 'font-serif' },
-    { label: 'Machine', class: 'font-mono' },
     { label: 'Impact', class: 'font-headline' },
-    { label: 'Code', class: 'font-code' },
+    { label: 'Manuscrit', class: 'font-serif' },
     { label: 'Cursive', class: 'font-serif italic' },
+    { label: 'Machine', class: 'font-mono' },
+    { label: 'Code', class: 'font-code' },
+    { label: 'Impact', class: 'font-headline' },
 ];
 
 
@@ -69,6 +71,7 @@ function EditorComponent() {
     const [textAlign, setTextAlign] = useState<'center' | 'left' | 'right'>('center');
     const [textStyle, setTextStyle] = useState<'none' | 'solid' | 'outline'>('none');
     const [fontFamily, setFontFamily] = useState('font-sans');
+    const [fontListExpanded, setFontListExpanded] = useState(false);
 
 
     useEffect(() => {
@@ -356,25 +359,60 @@ function EditorComponent() {
                                 autoFocus
                             />
                          </motion.div>
-                         <footer className="absolute bottom-4 left-0 right-0 flex justify-center">
-                            <div className="w-full max-w-sm overflow-x-auto no-scrollbar">
+                         <footer className="absolute bottom-4 left-4 right-4 flex justify-center">
+                            <div className="relative">
                                 <div className="flex items-center justify-center gap-2 bg-black/30 p-2 rounded-full w-max mx-auto">
-                                    {fontStyles.map((font) => (
+                                    {fontStyles.slice(0, 5).map((font) => (
                                         <Button
                                             key={font.class}
                                             variant="ghost"
                                             size="sm"
-                                            onClick={() => setFontFamily(font.class)}
-                                            className={cn(
-                                                "rounded-full text-white shrink-0",
-                                                font.class,
-                                                fontFamily === font.class && "bg-white text-black"
-                                            )}
+                                            onClick={() => {
+                                                setFontFamily(font.class);
+                                                setFontListExpanded(false);
+                                            }}
+                                            className={cn("rounded-full text-white shrink-0", font.class, fontFamily === font.class && "bg-white text-black")}
                                         >
                                             {font.label}
                                         </Button>
                                     ))}
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        className="rounded-full"
+                                        onClick={() => setFontListExpanded(!fontListExpanded)}
+                                    >
+                                        <ChevronDown className={cn("h-5 w-5 text-white transition-transform", fontListExpanded && "rotate-180")} />
+                                    </Button>
                                 </div>
+                                <AnimatePresence>
+                                {fontListExpanded && (
+                                    <motion.div
+                                        initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                                        exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                                        className="absolute bottom-full mb-2 w-full max-w-sm"
+                                    >
+                                        <div className="bg-black/50 backdrop-blur-md rounded-xl p-2 border border-white/10">
+                                            <ScrollArea className="h-[200px]">
+                                                {fontStyles.map((font) => (
+                                                    <Button
+                                                        key={`list-${font.class}`}
+                                                        variant="ghost"
+                                                        onClick={() => {
+                                                            setFontFamily(font.class);
+                                                            setFontListExpanded(false);
+                                                        }}
+                                                        className={cn("w-full justify-start text-white text-lg h-12", font.class, fontFamily === font.class && "bg-white/20")}
+                                                    >
+                                                        {font.label}
+                                                    </Button>
+                                                ))}
+                                            </ScrollArea>
+                                        </div>
+                                    </motion.div>
+                                )}
+                                </AnimatePresence>
                             </div>
                         </footer>
                     </motion.div>
