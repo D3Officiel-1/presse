@@ -346,7 +346,7 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
                 >
                     {view === 'attachments' && (
                         <div className="p-4 pt-2">
-                          <div className="grid grid-cols-4 gap-4">
+                          <div className="flex flex-wrap items-center justify-center gap-4">
                               {attachmentActions.map(item => (
                                   <div key={item.label} className="flex flex-col items-center gap-2" onClick={() => handleAttachmentAction(item.action || item.label)}>
                                       <Button variant="ghost" size="icon" className={cn("h-14 w-14 rounded-full", item.color.replace('text-', 'bg-') + '/20', item.color)}>
@@ -373,7 +373,17 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
                                        ))}
                                    </div>
                                </div>
-                                <div className="w-9"></div>
+                                <Button 
+                                    variant="ghost" 
+                                    size="icon"
+                                    className="h-9 w-9"
+                                    onClick={handleBackspace}
+                                    onPointerDown={handlePointerDownBackspace}
+                                    onPointerUp={handlePointerUpBackspace}
+                                    onPointerLeave={handlePointerUpBackspace}
+                                >
+                                    <Delete className="w-5 h-5"/>
+                                </Button>
                            </div>
                            {searchMode ? (
                                <div className="p-2">
@@ -401,19 +411,6 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
                                         </Button>
                                     ))}
                                 </div>
-                           </div>
-                           <div className="p-2 border-t flex items-center justify-between">
-                                <Button 
-                                    variant="ghost" 
-                                    size="icon" 
-                                    onClick={handleBackspace}
-                                    onPointerDown={handlePointerDownBackspace}
-                                    onPointerUp={handlePointerUpBackspace}
-                                    onPointerLeave={handlePointerUpBackspace}
-                                >
-                                    <Delete className="w-5 h-5"/>
-                                </Button>
-                                <div className="w-9" />
                            </div>
                        </div>
                     )}
