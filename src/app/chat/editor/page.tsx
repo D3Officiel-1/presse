@@ -40,6 +40,9 @@ const fontStyles = [
     { label: 'Normal', class: 'font-sans' },
     { label: 'Manuscrit', class: 'font-serif' },
     { label: 'Machine', class: 'font-mono' },
+    { label: 'Impact', class: 'font-headline' },
+    { label: 'Code', class: 'font-code' },
+    { label: 'Cursive', class: 'font-serif italic' },
 ];
 
 
