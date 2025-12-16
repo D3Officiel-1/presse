@@ -35,6 +35,15 @@ import { Skeleton } from '../ui/skeleton';
 
 const ReactionEmojis = ['👍', '❤️', '😂', '😮', '😢', '🙏'];
 
+const generateColorFromId = (id: string): string => {
+  let hash = 0;
+  for (let i = 0; i < id.length; i++) {
+    hash = id.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  const h = hash % 360;
+  return `hsl(${h}, 70%, 65%)`;
+};
+
 
 export interface ReplyInfo extends Message {}
 
@@ -608,7 +617,12 @@ export function ChatMessages({
                                 )}
                             </Avatar>
                           </motion.div>
-                          <p className="text-xs text-muted-foreground">{sender?.name || '...'}</p>
+                          <p 
+                            className="text-xs font-semibold"
+                            style={{ color: sender ? generateColorFromId(sender.id) : 'hsl(var(--foreground))' }}
+                          >
+                            {sender?.name || '...'}
+                          </p>
                       </div>
                   )}
                   <div className={cn("flex flex-col space-y-1 w-full", senderGroup.position === 'right' ? 'items-end' : 'items-start')}>
