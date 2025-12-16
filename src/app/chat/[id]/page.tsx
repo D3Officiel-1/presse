@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useState, useEffect, useRef, useMemo, Suspense } from 'react';
@@ -202,7 +201,68 @@ function ChatPageContent() {
     setReplyInfo(undefined);
   };
   
-  // Other handlers (delete, star, etc.)
+    const handleShareMessage = async (message: MessageType, userIds: string[]) => {
+        if (!firestore || !currentUser) return;
+
+        const sender = usersData[message.senderId] || { name: 'Quelqu\'un' };
+        const forwardedContent = `Message transféré de ${sender.name}:\n${message.content}`;
+
+        userIds.forEach(async (userId) => {
+            // Find existing private chat
+            const chatsRef = collection(firestore, 'chats');
+            const chatQuery = query(chatsRef, 
+                where('type', '==', 'private'),
+                where('members', '==', [currentUser.uid, userId].sort())
+            );
+            const chatSnap = await getDocs(chatQuery);
+
+            let targetChatId: string;
+
+            if (chatSnap.empty) {
+                // Create new chat if it doesn't exist
+                const newChatDoc = await addDoc(chatsRef, {
+                    type: 'private',
+                    members: [currentUser.uid, userId].sort(),
+                    createdAt: serverTimestamp(),
+                    unreadCounts: { [currentUser.uid]: 0, [userId]: 0 },
+                    typing: { [currentUser.uid]: false, [userId]: false },
+                });
+                targetChatId = newChatDoc.id;
+            } else {
+                targetChatId = chatSnap.docs[0].id;
+            }
+
+            // Send the message
+            const messagesRef = collection(firestore, 'chats', targetChatId, 'messages');
+            await addDoc(messagesRef, {
+                chatId: targetChatId,
+                senderId: currentUser.uid,
+                content: message.content, // Forward original content
+                type: message.type,
+                timestamp: serverTimestamp(),
+                readBy: [currentUser.uid],
+                // Optional: add a marker that this is a forwarded message
+                forwardedFrom: {
+                    senderName: sender.name,
+                    chatId: message.chatId
+                }
+            });
+
+             // Update last message and unread count
+            const chatRef = doc(firestore, 'chats', targetChatId);
+            await updateDoc(chatRef, {
+                lastMessage: { content: message.content, type: message.type, senderId: currentUser.uid },
+                lastMessageTimestamp: serverTimestamp(),
+                [`unreadCounts.${userId}`]: (chatSnap.docs[0]?.data().unreadCounts?.[userId] || 0) + 1,
+            });
+        });
+
+        toast({
+            title: 'Message transféré',
+            description: `Le message a été envoyé à ${userIds.length} membre(s).`,
+        });
+    };
+
   const handleDeleteForMe = async (messageId: string) => {
     if (!firestore || !chatId || !currentUser) return;
     const msgRef = doc(firestore, 'chats', chatId, 'messages', messageId);
@@ -327,7 +387,7 @@ function ChatPageContent() {
           onToggleStar={handleToggleStar}
           onTogglePin={handleTogglePin}
           onEditMessage={handleEditMessage}
-          onShare={()=>{}}
+          onShare={handleShareMessage}
           allUsersInApp={allUsersInApp}
           isAdmin={isAdmin}
           onScrollToMessage={scrollToMessage}
