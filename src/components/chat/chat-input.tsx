@@ -221,30 +221,48 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
          <AnimatePresence mode="wait">
              {isAttachmentMenuOpen ? (
                 <motion.div
-                    key="attachment-menu"
-                    initial={{ opacity: 0, y: 50, scale: 0.9 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: 50, scale: 0.9 }}
-                    transition={{ type: 'spring', stiffness: 300, damping: 25 }}
-                    className="bg-card/70 backdrop-blur-lg border rounded-2xl p-6 shadow-xl"
+                  key="attachment-wrapper"
+                  initial={{ y: 50, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  exit={{ y: 50, opacity: 0 }}
+                  transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+                  className="absolute bottom-0 w-full"
                 >
-                    <div className="grid grid-cols-4 gap-x-4 gap-y-6">
-                        {attachmentActions.map(action => (
-                            <div key={action.label} className="flex flex-col items-center gap-2 text-center cursor-pointer group">
-                                <div className={`w-14 h-14 rounded-full flex items-center justify-center bg-background group-hover:scale-110 transition-transform`}>
-                                    <action.icon className={`w-7 h-7 ${action.color}`} />
-                                </div>
-                                <span className="text-xs font-medium text-muted-foreground">{action.label}</span>
-                            </div>
-                        ))}
+                    <div className="relative">
+                      <motion.div
+                          key="attachment-menu"
+                          className="bg-card/70 backdrop-blur-lg border rounded-2xl p-6 shadow-xl"
+                      >
+                          <div className="grid grid-cols-4 gap-x-4 gap-y-6">
+                              {attachmentActions.map(action => (
+                                  <div key={action.label} className="flex flex-col items-center gap-2 text-center cursor-pointer group">
+                                      <div className={`w-14 h-14 rounded-full flex items-center justify-center bg-background group-hover:scale-110 transition-transform`}>
+                                          <action.icon className={`w-7 h-7 ${action.color}`} />
+                                      </div>
+                                      <span className="text-xs font-medium text-muted-foreground">{action.label}</span>
+                                  </div>
+                              ))}
+                          </div>
+                      </motion.div>
+                      <motion.div
+                          initial={{ scale: 0, y: 20 }}
+                          animate={{ scale: 1, y: 0 }}
+                          exit={{ scale: 0, y: 20 }}
+                          transition={{ delay: 0.1 }}
+                          className="absolute left-1/2 -translate-x-1/2 -top-6"
+                      >
+                          <Button size="icon" className="h-12 w-12 rounded-full" onClick={() => setIsAttachmentMenuOpen(false)}>
+                              <X className="w-6 h-6" />
+                          </Button>
+                      </motion.div>
                     </div>
                 </motion.div>
              ) : (
                 <motion.div
                     key="chat-bar"
-                    initial={{ opacity: 0, y: -20, scale: 0.95 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: -20, scale: 0.95 }}
+                    initial={{ opacity: 0, y: 0 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 20 }}
                     transition={{ duration: 0.2 }}
                     className="flex items-center gap-2 bg-background/50 backdrop-blur-sm p-2 rounded-full shadow-lg border"
                 >
@@ -330,21 +348,6 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
                     )}
                 </motion.div>
              )}
-         </AnimatePresence>
-
-         <AnimatePresence>
-          {isAttachmentMenuOpen && (
-              <motion.div
-                  initial={{ scale: 0, y: 20 }}
-                  animate={{ scale: 1, y: 0 }}
-                  exit={{ scale: 0, y: 20 }}
-                  className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2"
-              >
-                  <Button size="icon" className="h-12 w-12 rounded-full" onClick={() => setIsAttachmentMenuOpen(false)}>
-                      <X className="w-6 h-6" />
-                  </Button>
-              </motion.div>
-          )}
          </AnimatePresence>
       </div>
     </div>
