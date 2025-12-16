@@ -141,7 +141,7 @@ export default function ArchivedChatsPage() {
                 </div>
             ) : (
                 <div 
-                    className="p-4 md:p-8 space-y-[-50px] relative" 
+                    className="py-8 px-4 md:px-8 space-y-[-70px] md:space-y-[-50px] relative" 
                     style={{ perspective: '1200px' }}
                 >
                     <AnimatePresence>
@@ -159,12 +159,15 @@ export default function ArchivedChatsPage() {
                                     animate={{ opacity: 1, y: 0, z: -100 * index }}
                                     exit={{ opacity: 0, z: 200, transition: { duration: 0.5 } }}
                                     transition={{ type: 'spring', stiffness: 100, damping: 20, delay: index * 0.05 }}
-                                    className="group relative h-28"
+                                    className="group relative h-28 md:h-24"
                                 >
                                     <motion.div 
                                         className="absolute inset-0 bg-card/40 border border-white/10 rounded-2xl shadow-2xl backdrop-blur-lg transition-all duration-300 ease-out cursor-pointer"
-                                        style={{ transform: `rotateX(50deg) scale(0.9) translateY(-${index * 60}px)`}}
-                                        whileHover={{ rotateX: 0, scale: 1.05, y: -10, z: 50 }}
+                                        style={{ 
+                                            transform: `rotateX(15deg) scale(0.95) translateY(-${index * 80}px)`, 
+                                        }}
+                                        whileHover={{ rotateX: 0, scale: 1, y: -10, z: 50 }}
+                                        whileTap={{ scale: 0.98 }}
                                         onClick={() => router.push(`/chat/${chat.id}`)}
                                     >
                                         <div className="p-4 h-full flex items-center gap-4">
@@ -175,7 +178,7 @@ export default function ArchivedChatsPage() {
                                                 <p className="font-semibold text-lg truncate">{chatName}</p>
                                                 <p className="text-sm text-muted-foreground truncate">{chat.lastMessage?.content || 'Aucun message'}</p>
                                             </div>
-                                            <div className="flex flex-col items-end opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                                            <div className="flex flex-col items-end opacity-100 md:opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                                                 <span className="text-xs text-muted-foreground whitespace-nowrap">
                                                     {formatTimestamp(chat.lastMessageTimestamp)}
                                                 </span>
@@ -184,7 +187,7 @@ export default function ArchivedChatsPage() {
                                                 </Button>
                                             </div>
                                         </div>
-                                        <div className="absolute top-2 right-3 text-xs text-muted-foreground transition-opacity duration-300 group-hover:opacity-0">
+                                        <div className="absolute top-2 right-3 text-xs text-muted-foreground transition-opacity duration-300 md:group-hover:opacity-0">
                                             {formatTimestamp(chat.lastMessageTimestamp)}
                                         </div>
                                     </motion.div>
