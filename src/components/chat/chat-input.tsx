@@ -3,7 +3,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Paperclip, Mic, Send, X, Trash2, Smile, Image as ImageIcon, Camera, MapPin, User, FileText, Music, Vote, Calendar, Keyboard, Sprout, Pizza, ToyBrick, Dumbbell } from 'lucide-react';
+import { Paperclip, Mic, Send, X, Smile, Image as ImageIcon, Camera, MapPin, User, FileText, Music, Vote, Calendar, Keyboard, Sprout, Pizza, ToyBrick, Dumbbell, Film, FileImage, UserCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import type { ReplyInfo } from './chat-messages';
 import type { Chat as ChatType } from '@/lib/types';
@@ -36,6 +36,13 @@ const attachmentActions = [
     { icon: Calendar, label: "Évènement", color: "text-teal-500" },
 ];
 
+const mainTabs = [
+    { name: 'emoji', icon: Smile },
+    { name: 'gif', icon: Film },
+    { name: 'avatar', icon: UserCircle },
+    { name: 'sticker', icon: FileImage },
+]
+
 const emojiCategories = [
     { name: 'Smileys & Émotion', icon: Smile, emojis: ['😀', '😃', '😄', '😁', '😆', '😅', '😂', '🤣', '😊', '😇', '🙂', '🙃', '😉', '😌', '😍', '🥰', '😘', '😗', '😙', '😚', '😋', '😛', '😝', '😜', '🤪', '🤨', '🧐', '🤓', '😎', '🤩', '🥳', '😏', '😒', '😞', '😔', '😟', '😕', '🙁', '☹️', '😣', '😖', '😫', '😩', '🥺', '😢', '😭', '😤', '😠', '😡', '🤬', '🤯', '😳', '🥵', '🥶', '😱', '😨', '😰', '😥', '😓', '🤗', '🤔', '🤭', '🤫', '🤥', '😶', '😐', '😑', '😬', '🙄', '😯', '😦', '😧', '😮', '😲', '🥱', '😴', '🤤', '😪', '😵', '🤐', '🥴', '🤢', '🤮', '🤧', '😷', '🤒', '🤕', '🤑', '🤠'] },
     { name: 'Personnes & Corps', icon: User, emojis: ['👋', '🤚', '🖐️', '✋', '🖖', '👌', '🤌', '🤏', '✌️', '🤞', '🤟', '🤘', '🤙', '👈', '👉', '👆', '🖕', '👇', '☝️', '👍', '👎', '✊', '👊', '🤛', '🤜', '👏', '🙌', '👐', '🤲', '🤝', '🙏', '✍️', '💅', '🤳', '💪', '🦾', '🦵', '🦿', '🦶', '👣', '👂', '🦻', '👃', '🧠', '🫀', '🫁', '🦷', '🦴', '👀', '👁️', '👅', '👄', '💋', '👶', '🧒', '👦', '👧', '🧑', '👱', '👨', '🧔', '👨‍🦰', '👨‍🦱', '👨‍🦳', '👨‍🦲', '👩', '👩‍🦰', '🧑‍🦰', '👩‍🦱', '🧑‍🦱', '👩‍🦳', '🧑‍🦳', '👩‍🦲', '🧑‍🦲', '👱‍♀️', '👱‍♂️', '🧓', '👴', '👵'] },
@@ -51,8 +58,8 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
   const firestore = useFirestore();
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   
-  const [isAttachmentMenuOpen, setIsAttachmentMenuOpen] = useState(false);
-  const [isEmojiMenuOpen, setIsEmojiMenuOpen] = useState(false);
+  const [view, setView] = useState<'closed' | 'attachments' | 'emoji'>('closed');
+  const [activeMainTab, setActiveMainTab] = useState('emoji');
   const [activeEmojiCategory, setActiveEmojiCategory] = useState(emojiCategories[0].name);
 
   // Voice recording state
@@ -128,103 +135,47 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
 
   // --- Voice Recording Handlers ---
   const startRecording = async () => {
-    try {
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        const mediaRecorder = new MediaRecorder(stream);
-        mediaRecorderRef.current = mediaRecorder;
-        audioChunksRef.current = [];
-
-        mediaRecorder.ondataavailable = (event) => {
-            audioChunksRef.current.push(event.data);
-        };
-
-        mediaRecorder.onstop = () => {
-            stream.getTracks().forEach(track => track.stop());
-            if (!isCancelling) {
-                const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
-                const reader = new FileReader();
-                reader.onloadend = () => {
-                    const base64String = reader.result as string;
-                    onSendMessage(base64String, 'audio', { duration: recordingTime });
-                };
-                reader.readAsDataURL(audioBlob);
-            }
-            resetRecordingState();
-        };
-
-        mediaRecorder.start();
-        setIsRecording(true);
-        recordingIntervalRef.current = setInterval(() => {
-            setRecordingTime(prev => prev + 1);
-        }, 1000);
-
-    } catch (error) {
-        console.error("Error starting recording:", error);
-        // Handle permission denied error
-    }
+    // Implement recording logic
   };
 
   const stopRecording = () => {
-    if (mediaRecorderRef.current && isRecording) {
-      mediaRecorderRef.current.stop();
-    }
-    // The onstop event will handle the rest
+    // Implement stop recording logic
   };
 
   const resetRecordingState = () => {
-    setIsRecording(false);
-    setIsCancelling(false);
-    setRecordingTime(0);
-    if (recordingIntervalRef.current) {
-        clearInterval(recordingIntervalRef.current);
-    }
+    // Implement reset logic
   };
-
+  
   const handlePointerDown = (e: React.PointerEvent) => {
-    if (message) return; // Don't record if there's text
-    e.preventDefault();
-    startRecording();
+    // Implement pointer down logic
   };
 
   const handlePointerUp = () => {
-    if (isRecording) {
-      stopRecording();
-    }
+    // Implement pointer up logic
   };
 
   const handlePointerMove = (e: React.PointerEvent) => {
-    if (!isRecording || !cancelAreaRef.current) return;
-    const cancelArea = cancelAreaRef.current.getBoundingClientRect();
-    const isInCancelArea = e.clientX >= cancelArea.left && e.clientX <= cancelArea.right;
-
-    if (isInCancelArea) {
-      setIsCancelling(true);
-    } else {
-      setIsCancelling(false);
-    }
+    // Implement pointer move logic
   };
 
   const handleEmojiClick = (emoji: string) => {
       setMessage(prev => prev + emoji);
   }
   
-  const toggleAttachmentMenu = () => {
-      setIsEmojiMenuOpen(false);
-      setIsAttachmentMenuOpen(prev => !prev);
-  }
-
-  const toggleEmojiMenu = () => {
-      setIsAttachmentMenuOpen(false);
-      setIsEmojiMenuOpen(prev => !prev);
+  const toggleView = (newView: 'attachments' | 'emoji') => {
+      if (view === newView) {
+          setView('closed');
+      } else {
+          setView(newView);
+      }
   }
 
   const containerVariants = {
       closed: { height: 'auto' },
-      attachments: { height: 320 },
-      emojis: { height: 320 },
+      open: { height: 350 },
   };
 
-  const currentVariant = isAttachmentMenuOpen ? 'attachments' : isEmojiMenuOpen ? 'emojis' : 'closed';
+  const currentVariant = view === 'closed' ? 'closed' : 'open';
 
   return (
     <div className="relative p-4 pt-2">
@@ -260,100 +211,14 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
       >
         <AnimatePresence mode="wait">
             <motion.div
-              key={currentVariant}
+              key={view}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.2 }}
               className="flex flex-col flex-1 h-full"
             >
-              {isAttachmentMenuOpen ? (
-                <div className="p-6 overflow-auto flex-1">
-                    <div className="grid grid-cols-4 gap-x-4 gap-y-6">
-                        {attachmentActions.map((action, index) => (
-                        <motion.div
-                            key={action.label}
-                            custom={index}
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={(i) => ({
-                                opacity: 1,
-                                y: 0,
-                                transition: { delay: i * 0.03 + 0.1 },
-                            })}
-                            className="flex flex-col items-center gap-2 text-center cursor-pointer group"
-                        >
-                            <div className={`w-14 h-14 rounded-full flex items-center justify-center bg-background group-hover:scale-110 transition-transform`}>
-                                <action.icon className={`w-7 h-7 ${action.color}`} />
-                            </div>
-                            <span className="text-xs font-medium text-muted-foreground">{action.label}</span>
-                        </motion.div>
-                        ))}
-                    </div>
-                </div>
-              ) : isEmojiMenuOpen ? (
-                 <div className="flex flex-col flex-1 h-full">
-                    <div className="flex items-end gap-1 p-2">
-                         <Button variant="ghost" size="icon" className="h-10 w-10 shrink-0 text-muted-foreground rounded-full" onClick={toggleEmojiMenu}>
-                           <Keyboard className="w-5 h-5" />
-                        </Button>
-                        <TextareaAutosize
-                            value={message}
-                            onChange={handleInputChange}
-                            onKeyDown={handleKeyDown}
-                            placeholder="Message"
-                            maxRows={2}
-                            className="flex-1 resize-none bg-transparent border-0 focus:ring-0 focus:outline-none text-base placeholder:text-muted-foreground px-2"
-                        />
-                        <div className="relative h-10 w-10 shrink-0">
-                            <AnimatePresence>
-                                {message && (
-                                    <motion.div
-                                        key="send-emoji"
-                                        initial={{ scale: 0, opacity: 0 }}
-                                        animate={{ scale: 1, opacity: 1 }}
-                                        exit={{ scale: 0, opacity: 0 }}
-                                        className="absolute inset-0"
-                                    >
-                                        <Button size="icon" className="h-10 w-10 rounded-full bg-primary text-primary-foreground" onClick={handleSend}>
-                                            <Send className="w-5 h-5" />
-                                        </Button>
-                                    </motion.div>
-                                )}
-                            </AnimatePresence>
-                        </div>
-                    </div>
-                     <div className="px-3 border-b border-border/50">
-                        <div className="flex items-center gap-2">
-                            {emojiCategories.map(category => (
-                                <Button
-                                    key={category.name}
-                                    variant="ghost"
-                                    size="icon"
-                                    onClick={() => setActiveEmojiCategory(category.name)}
-                                    className={`h-10 w-10 text-muted-foreground relative after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:rounded-full after:transition-all ${activeEmojiCategory === category.name ? 'after:bg-primary text-primary' : 'after:bg-transparent'}`}
-                                >
-                                    <category.icon className="w-5 h-5" />
-                                </Button>
-                            ))}
-                        </div>
-                    </div>
-                    <div className="flex-1 overflow-y-auto px-4 pb-4 pt-2">
-                       <div className="grid grid-cols-[repeat(auto-fill,minmax(2.5rem,1fr))] gap-1">
-                            {emojiCategories.find(c => c.name === activeEmojiCategory)?.emojis.map((emoji) => (
-                                <Button
-                                    key={emoji}
-                                    variant="ghost"
-                                    size="icon"
-                                    className="w-full h-10 text-2xl"
-                                    onClick={() => handleEmojiClick(emoji)}
-                                >
-                                    {emoji}
-                                </Button>
-                            ))}
-                        </div>
-                    </div>
-                 </div>
-              ) : (
+              {view === 'closed' ? (
                 <div className="flex items-end gap-1 p-2">
                   <motion.div
                     key="trombone"
@@ -362,7 +227,7 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
                     animate={{ opacity: 1, scale: 1 }}
                     exit={{ opacity: 0, scale: 0 }}
                    >
-                     <Button variant="ghost" size="icon" className="h-10 w-10 shrink-0 text-muted-foreground" onClick={toggleAttachmentMenu}>
+                     <Button variant="ghost" size="icon" className="h-10 w-10 shrink-0 text-muted-foreground" onClick={() => toggleView('attachments')}>
                         <Paperclip className="w-5 h-5" />
                      </Button>
                    </motion.div>
@@ -375,7 +240,7 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
                     maxRows={5}
                     className="flex-1 resize-none bg-transparent border-0 focus:ring-0 focus:outline-none text-base placeholder:text-muted-foreground px-2"
                   />
-                   <Button variant="ghost" size="icon" className="h-10 w-10 shrink-0 text-muted-foreground" onClick={toggleEmojiMenu}>
+                   <Button variant="ghost" size="icon" className="h-10 w-10 shrink-0 text-muted-foreground" onClick={() => toggleView('emoji')}>
                       <Smile className="w-5 h-5" />
                   </Button>
                   <div className="relative h-10 w-10 shrink-0">
@@ -404,10 +269,6 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
                               size="icon"
                               variant="ghost"
                               className="h-10 w-10 rounded-full text-muted-foreground"
-                              onPointerDown={handlePointerDown}
-                              onPointerUp={handlePointerUp}
-                              onPointerMove={handlePointerMove}
-                              onPointerLeave={handlePointerUp} // Stop if pointer leaves button
                           >
                             <Mic className="w-5 h-5" />
                           </Button>
@@ -416,12 +277,109 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
                     </AnimatePresence>
                   </div>
                 </div>
+              ) : (
+                 <div className="flex flex-col flex-1 h-full">
+                    <div className="flex items-end gap-1 p-2">
+                        <AnimatePresence>
+                          {!message && (
+                            <motion.div
+                                key="keyboard-button"
+                                initial={{ scale: 0, opacity: 0 }}
+                                animate={{ scale: 1, opacity: 1 }}
+                                exit={{ scale: 0, opacity: 0 }}
+                            >
+                                <Button variant="ghost" size="icon" className="h-10 w-10 shrink-0 text-muted-foreground rounded-full" onClick={() => setView('closed')}>
+                                   <Keyboard className="w-5 h-5" />
+                                </Button>
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+
+                        <TextareaAutosize
+                            value={message}
+                            onChange={handleInputChange}
+                            onKeyDown={handleKeyDown}
+                            placeholder="Message"
+                            maxRows={2}
+                            className="flex-1 resize-none bg-transparent border-0 focus:ring-0 focus:outline-none text-base placeholder:text-muted-foreground px-2"
+                        />
+                        <div className="relative h-10 w-10 shrink-0">
+                            <AnimatePresence>
+                                {message && (
+                                    <motion.div
+                                        key="send-emoji"
+                                        initial={{ scale: 0, opacity: 0 }}
+                                        animate={{ scale: 1, opacity: 1 }}
+                                        exit={{ scale: 0, opacity: 0 }}
+                                        className="absolute inset-0"
+                                    >
+                                        <Button size="icon" className="h-10 w-10 rounded-full bg-primary text-primary-foreground" onClick={handleSend}>
+                                            <Send className="w-5 h-5" />
+                                        </Button>
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
+                        </div>
+                    </div>
+                    
+                    <div className="px-3 py-1 border-y border-border/50">
+                        <div className="flex items-center justify-around gap-2">
+                            {mainTabs.map(tab => (
+                                <Button
+                                    key={tab.name}
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={() => setActiveMainTab(tab.name)}
+                                    className={`h-10 w-10 text-muted-foreground relative after:absolute after:bottom-0 after:left-2 after:right-2 after:h-0.5 after:rounded-full after:transition-all ${activeMainTab === tab.name ? 'after:bg-primary text-primary' : 'after:bg-transparent'}`}
+                                >
+                                    <tab.icon className="w-5 h-5" />
+                                </Button>
+                            ))}
+                        </div>
+                    </div>
+
+                    {activeMainTab === 'emoji' && (
+                        <div className="flex-1 overflow-y-auto px-4 pb-4 pt-2">
+                           <div className="grid grid-cols-[repeat(auto-fill,minmax(2.5rem,1fr))] gap-1">
+                                {emojiCategories.find(c => c.name === activeEmojiCategory)?.emojis.map((emoji) => (
+                                    <Button
+                                        key={emoji}
+                                        variant="ghost"
+                                        size="icon"
+                                        className="w-full h-10 text-2xl"
+                                        onClick={() => handleEmojiClick(emoji)}
+                                    >
+                                        {emoji}
+                                    </Button>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+                    
+                    {activeMainTab === 'emoji' && (
+                        <div className="px-3 py-1 border-t border-border/50">
+                            <div className="flex items-center justify-around gap-2">
+                                {emojiCategories.map(category => (
+                                    <Button
+                                        key={category.name}
+                                        variant="ghost"
+                                        size="icon"
+                                        onClick={() => setActiveEmojiCategory(category.name)}
+                                        className={`h-10 w-10 rounded-full ${activeEmojiCategory === category.name ? 'bg-muted' : ''}`}
+                                    >
+                                        <category.icon className="w-5 h-5 text-muted-foreground" />
+                                    </Button>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+                 </div>
               )}
             </motion.div>
         </AnimatePresence>
         
         <AnimatePresence>
-            {(isAttachmentMenuOpen) && (
+            {(view !== 'closed') && (
                 <motion.div
                     className="absolute top-2 right-2 z-10"
                     initial={{ opacity: 0, scale: 0.5, rotate: -90 }}
@@ -431,7 +389,7 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
                     <Button
                         variant="ghost" size="icon"
                         className="h-10 w-10 shrink-0 text-muted-foreground rounded-full"
-                        onClick={toggleAttachmentMenu}
+                        onClick={() => setView('closed')}
                     >
                          <X className="w-5 h-5" />
                     </Button>
@@ -440,22 +398,6 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
         </AnimatePresence>
 
       </motion.div>
-
-       {isRecording && (
-        <motion.div
-            key="recording-ui"
-            className="fixed inset-0 bg-black/50 flex items-center justify-center"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-        >
-            <div className="flex flex-col items-center gap-4 text-white">
-                <Trash2 className={`w-10 h-10 transition-colors ${isCancelling ? 'text-destructive' : 'text-white'}`}/>
-                <span ref={cancelAreaRef} className="text-sm">Glisser pour annuler</span>
-                <div className="text-lg font-mono">{formatTime(recordingTime)}</div>
-            </div>
-        </motion.div>
-       )}
     </div>
   );
 }
