@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
@@ -170,7 +169,7 @@ const CustomKeyboard = ({ onKeyPress, onBackspace, onEnter, onSpace }: { onKeyPr
                                     initial={{ opacity: 0, y: 10 }}
                                     animate={{ opacity: 1, y: 0 }}
                                 >
-                                    <div className="relative bg-popover text-popover-foreground rounded-xl p-2 shadow-lg grid grid-cols-2 gap-1 w-auto max-w-xs justify-center">
+                                    <div className="relative bg-popover text-popover-foreground rounded-xl p-2 shadow-lg flex flex-wrap gap-1 w-auto justify-center" style={{maxWidth: '280px'}}>
                                       {(longPressChars[key] || []).map(char => (
                                           <Button key={char} variant="ghost" size="icon" className="w-8 h-8" onPointerUp={(e) => { e.stopPropagation(); handleSpecialKeyPress(char); }}>
                                               {char}
@@ -200,7 +199,7 @@ const CustomKeyboard = ({ onKeyPress, onBackspace, onEnter, onSpace }: { onKeyPr
                                     initial={{ opacity: 0, y: 10 }}
                                     animate={{ opacity: 1, y: 0 }}
                                 >
-                                    <div className="relative bg-popover text-popover-foreground rounded-xl p-2 shadow-lg grid grid-cols-2 gap-1">
+                                    <div className="relative bg-popover text-popover-foreground rounded-xl p-2 shadow-lg flex flex-wrap gap-1 w-auto justify-center" style={{maxWidth: '280px'}}>
                                          {(longPressChars["'"] || []).map(char => (
                                             <Button key={char} variant="ghost" size="icon" className="w-8 h-8" onPointerUp={(e) => { e.stopPropagation(); handleSpecialKeyPress(char); }}>
                                                 {char}
@@ -246,7 +245,7 @@ const CustomKeyboard = ({ onKeyPress, onBackspace, onEnter, onSpace }: { onKeyPr
                             initial={{ opacity: 0, y: 10 }}
                             animate={{ opacity: 1, y: 0 }}
                         >
-                           <div className="relative bg-popover text-popover-foreground rounded-xl p-2 shadow-lg grid grid-cols-2 gap-1 w-64 justify-center">
+                           <div className="relative bg-popover text-popover-foreground rounded-xl p-2 shadow-lg flex flex-wrap gap-1 w-auto justify-center" style={{maxWidth: '280px'}}>
                              {(longPressChars['.'] || []).map(char => (
                                 <Button key={char} variant="ghost" size="icon" className="w-8 h-8" onPointerUp={(e) => { e.stopPropagation(); handleSpecialKeyPress(char); }}>
                                     {char}
@@ -429,7 +428,7 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
 
   const mainInputSection = (
       <div className="flex items-end gap-1 p-2">
-        <Button variant="ghost" size="icon" className="h-10 w-10 shrink-0 text-muted-foreground" onClick={() => toggleView('attachments')}>
+        <Button variant="ghost" size="icon" className="h-10 w-10 shrink-0 text-muted-foreground" onClick={()(() => toggleView('attachments'))}>
           <Paperclip className="w-5 h-5" />
         </Button>
         <div className="flex-1 relative">
@@ -549,3 +548,5 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
     </div>
   );
 }
+
+    
