@@ -293,7 +293,7 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
               ) : isEmojiMenuOpen ? (
                  <div className="flex flex-col flex-1 h-full">
                     <div className="flex items-end gap-1 p-2">
-                        <Button variant="ghost" size="icon" className="h-10 w-10 shrink-0 text-muted-foreground rounded-full" onClick={toggleEmojiMenu}>
+                         <Button variant="ghost" size="icon" className="h-10 w-10 shrink-0 text-muted-foreground rounded-full" onClick={toggleEmojiMenu}>
                            <Keyboard className="w-5 h-5" />
                         </Button>
                         <TextareaAutosize
