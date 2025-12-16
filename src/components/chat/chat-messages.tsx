@@ -27,6 +27,7 @@ import {
   CornerUpLeft,
   Loader2,
   AlertTriangle,
+  ArrowLeft,
 } from 'lucide-react';
 import { ChatMessageStatus } from './chat-message-status';
 import { useToast } from '@/hooks/use-toast';
@@ -342,7 +343,7 @@ const ChatMessage = ({
                 <div className="flex items-center justify-end gap-1.5 mt-1 float-right">
                     {message.editedAt && <span className="text-xs opacity-70 italic mr-1">modifié</span>}
                     <span className="text-xs opacity-70">{formatTimestamp(message.timestamp)}</span>
-                    {isStarred && <Star className="w-3 h-3 text-current opacity-70" />}
+                    {isStarred && <Star className="w-3 h-3 text-current opacity-70 fill-current" />}
                     {isOwn && <ChatMessageStatus message={message} otherUser={(React.useContext(ChatContext) as any).otherUser} />}
                 </div>
             </>
@@ -554,7 +555,7 @@ const MessageFocusView = ({
         
         <div className="w-full max-w-xs space-y-3 mt-6">
             <h2 className="text-xl font-bold text-center text-white">Supprimer le message ?</h2>
-            {isOwnMessage && (
+            {isOwnMessage && timeSinceSent < 10 && (
                 <Button variant="destructive" className="w-full h-14 text-base" onClick={() => { onDeleteForEveryone(); onClose(); }}>
                     <AlertTriangle className="mr-2"/>
                     Supprimer pour tous

@@ -300,10 +300,9 @@ function ChatPageContent() {
   const handleDeleteForEveryone = async (messageId: string) => {
     if (!firestore || !chatId) return;
     const msgRef = doc(firestore, 'chats', chatId, 'messages', messageId);
-    await updateDoc(msgRef, { 
+    await updateDoc(msgRef, {
       content: "Ce message a été supprimé",
-      type: 'text',
-      deletedFor: chatData?.members || []
+      type: 'text'
     });
     toast({ description: 'Message supprimé pour tout le monde.' });
   };
@@ -440,5 +439,3 @@ export default function ChatPage() {
         </Suspense>
     )
 }
-
-    
