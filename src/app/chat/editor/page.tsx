@@ -407,23 +407,21 @@ function EditorComponent() {
                                         exit={{ opacity: 0, y: 10, scale: 0.95 }}
                                         className="absolute bottom-full mb-2 w-full max-w-sm"
                                     >
-                                        <div className="bg-black/50 backdrop-blur-md rounded-xl p-2 border border-white/10">
-                                            <ScrollArea className="h-[200px]">
-                                                {fontStyles.map((font) => (
-                                                    <Button
-                                                        key={`list-${font.class}`}
-                                                        variant="ghost"
-                                                        onClick={() => {
-                                                            setFontFamily(font.class);
-                                                            setFontListExpanded(false);
-                                                        }}
-                                                        className={cn("w-full justify-start text-white text-lg h-12", font.class, fontFamily === font.class && "bg-white/20")}
-                                                    >
-                                                        {font.label}
-                                                    </Button>
-                                                ))}
-                                            </ScrollArea>
-                                        </div>
+                                        <ScrollArea className="h-[200px] bg-black/50 backdrop-blur-md rounded-xl p-2 border border-white/10">
+                                            {fontStyles.map((font) => (
+                                                <Button
+                                                    key={`list-${font.class}`}
+                                                    variant="ghost"
+                                                    onClick={() => {
+                                                        setFontFamily(font.class);
+                                                        setFontListExpanded(false);
+                                                    }}
+                                                    className={cn("w-full justify-start text-white text-lg h-12", font.class, fontFamily === font.class && "bg-white/20")}
+                                                >
+                                                    {font.label}
+                                                </Button>
+                                            ))}
+                                        </ScrollArea>
                                     </motion.div>
                                 )}
                                 </AnimatePresence>
