@@ -231,6 +231,9 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
                   <Button variant="ghost" size="icon" className="h-10 w-10 shrink-0 text-muted-foreground" onClick={() => toggleView('attachments')}>
                     <Paperclip className="w-5 h-5" />
                   </Button>
+                  <Button variant="ghost" size="icon" className="h-10 w-10 shrink-0 text-muted-foreground" onClick={() => toggleView('emoji')}>
+                      <Smile className="w-5 h-5" />
+                  </Button>
                   <TextareaAutosize
                     ref={input => input && !replyInfo && input.focus()}
                     value={message}
@@ -240,9 +243,6 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
                     maxRows={5}
                     className="flex-1 resize-none bg-transparent border-0 focus:ring-0 focus:outline-none text-base placeholder:text-muted-foreground px-2"
                   />
-                  <Button variant="ghost" size="icon" className="h-10 w-10 shrink-0 text-muted-foreground" onClick={() => toggleView('emoji')}>
-                      <Smile className="w-5 h-5" />
-                  </Button>
                   <div className="relative h-10 w-10 shrink-0">
                     <AnimatePresence>
                       {message ? (
@@ -292,25 +292,24 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
                  <div className="flex flex-col flex-1 h-full">
                     <div className="flex items-end gap-1 p-2">
                         <AnimatePresence>
-                          {!message && (
-                            <motion.div
-                                key="keyboard-button"
-                                initial={{ scale: 0, opacity: 0 }}
-                                animate={{ scale: 1, opacity: 1 }}
-                                exit={{ scale: 0, opacity: 0 }}
-                            >
-                                <Button variant="ghost" size="icon" className="h-10 w-10 shrink-0 text-muted-foreground rounded-full" onClick={() => setView('closed')}>
-                                   <Keyboard className="w-5 h-5" />
-                                </Button>
-                            </motion.div>
-                          )}
+                            {!message && !searchMode && (
+                                <motion.div
+                                    key="keyboard-button"
+                                    initial={{ scale: 0, opacity: 0 }}
+                                    animate={{ scale: 1, opacity: 1 }}
+                                    exit={{ scale: 0, opacity: 0 }}
+                                >
+                                    <Button variant="ghost" size="icon" className="h-10 w-10 shrink-0 text-muted-foreground rounded-full" onClick={() => setView('closed')}>
+                                       <Keyboard className="w-5 h-5" />
+                                    </Button>
+                                </motion.div>
+                            )}
                         </AnimatePresence>
-
                         <TextareaAutosize
                             value={message}
                             onChange={handleInputChange}
                             onKeyDown={handleKeyDown}
-                            placeholder="Message"
+                            placeholder={searchMode ? "Rechercher un message..." : "Message"}
                             maxRows={2}
                             className="flex-1 resize-none bg-transparent border-0 focus:ring-0 focus:outline-none text-base placeholder:text-muted-foreground px-2"
                         />
@@ -333,101 +332,105 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
                         </div>
                     </div>
                     
-                    <div className="px-3 py-2 flex items-center justify-between border-y border-border/50">
-                        <AnimatePresence mode="wait">
-                            {searchMode ? (
-                                <motion.div
-                                    key="search-view"
-                                    className="flex items-center gap-2 w-full"
-                                    initial={{ opacity: 0, x: -10 }}
-                                    animate={{ opacity: 1, x: 0 }}
-                                    exit={{ opacity: 0, x: 10 }}
-                                    transition={{ duration: 0.2 }}
-                                >
-                                    <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={() => setSearchMode(false)}>
-                                        <ArrowLeft className="w-5 h-5" />
-                                    </Button>
-                                    <div className="relative flex-1">
-                                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                                        <Input
-                                            placeholder="Rechercher..."
-                                            value={emojiSearchQuery}
-                                            onChange={(e) => setEmojiSearchQuery(e.target.value)}
-                                            className="bg-transparent pl-9 h-9 border-0 focus-visible:ring-0"
-                                            autoFocus
-                                        />
-                                    </div>
-                                </motion.div>
-                            ) : (
-                                <motion.div
-                                    key="tabs-view"
-                                    className="flex items-center justify-between w-full"
-                                    initial={{ opacity: 0, x: 10 }}
-                                    animate={{ opacity: 1, x: 0 }}
-                                    exit={{ opacity: 0, x: -10 }}
-                                    transition={{ duration: 0.2 }}
-                                >
-                                    <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground" onClick={() => setSearchMode(true)}>
-                                        <Search className="w-5 h-5" />
-                                    </Button>
-                                    <div className="inline-flex items-center gap-2 bg-black/20 p-1 rounded-full border border-white/10">
-                                        {mainTabs.map(tab => (
+                    <AnimatePresence mode="wait">
+                    {searchMode ? (
+                        <motion.div
+                            key="search-interface"
+                            className="flex-1 flex flex-col"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            transition={{ duration: 0.2 }}
+                        >
+                            <div className="px-3 py-2 flex items-center gap-2 border-y border-border/50">
+                                <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={() => setSearchMode(false)}>
+                                    <ArrowLeft className="w-5 h-5" />
+                                </Button>
+                                <div className="relative flex-1">
+                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                    <Input
+                                        placeholder="Rechercher des emojis..."
+                                        value={emojiSearchQuery}
+                                        onChange={(e) => setEmojiSearchQuery(e.target.value)}
+                                        className="bg-transparent pl-9 h-9 border-0 focus-visible:ring-0"
+                                        autoFocus
+                                    />
+                                </div>
+                            </div>
+                            <div className="p-4 flex-1 overflow-y-auto">
+                                {/* Placeholder for search results */}
+                                <div className="text-center text-muted-foreground text-sm">
+                                    Résultats de la recherche...
+                                </div>
+                            </div>
+                        </motion.div>
+                    ) : (
+                        <motion.div
+                            key="default-interface"
+                            className="flex-1 flex flex-col overflow-hidden"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            transition={{ duration: 0.2 }}
+                        >
+                            <div className="px-3 py-2 flex items-center justify-between border-y border-border/50">
+                                <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground" onClick={() => setSearchMode(true)}>
+                                    <Search className="w-5 h-5" />
+                                </Button>
+                                <div className="inline-flex items-center gap-2 bg-black/20 p-1 rounded-full border border-white/10">
+                                    {mainTabs.map(tab => (
+                                        <Button
+                                            key={tab.name}
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={() => setActiveMainTab(tab.name)}
+                                            className={`h-8 px-3 rounded-full relative transition-colors duration-300 ${activeMainTab === tab.name ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
+                                        >
+                                            <tab.icon className="w-5 h-5" />
+                                        </Button>
+                                    ))}
+                                </div>
+                                <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground" onClick={handleBackspace}>
+                                    <Delete className="w-5 h-5" />
+                                </Button>
+                            </div>
+                            <div className="flex-1 overflow-y-auto px-4 pb-4 pt-2">
+                               {activeMainTab === 'emoji' && (
+                                   <div className="grid grid-cols-[repeat(auto-fill,minmax(2.5rem,1fr))] gap-1">
+                                        {emojiCategories.find(c => c.name === activeEmojiCategory)?.emojis.map((emoji) => (
                                             <Button
-                                                key={tab.name}
+                                                key={emoji}
                                                 variant="ghost"
-                                                size="sm"
-                                                onClick={() => setActiveMainTab(tab.name)}
-                                                className={`h-8 px-3 rounded-full relative transition-colors duration-300 ${activeMainTab === tab.name ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
+                                                size="icon"
+                                                className="w-full h-10 text-2xl"
+                                                onClick={() => handleEmojiClick(emoji)}
                                             >
-                                                <tab.icon className="w-5 h-5" />
+                                                {emoji}
                                             </Button>
                                         ))}
                                     </div>
-                                    <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground" onClick={handleBackspace}>
-                                        <Delete className="w-5 h-5" />
-                                    </Button>
-                                </motion.div>
+                                )}
+                            </div>
+                            {activeMainTab === 'emoji' && (
+                                <div className="px-3 py-1 border-t border-border/50">
+                                    <div className="flex items-center justify-around gap-2">
+                                        {emojiCategories.map(category => (
+                                            <Button
+                                                key={category.name}
+                                                variant="ghost"
+                                                size="icon"
+                                                onClick={() => setActiveEmojiCategory(category.name)}
+                                                className={`h-10 w-10 rounded-full ${activeEmojiCategory === category.name ? 'bg-muted' : ''}`}
+                                            >
+                                                <category.icon className="w-5 h-5 text-muted-foreground" />
+                                            </Button>
+                                        ))}
+                                    </div>
+                                </div>
                             )}
-                        </AnimatePresence>
-                    </div>
-
-
-                    <div className="flex-1 overflow-y-auto px-4 pb-4 pt-2">
-                       {activeMainTab === 'emoji' && (
-                           <div className="grid grid-cols-[repeat(auto-fill,minmax(2.5rem,1fr))] gap-1">
-                                {emojiCategories.find(c => c.name === activeEmojiCategory)?.emojis.map((emoji) => (
-                                    <Button
-                                        key={emoji}
-                                        variant="ghost"
-                                        size="icon"
-                                        className="w-full h-10 text-2xl"
-                                        onClick={() => handleEmojiClick(emoji)}
-                                    >
-                                        {emoji}
-                                    </Button>
-                                ))}
-                            </div>
-                        )}
-                    </div>
-                    
-                    
-                    {activeMainTab === 'emoji' && (
-                        <div className="px-3 py-1 border-t border-border/50">
-                            <div className="flex items-center justify-around gap-2">
-                                {emojiCategories.map(category => (
-                                    <Button
-                                        key={category.name}
-                                        variant="ghost"
-                                        size="icon"
-                                        onClick={() => setActiveEmojiCategory(category.name)}
-                                        className={`h-10 w-10 rounded-full ${activeEmojiCategory === category.name ? 'bg-muted' : ''}`}
-                                    >
-                                        <category.icon className="w-5 h-5 text-muted-foreground" />
-                                    </Button>
-                                ))}
-                            </div>
-                        </div>
+                        </motion.div>
                     )}
+                    </AnimatePresence>
                  </div>
               )}
             </motion.div>
