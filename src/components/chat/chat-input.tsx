@@ -67,7 +67,7 @@ const azertyLayout = {
     numbers: [
         ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0'],
         ['@', '#', '€', '_', '&', '-', '+', '(', ')', '/'],
-        ['*', '"', "'", ':', ';', '!', '?', '.']
+        ['*', '"', ':', ';', '!', '?', '.']
     ]
 };
 
@@ -84,7 +84,6 @@ const CustomKeyboard = ({ onKeyPress, onBackspace, onEnter, onSpace }: { onKeyPr
 
     return (
         <div className="w-full bg-black/50 backdrop-blur-sm p-2 space-y-1">
-            <div className="w-full h-px bg-border"/>
             {currentLayout.map((row, rowIndex) => (
                 <div key={rowIndex} className="flex justify-center gap-1">
                     {rowIndex === 2 && layout === 'letters' && (
@@ -98,15 +97,26 @@ const CustomKeyboard = ({ onKeyPress, onBackspace, onEnter, onSpace }: { onKeyPr
                         </Button>
                     ))}
                     {rowIndex === 2 && layout === 'letters' && (
-                         <Button onClick={onBackspace} className="h-10 w-12">
-                            <Delete />
-                        </Button>
+                        <>
+                            <Button onClick={() => handleKeyPress("'")} className="h-10 w-12">'</Button>
+                            <Button onClick={onBackspace} className="h-10 w-12">
+                                <Delete />
+                            </Button>
+                        </>
                     )}
                      {rowIndex !== 2 && layout === 'numbers' && (
                          <Button onClick={onBackspace} className="h-10 w-12">
                             <Delete />
                         </Button>
                     )}
+                     {rowIndex === 2 && layout === 'numbers' && (
+                        <>
+                            <Button onClick={() => handleKeyPress("'")} className="h-10 w-12">'</Button>
+                            <Button onClick={onBackspace} className="h-10 w-12">
+                                <Delete />
+                            </Button>
+                        </>
+                     )}
                 </div>
             ))}
             <div className="flex justify-center gap-1">
@@ -425,5 +435,3 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
     </div>
   );
 }
-
-    
