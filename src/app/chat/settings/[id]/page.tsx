@@ -5,7 +5,7 @@ import { useParams, notFound, useRouter } from 'next/navigation';
 import { type User as UserType } from '@/lib/types';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, FileText, Loader2, LogOut, Edit, Phone, Mail, Shield, BookUser, Clock, MessageSquare, Video, MoreVertical, WifiOff, QrCode, Music, X } from 'lucide-react';
+import { ArrowLeft, FileText, Loader2, LogOut, Edit, Phone, Mail, Shield, BookUser, Clock, MessageSquare, Video, MoreVertical, WifiOff, QrCode, Music, X, History } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useFirestore } from '@/firebase/provider';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
@@ -30,18 +30,28 @@ export default function UserProfilePage() {
   const router = useRouter();
   const firestore = useFirestore();
   const { toast } = useToast();
-  const { user: currentUser, loading: userLoading, auth } = useUser();
+  const { user: currentUser, loading: userLoading } = useUser();
 
   const [user, setUser] = useState<UserType | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [isActionMenuOpen, setIsActionMenuOpen] = useState(false);
   const [isAvatarViewerOpen, setIsAvatarViewerOpen] = useState(false);
   
   const isOwnProfile = currentUser?.uid === params.id;
 
   useEffect(() => {
-    if (!firestore || !params.id) return;
+    if (!firestore || !currentUser) return;
 
+    const checkAdminStatus = async () => {
+      const userRef = doc(firestore, 'users', currentUser.uid);
+      const userDoc = await getDoc(userRef);
+      if (userDoc.exists() && userDoc.data().admin === true) {
+        setIsAdmin(true);
+      }
+    };
+    checkAdminStatus();
+    
     const fetchUser = async () => {
       setLoading(true);
       const userRef = doc(firestore, 'users', params.id as string);
@@ -57,7 +67,7 @@ export default function UserProfilePage() {
     };
 
     fetchUser();
-  }, [firestore, params.id]);
+  }, [firestore, params.id, currentUser]);
 
   const handleLogout = async () => {
     try {
@@ -66,12 +76,10 @@ export default function UserProfilePage() {
             await updateDoc(userRef, { online: false, lastSeen: new Date() });
         }
         
-        // Clear all relevant local storage items
         localStorage.removeItem('userId');
         localStorage.removeItem('user');
         localStorage.removeItem('deviceId');
 
-        // Redirect to login page
         router.push('/login');
     } catch (error) {
         console.error("Error signing out: ", error);
@@ -92,6 +100,7 @@ export default function UserProfilePage() {
   
   const profileActions: ActionItem[] = [
     ...(isOwnProfile ? [{ icon: Edit, label: 'Modifier', action: () => router.push(`/chat/settings/${user?.id}/edit`) }] : []),
+    ...(isAdmin ? [{ icon: History, label: 'Historique', action: () => router.push(`/admin/history/${user?.id}`) }] : []),
     { icon: QrCode, label: 'Code QR', action: () => router.push(`/profile/${user?.id}/share`) },
     ...(isOwnProfile ? [{ icon: LogOut, label: 'Déconnexion', action: () => {} }] : []),
   ];
@@ -157,11 +166,9 @@ export default function UserProfilePage() {
         <Button variant="ghost" size="icon" onClick={() => router.back()} className="size-9 rounded-full bg-background/50 backdrop-blur-sm">
           <ArrowLeft size={20} />
         </Button>
-        {isOwnProfile && (
-           <Button variant="ghost" size="icon" onClick={() => setIsActionMenuOpen(true)} className="size-9 rounded-full bg-background/50 backdrop-blur-sm">
-              <MoreVertical size={20} />
-            </Button>
-        )}
+        <Button variant="ghost" size="icon" onClick={() => setIsActionMenuOpen(true)} className="size-9 rounded-full bg-background/50 backdrop-blur-sm">
+            <MoreVertical size={20} />
+        </Button>
       </motion.header>
 
       {/* Profile Hero Section */}
