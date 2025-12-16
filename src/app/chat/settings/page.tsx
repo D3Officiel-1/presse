@@ -123,7 +123,7 @@ export default function SettingsPage() {
                          <div className="space-y-2">
                              <h3 className="text-sm font-semibold text-muted-foreground px-2">Général</h3>
                              <div className="bg-card rounded-xl border divide-y divide-border">
-                                <SettingsItem icon={KeyRound} text="Compte" href={`/chat/settings/${userData?.id}`} />
+                                <SettingsItem icon={KeyRound} text="Compte" href="/chat/settings/account" />
                                 <SettingsItem icon={Bell} text="Notifications et sons" href="/chat/settings/notifications" />
                                 <SettingsItem icon={Palette} text="Apparence" href="/chat/settings/appearance" />
                              </div>
