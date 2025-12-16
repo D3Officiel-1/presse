@@ -4,7 +4,7 @@
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { cn } from '@/lib/utils';
+import { cn, formatMessageDate } from '@/lib/utils';
 import type { Message, User } from '@/lib/types';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -53,11 +53,16 @@ interface ChatMessagesProps {
   allUsersInApp: User[];
 }
 
-interface MessageGroup {
+interface SenderMessageGroup {
   senderId: string;
   sender: User | undefined;
   messages: Message[];
   position: 'left' | 'right';
+}
+
+interface DailyMessageGroup {
+    date: string;
+    groups: SenderMessageGroup[];
 }
 
 const AudioPlayer: React.FC<{ src: string; metadata?: { duration: number } }> = ({ src, metadata }) => {
@@ -351,7 +356,7 @@ export function ChatMessages({
   allUsersInApp
 }: ChatMessagesProps) {
   const scrollAreaRef = useRef<HTMLDivElement>(null);
-  const [groupedMessages, setGroupedMessages] = useState<MessageGroup[]>([]);
+  const [dailyGroups, setDailyGroups] = useState<DailyMessageGroup[]>([]);
   const { toast } = useToast();
 
   const [selectedMessage, setSelectedMessage] = useState<Message | null>(null);
@@ -366,34 +371,56 @@ export function ChatMessages({
   }, []);
 
   useEffect(() => {
-    const groups: MessageGroup[] = [];
-    if (messages.length > 0) {
-        let currentGroup: MessageGroup | null = null;
-        
-        for (let i = 0; i < messages.length; i++) {
-            const message = messages[i];
-            const sender = allUsersInApp.find(u => u.id === message.senderId);
+    const processMessages = () => {
+        if (messages.length === 0) {
+            setDailyGroups([]);
+            return;
+        }
 
-            if (currentGroup && message.senderId === currentGroup.senderId) {
-                currentGroup.messages.push(message);
-            } else {
-                if (currentGroup) {
-                    groups.push(currentGroup);
-                }
-                currentGroup = {
-                    senderId: message.senderId,
-                    sender: sender, // Use the fetched user object
-                    messages: [message],
-                    position: message.senderId === loggedInUser.uid ? 'right' : 'left',
-                };
+        const groupedByDate: { [key: string]: Message[] } = {};
+
+        messages.forEach(message => {
+            const date = formatMessageDate(message.timestamp);
+            if (!groupedByDate[date]) {
+                groupedByDate[date] = [];
             }
-        }
-        if (currentGroup) {
-            groups.push(currentGroup);
-        }
-    }
-    setGroupedMessages(groups);
+            groupedByDate[date].push(message);
+        });
+
+        const newDailyGroups: DailyMessageGroup[] = Object.keys(groupedByDate).map(date => {
+            const dailyMessages = groupedByDate[date];
+            const senderGroups: SenderMessageGroup[] = [];
+            let currentSenderGroup: SenderMessageGroup | null = null;
+
+            dailyMessages.forEach(message => {
+                const sender = allUsersInApp.find(u => u.id === message.senderId);
+                if (currentSenderGroup && currentSenderGroup.senderId === message.senderId) {
+                    currentSenderGroup.messages.push(message);
+                } else {
+                    if (currentSenderGroup) {
+                        senderGroups.push(currentSenderGroup);
+                    }
+                    currentSenderGroup = {
+                        senderId: message.senderId,
+                        sender,
+                        messages: [message],
+                        position: message.senderId === loggedInUser.uid ? 'right' : 'left',
+                    };
+                }
+            });
+            if (currentSenderGroup) {
+                senderGroups.push(currentSenderGroup);
+            }
+            
+            return { date, groups: senderGroups };
+        });
+
+        setDailyGroups(newDailyGroups);
+    };
+
+    processMessages();
   }, [messages, loggedInUser.uid, allUsersInApp]);
+
 
   useEffect(() => {
     const scrollToBottom = () => {
@@ -408,50 +435,65 @@ export function ChatMessages({
     const timeoutId = setTimeout(scrollToBottom, 100);
 
     return () => clearTimeout(timeoutId);
-  }, [groupedMessages, isTyping]);
+  }, [dailyGroups, isTyping]);
   
   const contextProviderValue = { loggedInUser, allUsersInApp, otherUser };
 
   return (
     <ChatContext.Provider value={contextProviderValue}>
       <div ref={scrollAreaRef} className="flex-1 overflow-y-auto p-4 flex flex-col">
-        {groupedMessages.map((group, index) => {
-            const sender = allUsersInApp.find(u => u.id === group.senderId);
-            const showSenderInfo = group.senderId !== loggedInUser.uid && chatType !== 'private';
-          
-            return (
-              <div key={index} className={cn('flex flex-col gap-1 w-full my-1', group.senderId === loggedInUser.uid ? 'items-end' : 'items-start')}>
-                {showSenderInfo && (
-                    <div className="flex items-center gap-2">
-                        <Avatar className="w-8 h-8 self-end">
-                            {sender ? (
-                                <>
-                                    <AvatarImage src={sender.avatar} />
-                                    <AvatarFallback>{sender.name.substring(0, 1)}</AvatarFallback>
-                                </>
-                            ) : (
-                                <Skeleton className="w-8 h-8 rounded-full" />
-                            )}
-                        </Avatar>
-                        <p className="text-xs text-muted-foreground">{sender?.name || '...'}</p>
-                    </div>
-                )}
-                <div className={cn("flex flex-col space-y-1 w-full", group.senderId === loggedInUser.uid ? 'items-end' : 'items-start')}>
-                  {group.messages.map((message, msgIndex) => (
-                    <ChatMessage
-                      key={message.id}
-                      message={message}
-                      position={group.position}
-                      isFirstInGroup={msgIndex === 0}
-                      isLastInGroup={msgIndex === group.messages.length - 1}
-                      onOpenContextMenu={handleOpenContextMenu}
-                      otherUser={otherUser}
-                    />
-                  ))}
-                </div>
+        {dailyGroups.map((dayGroup, dayIndex) => (
+          <React.Fragment key={dayGroup.date}>
+            <div className="relative my-4">
+              <div className="absolute inset-0 flex items-center" aria-hidden="true">
+                <div className="w-full border-t border-border" />
               </div>
-            )
-        })}
+              <div className="relative flex justify-center">
+                <span className="bg-background px-3 text-xs font-medium text-muted-foreground uppercase">
+                  {dayGroup.date}
+                </span>
+              </div>
+            </div>
+
+            {dayGroup.groups.map((senderGroup, senderIndex) => {
+              const sender = allUsersInApp.find(u => u.id === senderGroup.senderId);
+              const showSenderInfo = senderGroup.senderId !== loggedInUser.uid && chatType !== 'private';
+              
+              return (
+                <div key={`${dayGroup.date}-${senderIndex}`} className={cn('flex flex-col gap-1 w-full my-1', senderGroup.position === 'right' ? 'items-end' : 'items-start')}>
+                  {showSenderInfo && (
+                      <div className="flex items-center gap-2">
+                          <Avatar className="w-8 h-8 self-end">
+                              {sender ? (
+                                  <>
+                                      <AvatarImage src={sender.avatar} />
+                                      <AvatarFallback>{sender.name.substring(0, 1)}</AvatarFallback>
+                                  </>
+                              ) : (
+                                  <Skeleton className="w-8 h-8 rounded-full" />
+                              )}
+                          </Avatar>
+                          <p className="text-xs text-muted-foreground">{sender?.name || '...'}</p>
+                      </div>
+                  )}
+                  <div className={cn("flex flex-col space-y-1 w-full", senderGroup.position === 'right' ? 'items-end' : 'items-start')}>
+                    {senderGroup.messages.map((message, msgIndex) => (
+                      <ChatMessage
+                        key={message.id}
+                        message={message}
+                        position={senderGroup.position}
+                        isFirstInGroup={msgIndex === 0}
+                        isLastInGroup={msgIndex === senderGroup.messages.length - 1}
+                        onOpenContextMenu={handleOpenContextMenu}
+                        otherUser={otherUser}
+                      />
+                    ))}
+                  </div>
+                </div>
+              )
+            })}
+          </React.Fragment>
+        ))}
 
         {isTyping && otherUser && (
           <motion.div
