@@ -243,7 +243,7 @@ function ChatPageContent() {
 
 
   return (
-    <div className="relative flex flex-col h-full w-full bg-background">
+    <div className="relative flex flex-col h-full w-full bg-background overflow-hidden">
       <video
         src="https://cdn.pixabay.com/video/2024/05/20/212953-944519999_large.mp4"
         autoPlay
