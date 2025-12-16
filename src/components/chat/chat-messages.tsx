@@ -385,37 +385,42 @@ const MessageFocusView = ({
                             isLastInGroup={true}
                         />
                     </div>
-                </motion.div>
-                
-                 <motion.div
-                    className="absolute bottom-[20%] left-1/2 -translate-x-1/2 w-[300px] h-[300px] pointer-events-none"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1, transition: { delay: 0.1 } }}
-                    exit={{ opacity: 0 }}
-                >
-                    {mainActions.map((item, index) => {
-                         const angle = -150 + (index * 30);
-                         return (
-                            <motion.div
-                                key={item.label}
-                                className="absolute top-0 left-1/2 -translate-x-1/2"
-                                style={{ originY: '150px' }}
-                                initial={{ opacity: 0, scale: 0, rotate: angle }}
-                                animate={{ opacity: 1, scale: 1, rotate: angle, transition: { delay: 0.2 + index * 0.05, type: 'spring', stiffness: 300, damping: 20 } }}
-                                exit={{ opacity: 0, scale: 0, rotate: angle, transition: { duration: 0.1 } }}
-                            >
-                                <motion.div
-                                    className={cn("flex items-center justify-center w-14 h-14 bg-background/80 backdrop-blur-lg rounded-full shadow-lg border cursor-pointer pointer-events-auto", item.className)}
-                                    onClick={() => handleActionClick(item.action, item.label)}
-                                    whileHover={{ scale: 1.15, boxShadow: '0px 0px 15px rgba(255,255,255,0.2)' }}
-                                    whileTap={{ scale: 0.95 }}
-                                    style={{ rotate: -angle }}
-                                >
-                                    <item.icon className="w-6 h-6" />
-                                </motion.div>
-                           </motion.div>
-                         );
-                    })}
+
+                    <motion.div
+                        className="mt-4 w-full"
+                        variants={{
+                          hidden: { opacity: 0, y: 20 },
+                          visible: {
+                            opacity: 1,
+                            y: 0,
+                            transition: {
+                              delayChildren: 0.2,
+                              staggerChildren: 0.05,
+                            },
+                          },
+                        }}
+                        initial="hidden"
+                        animate="visible"
+                      >
+                      <div className="grid grid-cols-3 gap-4 w-full max-w-xs mx-auto">
+                        {mainActions.map((item, index) => (
+                          <motion.div
+                            key={item.label}
+                            className="flex flex-col items-center justify-center gap-2 text-center text-xs cursor-pointer pointer-events-auto"
+                            variants={itemVariants}
+                            custom={index}
+                            onClick={() => handleActionClick(item.action, item.label)}
+                            whileHover={{ scale: 1.1 }}
+                            whileTap={{ scale: 0.95 }}
+                          >
+                            <div className={cn("flex items-center justify-center w-14 h-14 bg-background/80 backdrop-blur-lg rounded-full shadow-lg border", item.className)}>
+                                <item.icon className="w-6 h-6" />
+                            </div>
+                            <span className="text-foreground font-medium">{item.label}</span>
+                          </motion.div>
+                        ))}
+                      </div>
+                    </motion.div>
                 </motion.div>
             </motion.div>
         </AnimatePresence>
