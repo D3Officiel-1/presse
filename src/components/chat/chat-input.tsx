@@ -326,28 +326,26 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
                         </div>
                     </div>
                     
-                    <div className="px-3 py-2 flex justify-center border-y border-border/50">
-                        <div className="inline-flex items-center justify-between w-full bg-black/20 p-1 rounded-full border border-white/10">
-                            <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground">
-                                <Search className="w-5 h-5" />
-                            </Button>
-                            <div className="flex items-center gap-2">
-                                {mainTabs.map(tab => (
-                                    <Button
-                                        key={tab.name}
-                                        variant="ghost"
-                                        size="sm"
-                                        onClick={() => setActiveMainTab(tab.name)}
-                                        className={`h-8 px-4 rounded-full relative transition-colors duration-300 ${activeMainTab === tab.name ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
-                                    >
-                                        <tab.icon className="w-5 h-5" />
-                                    </Button>
-                                ))}
-                            </div>
-                             <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground">
-                                <Delete className="w-5 h-5" />
-                            </Button>
+                    <div className="px-3 py-2 flex items-center justify-between border-y border-border/50">
+                        <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground">
+                            <Search className="w-5 h-5" />
+                        </Button>
+                        <div className="inline-flex items-center gap-2 bg-black/20 p-1 rounded-full border border-white/10">
+                            {mainTabs.map(tab => (
+                                <Button
+                                    key={tab.name}
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => setActiveMainTab(tab.name)}
+                                    className={`h-8 px-4 rounded-full relative transition-colors duration-300 ${activeMainTab === tab.name ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
+                                >
+                                    <tab.icon className="w-5 h-5" />
+                                </Button>
+                            ))}
                         </div>
+                        <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground">
+                            <Delete className="w-5 h-5" />
+                        </Button>
                     </div>
 
                     {activeMainTab === 'emoji' && (
