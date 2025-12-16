@@ -4,7 +4,7 @@
 import React, { useState, useRef, useEffect, Suspense } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { Loader2, ArrowLeft, Crop, RotateCw, Send, Text, Brush, X, Check } from 'lucide-react';
+import { Loader2, ArrowLeft, Crop, RotateCw, Send, Type, Brush, X, Check, Smile } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import Image from 'next/image';
 import ReactCrop, { type Crop as CropType, centerCrop, makeAspectCrop } from 'react-image-crop';
@@ -160,7 +160,8 @@ function EditorComponent() {
     
     const editorActions = [
         { icon: Crop, label: 'Recadrer', action: startCropping },
-        { icon: Text, label: 'Texte', action: () => {} },
+        { icon: Smile, label: 'Stickers', action: () => {} },
+        { icon: Type, label: 'Texte', action: () => {} },
         { icon: Brush, label: 'Dessiner', action: () => {} },
         { icon: RotateCw, label: 'Pivoter', action: handleRotate },
     ];
