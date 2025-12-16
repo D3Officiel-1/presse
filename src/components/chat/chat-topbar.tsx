@@ -32,8 +32,8 @@ export function ChatTopbar({ info, isGroup }: ChatTopbarProps) {
           <AvatarFallback>{user?.name?.substring(0, 1) || 'U'}</AvatarFallback>
         </Avatar>
       )}
-      <div className="flex flex-col">
-        <span className="font-medium whitespace-nowrap">{isGroup ? group?.name : user?.name}</span>
+      <div className="flex flex-col max-w-[calc(100vw-220px)] sm:max-w-xs">
+        <span className="font-medium whitespace-nowrap overflow-hidden text-ellipsis">{isGroup ? group?.name : user?.name}</span>
         <span className="text-xs text-muted-foreground">
         {isGroup ? `${group?.users.length} membres` : user?.online ? 'En ligne' : 'Hors ligne'}
         </span>
