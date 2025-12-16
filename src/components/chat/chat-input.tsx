@@ -89,15 +89,6 @@ const CustomKeyboard = ({ message, onMessageChange, onKeyPress, onBackspace, onE
 
     return (
         <div className="w-full bg-black/50 backdrop-blur-sm p-2 space-y-1">
-             <div className="flex justify-around items-center p-1 bg-black/30 rounded-full mb-2 text-muted-foreground">
-                <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full"><Grip /></Button>
-                <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full"><StickyNote /></Button>
-                <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full"><Clipboard /></Button>
-                <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full"><span className="font-bold text-lg">G</span></Button>
-                <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full"><Settings /></Button>
-                <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full"><Palette /></Button>
-                <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full"><Mic /></Button>
-            </div>
             <div className="p-2 border-b border-border/50">
                 <TextareaAutosize
                     value={message}
@@ -107,6 +98,15 @@ const CustomKeyboard = ({ message, onMessageChange, onKeyPress, onBackspace, onE
                     className="w-full resize-none bg-transparent border-0 focus:ring-0 focus:outline-none text-base placeholder:text-muted-foreground px-2 py-2"
                     autoFocus
                 />
+            </div>
+             <div className="flex justify-around items-center p-1 bg-black/30 rounded-full mb-2 text-muted-foreground">
+                <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full"><Grip /></Button>
+                <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full"><StickyNote /></Button>
+                <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full"><Clipboard /></Button>
+                <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full"><span className="font-bold text-lg">G</span></Button>
+                <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full"><Settings /></Button>
+                <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full"><Palette /></Button>
+                <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full"><Mic /></Button>
             </div>
             {currentLayout.map((row, rowIndex) => (
                 <div key={rowIndex} className="flex justify-center gap-1">
