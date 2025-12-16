@@ -141,8 +141,7 @@ export default function ArchivedChatsPage() {
                 </div>
             ) : (
                 <div 
-                    className="py-8 px-4 md:px-8 space-y-[-70px] md:space-y-[-50px] relative" 
-                    style={{ perspective: '1200px' }}
+                    className="py-8 px-4 md:px-8 space-y-4 relative" 
                 >
                     <AnimatePresence>
                         {archivedChats.map((chat, index) => {
@@ -155,42 +154,34 @@ export default function ArchivedChatsPage() {
                                 <motion.div
                                     key={chat.id}
                                     layout
-                                    initial={{ opacity: 0, y: 50, z: -100 * index }}
-                                    animate={{ opacity: 1, y: 0, z: -100 * index }}
-                                    exit={{ opacity: 0, z: 200, transition: { duration: 0.5 } }}
+                                    initial={{ opacity: 0, y: 50, scale: 0.9 }}
+                                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                                    exit={{ opacity: 0, scale: 0.9, transition: { duration: 0.3 } }}
                                     transition={{ type: 'spring', stiffness: 100, damping: 20, delay: index * 0.05 }}
-                                    className="group relative h-28 md:h-24"
+                                    className="group relative"
                                 >
-                                    <motion.div 
-                                        className="absolute inset-0 bg-card/40 border border-white/10 rounded-2xl shadow-2xl backdrop-blur-lg transition-all duration-300 ease-out cursor-pointer"
-                                        style={{ 
-                                            transform: `rotateX(15deg) scale(0.95) translateY(-${index * 80}px)`, 
-                                        }}
-                                        whileHover={{ rotateX: 0, scale: 1, y: -10, z: 50 }}
-                                        whileTap={{ scale: 0.98 }}
+                                    <div 
+                                        className="bg-card/40 border border-white/10 rounded-2xl shadow-2xl backdrop-blur-lg transition-all duration-300 ease-out cursor-pointer flex items-center p-4 gap-4"
                                         onClick={() => router.push(`/chat/${chat.id}`)}
                                     >
-                                        <div className="p-4 h-full flex items-center gap-4">
-                                             {chatAvatarUser ? (
-                                                <ChatAvatar user={chatAvatarUser} isGroup={chat.type !== 'private'} className="w-12 h-12" />
-                                            ) : <Skeleton className="h-12 w-12 rounded-full" />}
-                                            <div className="flex-1 min-w-0">
-                                                <p className="font-semibold text-lg truncate">{chatName}</p>
-                                                <p className="text-sm text-muted-foreground truncate">{chat.lastMessage?.content || 'Aucun message'}</p>
-                                            </div>
-                                            <div className="flex flex-col items-end opacity-100 md:opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                                                <span className="text-xs text-muted-foreground whitespace-nowrap">
-                                                    {formatTimestamp(chat.lastMessageTimestamp)}
-                                                </span>
-                                                <Button variant="ghost" size="icon" className="mt-1" onClick={(e) => handleUnarchive(chat.id, e)}>
+                                        {chatAvatarUser ? (
+                                            <ChatAvatar user={chatAvatarUser} isGroup={chat.type !== 'private'} className="w-12 h-12" />
+                                        ) : <Skeleton className="h-12 w-12 rounded-full" />}
+                                        <div className="flex-1 min-w-0">
+                                            <p className="font-semibold text-lg truncate">{chatName}</p>
+                                            <p className="text-sm text-muted-foreground truncate">{chat.lastMessage?.content || 'Aucun message'}</p>
+                                        </div>
+                                        <div className="flex flex-col items-end">
+                                            <span className="text-xs text-muted-foreground whitespace-nowrap mb-1">
+                                                {formatTimestamp(chat.lastMessageTimestamp)}
+                                            </span>
+                                            <div className="opacity-0 md:group-hover:opacity-100 transition-opacity duration-300">
+                                                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={(e) => handleUnarchive(chat.id, e)}>
                                                     <ArchiveRestore className="w-5 h-5 text-primary"/>
                                                 </Button>
                                             </div>
                                         </div>
-                                        <div className="absolute top-2 right-3 text-xs text-muted-foreground transition-opacity duration-300 md:group-hover:opacity-0">
-                                            {formatTimestamp(chat.lastMessageTimestamp)}
-                                        </div>
-                                    </motion.div>
+                                    </div>
                                 </motion.div>
                             );
                         })}
