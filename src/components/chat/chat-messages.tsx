@@ -28,6 +28,7 @@ import {
   Loader2,
   AlertTriangle,
   ArrowLeft,
+  User as UserIcon,
 } from 'lucide-react';
 import { ChatMessageStatus } from './chat-message-status';
 import { useToast } from '@/hooks/use-toast';
@@ -38,6 +39,7 @@ import { Skeleton } from '../ui/skeleton';
 import { Textarea } from '../ui/textarea';
 import { Timestamp, collection, getDocs, query, where } from 'firebase/firestore';
 import { useFirestore } from '@/firebase/provider';
+import Link from 'next/link';
 
 
 const ReactionEmojis = ['👍', '❤️', '😂', '😮', '😢', '🙏'];
@@ -343,6 +345,22 @@ const ChatMessage = ({
                 )}
 
                 {message.type === 'audio' && <AudioPlayer src={message.content} metadata={message.audioMetadata} />}
+                
+                {message.type === 'contact' && message.contactData && (
+                  <Link href={`/chat/settings/${message.contactData.id}`}>
+                    <div className="p-2 bg-background/20 rounded-lg flex items-center gap-3 cursor-pointer">
+                        <Avatar className="w-12 h-12">
+                            <AvatarImage src={message.contactData.avatar} alt={message.contactData.name} />
+                            <AvatarFallback>{message.contactData.name.substring(0,1)}</AvatarFallback>
+                        </Avatar>
+                        <div>
+                            <p className="font-semibold text-sm">{message.contactData.name}</p>
+                            <p className="text-xs opacity-80">{message.contactData.class}</p>
+                        </div>
+                    </div>
+                  </Link>
+                )}
+
 
                 <div className="flex items-center justify-end gap-1.5 mt-1 float-right">
                     {message.editedAt && !isDeletedForAll && <span className="text-xs opacity-70 italic mr-1">modifié</span>}
@@ -395,10 +413,12 @@ const MessageFocusView = ({
         const fetchShareList = async () => {
             setLoadingShare(true);
             try {
+                // Fetch all users except the current one
                 const allUsersQuery = query(collection(firestore, 'users'), where('__name__', '!=', chatContext.loggedInUser.uid));
                 const allUsersSnap = await getDocs(allUsersQuery);
                 const allOtherUsers = allUsersSnap.docs.map(doc => ({ id: doc.id, ...doc.data() } as User));
 
+                // Fetch user's private chats to identify recent contacts
                 const privateChatsQuery = query(collection(firestore, 'chats'), 
                     where('type', '==', 'private'),
                     where('members', 'array-contains', chatContext.loggedInUser.uid)
@@ -411,6 +431,7 @@ const MessageFocusView = ({
                     if (otherMemberId) recentUserIds.add(otherMemberId);
                 });
 
+                // Categorize users
                 const recents = allOtherUsers.filter(u => recentUserIds.has(u.id));
                 const others = allOtherUsers.filter(u => !recentUserIds.has(u.id));
 
@@ -928,5 +949,3 @@ export function ChatMessages({
     </ChatContext.Provider>
   );
 }
-
-    

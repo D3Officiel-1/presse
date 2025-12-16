@@ -3,18 +3,21 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Paperclip, Mic, Send, X, Smile, Image as ImageIcon, Camera, MapPin, User, FileText, Music, Vote, Calendar, Keyboard, Sprout, Pizza, ToyBrick, Dumbbell, Film, FileImage, UserCircle, Clock, Search, Delete, ArrowUp, CornerDownLeft, Grip, StickyNote, Clipboard, Settings, Palette, Menu, Voicemail, Heart, Flag, Trash2, Check } from 'lucide-react';
+import { Paperclip, Mic, Send, X, Smile, Image as ImageIcon, Camera, MapPin, User, FileText, Music, Vote, Calendar, Keyboard, Sprout, Pizza, ToyBrick, Dumbbell, Film, FileImage, UserCircle, Clock, Search, Delete, ArrowUp, CornerDownLeft, Grip, StickyNote, Clipboard, Settings, Palette, Menu, Voicemail, Heart, Flag, Trash2, Check, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import type { ReplyInfo } from './chat-messages';
-import type { Chat as ChatType } from '@/lib/types';
+import type { Chat as ChatType, User as UserType } from '@/lib/types';
 import { useUser } from '@/firebase/auth/use-user';
 import { useFirestore } from '@/firebase/provider';
-import { doc, updateDoc } from 'firebase/firestore';
+import { doc, updateDoc, collection, query, where, getDocs, onSnapshot } from 'firebase/firestore';
 import TextareaAutosize from 'react-textarea-autosize';
 import { Input } from '../ui/input';
 import { useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
+import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
+import { ScrollArea } from '../ui/scroll-area';
+import { Skeleton } from '../ui/skeleton';
 
 
 const formatTime = (seconds: number) => {
@@ -27,7 +30,7 @@ const attachmentActions = [
     { icon: ImageIcon, label: "Galerie", color: "text-purple-500", action: 'openGallery' },
     { icon: Camera, label: "Caméra", color: "text-blue-500" },
     { icon: MapPin, label: "Localisation", color: "text-green-500" },
-    { icon: User, label: "Membre", color: "text-orange-500" },
+    { icon: User, label: "Membre", color: "text-orange-500", action: 'ShareContact' },
     { icon: FileText, label: "Document", color: "text-indigo-500" },
     { icon: Music, label: "Audio", color: "text-red-500", action: 'Audio' },
     { icon: Vote, label: "Sondage", color: "text-yellow-500" },
@@ -57,7 +60,7 @@ const allEmojis = emojiCategories.flatMap(category => category.emojis);
 
 interface ChatInputProps {
   chat: ChatType;
-  onSendMessage: (content: string, type?: 'text' | 'image' | 'audio', metadata?: any) => void;
+  onSendMessage: (content: string, type?: 'text' | 'image' | 'audio' | 'contact', metadata?: any) => void;
   replyInfo?: ReplyInfo;
   onClearReply: () => void;
 }
@@ -72,7 +75,7 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
   const fileInputRef = useRef<HTMLInputElement>(null);
   const longPressTimerRef = useRef<NodeJS.Timeout | null>(null);
   
-  const [view, setView] = useState<'closed' | 'attachments' | 'emoji'>('closed');
+  const [view, setView] = useState<'closed' | 'attachments' | 'emoji' | 'share-contact'>('closed');
   const [activeMainTab, setActiveMainTab] = useState('emoji');
   const [activeEmojiCategory, setActiveEmojiCategory] = useState(emojiCategories[0].name);
   
@@ -90,6 +93,11 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
   const audioContextRef = useRef<AudioContext | null>(null);
   const analyserRef = useRef<AnalyserNode | null>(null);
   const animationFrameRef = useRef<number | null>(null);
+
+  // Contact sharing state
+  const [allUsers, setAllUsers] = useState<UserType[]>([]);
+  const [loadingUsers, setLoadingUsers] = useState(false);
+  const [userSearch, setUserSearch] = useState('');
 
   const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const value = e.target.value;
@@ -265,7 +273,7 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
       }
   };
 
-  const toggleView = (newView: 'attachments' | 'emoji') => {
+  const toggleView = (newView: 'attachments' | 'emoji' | 'share-contact' | 'closed') => {
     if (view === newView) {
         setView('closed');
     } else {
@@ -276,12 +284,16 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
     }
   };
 
-  const handleAttachmentAction = (action: string) => {
+  const handleAttachmentAction = (action?: string) => {
     if (action === 'openGallery') {
       fileInputRef.current?.click();
     }
     if (action === 'Audio') {
         router.push('/chat/music');
+    }
+    if (action === 'ShareContact') {
+        toggleView('share-contact');
+        fetchUsersForSharing();
     }
   };
 
@@ -312,6 +324,26 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
   const handleCancelEmojiSearch = () => {
       setInputMode('message');
       setEmojiSearchQuery('');
+  }
+
+  const fetchUsersForSharing = () => {
+    if (!firestore || !currentUser) return;
+    setLoadingUsers(true);
+    const usersQuery = query(collection(firestore, 'users'), where('__name__', '!=', currentUser.uid));
+    const unsubscribe = onSnapshot(usersQuery, (snapshot) => {
+        const usersList = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as UserType));
+        setAllUsers(usersList.sort((a,b) => a.name.localeCompare(b.name)));
+        setLoadingUsers(false);
+    }, (error) => {
+        console.error("Error fetching users for contact sharing:", error);
+        setLoadingUsers(false);
+    });
+    return unsubscribe;
+  };
+  
+  const handleSendContact = (user: UserType) => {
+    onSendMessage(user.id, 'contact', { contactData: user });
+    toggleView('closed');
   }
 
   const searchResults = emojiSearchQuery 
@@ -407,6 +439,10 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
       </div>
   );
 
+  const filteredUsers = allUsers.filter(user =>
+    user.name.toLowerCase().includes(userSearch.toLowerCase())
+  );
+
   return (
     <div className='relative'>
       <AnimatePresence>
@@ -490,7 +526,7 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
       />
         
         <AnimatePresence>
-            {(view === 'attachments' || view === 'emoji') && (
+            {(view !== 'closed') && (
                  <motion.div
                     key={view}
                     className="w-full bg-background/80 backdrop-blur-sm"
@@ -503,7 +539,7 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
                         <div className="p-4 pt-2">
                           <div className="flex flex-wrap items-center justify-center gap-4">
                               {attachmentActions.map(item => (
-                                  <div key={item.label} className="flex flex-col items-center gap-2" onClick={() => handleAttachmentAction(item.action || item.label)}>
+                                  <div key={item.label} className="flex flex-col items-center gap-2" onClick={() => handleAttachmentAction(item.action)}>
                                       <Button variant="ghost" size="icon" className={cn("h-14 w-14 rounded-full", item.color.replace('text-', 'bg-') + '/20', item.color)}>
                                           <item.icon className="w-6 h-6" />
                                       </Button>
@@ -559,6 +595,37 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
                                 </div>
                            </div>
                        </div>
+                    )}
+                    {view === 'share-contact' && (
+                        <div className='h-[350px] flex flex-col'>
+                            <div className="flex items-center p-2 border-b">
+                                <Button variant="ghost" size="icon" onClick={() => toggleView('closed')}><ArrowLeft className="w-5 h-5"/></Button>
+                                <div className='flex-1 text-center font-semibold'>Partager un contact</div>
+                                <div className="w-9"></div>
+                            </div>
+                            <div className="p-2">
+                                <Input placeholder="Rechercher un membre..." value={userSearch} onChange={(e) => setUserSearch(e.target.value)} />
+                            </div>
+                            <ScrollArea className="flex-1">
+                                {loadingUsers ? (
+                                    <div className="p-4 space-y-4">
+                                        {[...Array(3)].map((_, i) => <Skeleton key={i} className="h-12 w-full" />)}
+                                    </div>
+                                ) : (
+                                    <div className="p-2 space-y-1">
+                                        {filteredUsers.map(user => (
+                                            <div key={user.id} className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50 cursor-pointer" onClick={() => handleSendContact(user)}>
+                                                <Avatar>
+                                                    <AvatarImage src={user.avatar} />
+                                                    <AvatarFallback>{user.name.substring(0,1)}</AvatarFallback>
+                                                </Avatar>
+                                                <span className="font-medium">{user.name}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </ScrollArea>
+                        </div>
                     )}
                 </motion.div>
             )}

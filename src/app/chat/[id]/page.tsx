@@ -119,9 +119,19 @@ function ChatPageContent() {
             if (!usersData[message.senderId]) {
                  userIdsToFetch.add(message.senderId);
             }
+             if (message.type === 'contact' && message.content && !usersData[message.content]) {
+                userIdsToFetch.add(message.content);
+            }
         }
       });
-      setMessages(msgs);
+      
+      const msgsWithContactData = msgs.map(msg => {
+          if (msg.type === 'contact' && msg.content && usersData[msg.content]) {
+              return { ...msg, contactData: usersData[msg.content] };
+          }
+          return msg;
+      });
+      setMessages(msgsWithContactData);
       
       // Fetch sender data if not already present (especially for community chats)
       if (userIdsToFetch.size > 0) {
@@ -179,10 +189,10 @@ function ChatPageContent() {
     return otherUserId ? usersData[otherUserId] : undefined;
   }, [chatData, currentUser, usersData]);
 
-  const handleSendMessage = async (content: string, type: 'text' | 'image' | 'audio' = 'text', metadata: any = {}) => {
+  const handleSendMessage = async (content: string, type: 'text' | 'image' | 'audio' | 'contact' = 'text', metadata: any = {}) => {
     if (!firestore || !currentUser || !chatId) return;
 
-    const messageData: Partial<MessageType> = {
+    let messageData: Partial<MessageType> = {
       chatId,
       senderId: currentUser.uid,
       content,
@@ -195,6 +205,9 @@ function ChatPageContent() {
     if (type === 'audio' && metadata.duration) {
       messageData.audioMetadata = { duration: metadata.duration };
     }
+     if (type === 'contact' && metadata.contactData) {
+      messageData.contactData = metadata.contactData;
+    }
     
     // Add message to subcollection
     const messagesRef = collection(firestore, 'chats', chatId, 'messages');
@@ -203,9 +216,15 @@ function ChatPageContent() {
     // Update last message on chat document
     const chatRef = doc(firestore, 'chats', chatId);
     const batch = writeBatch(firestore);
+    
+    let lastMessageContent = content;
+    if (type === 'contact' && metadata.contactData) {
+      lastMessageContent = `${currentUser.displayName} a partagé le contact de ${metadata.contactData.name}.`;
+    }
+
 
     batch.update(chatRef, {
-      lastMessage: { content, type, senderId: currentUser.uid },
+      lastMessage: { content: lastMessageContent, type, senderId: currentUser.uid },
       lastMessageTimestamp: serverTimestamp(),
     });
 
@@ -439,5 +458,3 @@ export default function ChatPage() {
         </Suspense>
     )
 }
-
-    
