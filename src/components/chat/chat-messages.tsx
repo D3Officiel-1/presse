@@ -23,6 +23,7 @@ import {
   Check,
   CheckCheck,
   Edit,
+  X,
 } from 'lucide-react';
 import { ChatMessageStatus } from './chat-message-status';
 import { useToast } from '@/hooks/use-toast';
@@ -465,6 +466,8 @@ export function ChatMessages({
 
   const [selectedMessage, setSelectedMessage] = useState<Message | null>(null);
 
+  const [avatarInView, setAvatarInView] = useState<User | null>(null);
+
   const handleOpenContextMenu = (e: React.MouseEvent | React.TouchEvent, message: Message) => {
     e.preventDefault();
     setSelectedMessage(message);
@@ -546,6 +549,32 @@ export function ChatMessages({
   return (
     <ChatContext.Provider value={contextProviderValue}>
       <div ref={scrollAreaRef} className="flex-1 overflow-y-auto p-4 flex flex-col">
+          <AnimatePresence>
+            {avatarInView && (
+                <motion.div
+                    className="fixed inset-0 z-50 flex items-center justify-center bg-black/80"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    onClick={() => setAvatarInView(null)}
+                >
+                    <motion.div
+                        layoutId={`avatar-${avatarInView.id}`}
+                        className="relative w-full h-full max-w-[90vw] max-h-[90vh]"
+                    >
+                        <Image
+                            src={avatarInView.avatar}
+                            alt={avatarInView.name}
+                            layout="fill"
+                            objectFit="contain"
+                        />
+                    </motion.div>
+                    <Button variant="ghost" size="icon" className="absolute top-4 right-4 h-10 w-10 rounded-full bg-black/30 hover:bg-black/50 text-white" onClick={() => setAvatarInView(null)}>
+                        <X />
+                    </Button>
+                </motion.div>
+            )}
+        </AnimatePresence>
         {dailyGroups.map((dayGroup, dayIndex) => (
           <React.Fragment key={dayGroup.date}>
             <div className="relative my-4">
@@ -567,16 +596,18 @@ export function ChatMessages({
                 <div key={`${dayGroup.date}-${senderIndex}`} className={cn('flex flex-col gap-1 w-full my-1', senderGroup.position === 'right' ? 'items-end' : 'items-start')}>
                   {showSenderInfo && (
                       <div className="flex items-center gap-2">
-                          <Avatar className="w-8 h-8 self-end">
-                              {sender ? (
-                                  <>
-                                      <AvatarImage src={sender.avatar} />
-                                      <AvatarFallback>{sender.name.substring(0, 1)}</AvatarFallback>
-                                  </>
-                              ) : (
-                                  <Skeleton className="w-8 h-8 rounded-full" />
-                              )}
-                          </Avatar>
+                          <motion.div layoutId={`avatar-${sender?.id}`} onClick={() => sender && setAvatarInView(sender)} className="cursor-pointer">
+                            <Avatar className="w-8 h-8 self-end">
+                                {sender ? (
+                                    <>
+                                        <AvatarImage src={sender.avatar} />
+                                        <AvatarFallback>{sender.name.substring(0, 1)}</AvatarFallback>
+                                    </>
+                                ) : (
+                                    <Skeleton className="w-8 h-8 rounded-full" />
+                                )}
+                            </Avatar>
+                          </motion.div>
                           <p className="text-xs text-muted-foreground">{sender?.name || '...'}</p>
                       </div>
                   )}
