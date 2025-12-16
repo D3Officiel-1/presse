@@ -349,18 +349,8 @@ const MessageFocusView = ({
                     exit={{ scale: 0.9, y: 50 }}
                     transition={{ type: 'spring', stiffness: 400, damping: 40 }}
                 >
-                    <div className={cn("w-full flex", sender.id === chatContext.loggedInUser.uid ? 'justify-end' : 'justify-start')}>
-                        <ChatMessage 
-                            message={{...message, sender}} 
-                            position={sender.id === chatContext.loggedInUser.uid ? 'right' : 'left'} 
-                            onOpenContextMenu={() => {}} 
-                            onReply={() => {}}
-                            isFirstInGroup={true}
-                            isLastInGroup={true}
-                        />
-                    </div>
-                     <motion.div 
-                        className="flex items-center gap-4 bg-background/80 backdrop-blur-lg p-2 rounded-full shadow-lg border"
+                    <motion.div 
+                        className="flex items-center gap-4 bg-background/80 backdrop-blur-lg p-2 rounded-full shadow-lg border mb-4"
                         variants={{
                             hidden: { opacity: 0 },
                             visible: {
@@ -384,10 +374,21 @@ const MessageFocusView = ({
                             </motion.button>
                         ))}
                     </motion.div>
+
+                    <div className={cn("w-full flex", sender.id === chatContext.loggedInUser.uid ? 'justify-end' : 'justify-start')}>
+                        <ChatMessage 
+                            message={{...message, sender}} 
+                            position={sender.id === chatContext.loggedInUser.uid ? 'right' : 'left'} 
+                            onOpenContextMenu={() => {}} 
+                            onReply={() => {}}
+                            isFirstInGroup={true}
+                            isLastInGroup={true}
+                        />
+                    </div>
                 </motion.div>
                 
                  <motion.div
-                    className="absolute bottom-1/4 left-1/2 -translate-x-1/2 w-[300px] h-[300px] pointer-events-none"
+                    className="absolute bottom-[20%] left-1/2 -translate-x-1/2 w-[300px] h-[300px] pointer-events-none"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1, transition: { delay: 0.1 } }}
                     exit={{ opacity: 0 }}
