@@ -58,213 +58,6 @@ interface ChatInputProps {
   onClearReply: () => void;
 }
 
-const azertyLayout = {
-    letters: [
-        ['a', 'z', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p'],
-        ['q', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', 'm'],
-        ['w', 'x', 'c', 'v', 'b', 'n']
-    ],
-    numbers: [
-        ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0'],
-        ['@', '#', '€', '_', '&', '-', '+', '(', ')', '/'],
-        ['*', '"', ':', ';', '!', '?']
-    ]
-};
-
-const superscriptMap: { [key: string]: string } = {
-    'a': '1', 'z': '2', 'e': '3', 'r': '4', 't': '5',
-    'y': '6', 'u': '7', 'i': '8', 'o': '9', 'p': '0'
-};
-
-const longPressChars: { [key: string]: string[] } = {
-    'a': ['ä', 'ã', 'å', 'ā', 'ª', 'à', 'â', '1', 'æ', 'á'],
-    'z': ['2'],
-    'e': ['ė', '3', 'ę', 'ē', 'ê', 'é', 'è', 'ë'],
-    'r': ['4'],
-    't': ['5'],
-    'y': ['6', 'ÿ'],
-    'u': ['ū', 'ú', 'ũ', '7', 'ù', 'û', 'ü'],
-    'i': ['Ī', 'į', 'í', 'ĩ', 'ì', 'ï', 'î', '8'],
-    'o': ['º', 'ō', 'ø', 'õ', 'ó', 'ò', 'ö', '9', 'œ', 'ô'],
-    'p': ['0'],
-    'c': ['č', 'ç', 'ć'],
-    "'": ['‚', '‘', '’', '‹', '›'],
-    '.': ['&', '%', '+', '·', '"', '_', ';', '/', '-', ':', "'", '@', '(', ')', '#', '!', ',', '?']
-};
-
-
-const CustomKeyboard = ({ onKeyPress, onBackspace, onEnter, onSpace }: { onKeyPress: (key: string) => void, onBackspace: () => void, onEnter: () => void, onSpace: () => void }) => {
-    const [layout, setLayout] = useState<'letters' | 'numbers'>('letters');
-    const [isShift, setIsShift] = useState(false);
-    const [longPressedKey, setLongPressedKey] = useState<string | null>(null);
-    const longPressTimer = useRef<NodeJS.Timeout>();
-
-    const keysWithLongPress = Object.keys(longPressChars);
-
-    const handlePointerDown = (key: string) => {
-        if (!keysWithLongPress.includes(key)) return;
-        longPressTimer.current = setTimeout(() => {
-            setLongPressedKey(key);
-        }, 300); // 300ms for long press
-    };
-
-    const handlePointerUp = (key: string) => {
-        if (longPressTimer.current) {
-            clearTimeout(longPressTimer.current);
-        }
-        if (longPressedKey === null) {
-            handleKeyPress(key);
-        }
-    };
-    
-    const handlePointerLeave = (key: string) => {
-        if (longPressTimer.current) {
-            clearTimeout(longPressTimer.current);
-        }
-        if (longPressedKey === key) {
-            setLongPressedKey(null);
-        }
-    };
-    
-    const handleSpecialKeyPress = (char: string) => {
-        onKeyPress(char);
-        setLongPressedKey(null);
-    }
-
-    const handleKeyPress = (key: string) => {
-        onKeyPress(isShift ? key.toUpperCase() : key);
-        if (isShift) setIsShift(false);
-    };
-
-    const currentLayout = azertyLayout[layout];
-
-    return (
-        <div className="w-full bg-black/50 backdrop-blur-sm p-2 space-y-1">
-             <div className="flex justify-around items-center p-1 bg-black/30 rounded-full mb-2 text-muted-foreground">
-                <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full"><Menu /></Button>
-                <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full"><Clipboard /></Button>
-                <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full"><Film /></Button>
-                <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full"><Settings /></Button>
-                <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full"><Palette /></Button>
-            </div>
-            {currentLayout.map((row, rowIndex) => (
-                <div key={rowIndex} className="flex justify-center gap-1">
-                    {rowIndex === 2 && layout === 'letters' && (
-                        <Button onClick={() => setIsShift(!isShift)} className={cn("h-10 w-12", isShift && 'bg-white text-black')}>
-                            <ArrowUp />
-                        </Button>
-                    )}
-                    {row.map(key => (
-                        <Button 
-                            key={key} 
-                            onPointerDown={() => handlePointerDown(key)}
-                            onPointerUp={() => handlePointerUp(key)}
-                            onPointerLeave={() => handlePointerLeave(key)}
-                            className="h-10 flex-1 relative"
-                        >
-                            {longPressedKey === key && (
-                                <motion.div 
-                                    className="absolute -top-14 left-1/2 -translate-x-1/2 z-20"
-                                    initial={{ opacity: 0, y: 10 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                >
-                                    <div className="relative bg-popover text-popover-foreground rounded-xl p-2 shadow-lg flex flex-wrap gap-1 w-auto justify-center" style={{maxWidth: '280px'}}>
-                                      {(longPressChars[key] || []).map(char => (
-                                          <Button key={char} variant="ghost" size="icon" className="w-8 h-8" onPointerUp={(e) => { e.stopPropagation(); handleSpecialKeyPress(char); }}>
-                                              {char}
-                                          </Button>
-                                      ))}
-                                      <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-0 h-0 border-x-8 border-x-transparent border-t-8 border-t-popover" />
-                                    </div>
-                                </motion.div>
-                            )}
-                            {isShift ? key.toUpperCase() : key}
-                            {layout === 'letters' && superscriptMap[key] && (
-                                <span className="absolute top-1 right-1.5 text-xs opacity-70">{superscriptMap[key]}</span>
-                            )}
-                        </Button>
-                    ))}
-                    {rowIndex === 2 && layout === 'letters' && (
-                        <Button 
-                            onClick={() => {}}
-                            onPointerDown={() => handlePointerDown("'")}
-                            onPointerUp={() => handlePointerUp("'")}
-                            onPointerLeave={() => handlePointerLeave("'")}
-                            className="h-10 w-12 relative"
-                        >
-                             {longPressedKey === "'" && (
-                                <motion.div 
-                                    className="absolute -top-14 left-1/2 -translate-x-1/2 z-20"
-                                    initial={{ opacity: 0, y: 10 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                >
-                                    <div className="relative bg-popover text-popover-foreground rounded-xl p-2 shadow-lg flex flex-wrap gap-1 w-auto justify-center" style={{maxWidth: '280px'}}>
-                                         {(longPressChars["'"] || []).map(char => (
-                                            <Button key={char} variant="ghost" size="icon" className="w-8 h-8" onPointerUp={(e) => { e.stopPropagation(); handleSpecialKeyPress(char); }}>
-                                                {char}
-                                            </Button>
-                                        ))}
-                                         <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-0 h-0 border-x-8 border-x-transparent border-t-8 border-t-popover" />
-                                    </div>
-                                </motion.div>
-                            )}
-                            '
-                        </Button>
-                    )}
-                    {rowIndex === 2 && layout === 'letters' && (
-                        <Button onClick={onBackspace} className="h-10 w-12">
-                            <Delete />
-                        </Button>
-                    )}
-                     {rowIndex !== 2 && layout === 'numbers' && (
-                         <Button onClick={onBackspace} className="h-10 w-12">
-                            <Delete />
-                        </Button>
-                    )}
-                </div>
-            ))}
-            <div className="flex justify-center gap-1">
-                <Button onClick={() => setLayout(layout === 'letters' ? 'numbers' : 'letters')} className="h-10 w-16">
-                    {layout === 'letters' ? '?123' : 'ABC'}
-                </Button>
-                 <Button onClick={() => handleKeyPress(',')} className="h-10 w-12">,</Button>
-                <Button onClick={onSpace} className="h-10 flex-1">
-                    Espace
-                </Button>
-                <Button 
-                    onClick={() => {}} 
-                    onPointerDown={() => handlePointerDown('.')}
-                    onPointerUp={() => handlePointerUp('.')}
-                    onPointerLeave={() => handlePointerLeave('.')}
-                    className="h-10 w-12 relative"
-                >
-                    {longPressedKey === "." && (
-                        <motion.div 
-                            className="absolute -top-28 left-1/2 -translate-x-1/2 z-20"
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                        >
-                           <div className="relative bg-popover text-popover-foreground rounded-xl p-2 shadow-lg flex flex-wrap gap-1 w-auto justify-center" style={{maxWidth: '280px'}}>
-                             {(longPressChars['.'] || []).map(char => (
-                                <Button key={char} variant="ghost" size="icon" className="w-8 h-8" onPointerUp={(e) => { e.stopPropagation(); handleSpecialKeyPress(char); }}>
-                                    {char}
-                                </Button>
-                            ))}
-                             <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-0 h-0 border-x-8 border-x-transparent border-t-8 border-t-popover" />
-                            </div>
-                        </motion.div>
-                    )}
-                    .
-                </Button>
-                <Button onClick={onEnter} className="h-10 w-24">
-                    <CornerDownLeft />
-                </Button>
-            </div>
-        </div>
-    );
-};
-
-
 export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: ChatInputProps) {
   const router = useRouter();
   const [message, setMessage] = useState('');
@@ -273,7 +66,7 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
-  const [view, setView] = useState<'closed' | 'attachments' | 'emoji' | 'keyboard'>('closed');
+  const [view, setView] = useState<'closed' | 'attachments' | 'emoji'>('closed');
   const [activeMainTab, setActiveMainTab] = useState('emoji');
   const [activeEmojiCategory, setActiveEmojiCategory] = useState(emojiCategories[0].name);
   const [searchMode, setSearchMode] = useState(false);
@@ -288,7 +81,8 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
   const recordingIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const cancelAreaRef = useRef<HTMLDivElement>(null);
 
-  const handleInputChange = (value: string) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const value = e.target.value;
     setMessage(value);
 
     if (!firestore || !currentUser || !chat) return;
@@ -368,14 +162,14 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
   };
 
   const handleEmojiClick = (emoji: string) => {
-      handleInputChange(message + emoji);
+      setMessage(prev => prev + emoji);
   }
 
   const handleBackspace = () => {
-    handleInputChange(Array.from(message).slice(0, -1).join(''));
+    setMessage(prev => Array.from(prev).slice(0, -1).join(''));
   };
   
-  const toggleView = (newView: 'attachments' | 'emoji' | 'keyboard') => {
+  const toggleView = (newView: 'attachments' | 'emoji') => {
       if (view === newView) {
           setView('closed');
       } else {
@@ -426,7 +220,7 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
         <div className="flex-1 relative">
            <TextareaAutosize
             value={message}
-            onChange={(e) => handleInputChange(e.target.value)}
+            onChange={handleInputChange}
             placeholder="Message"
             maxRows={5}
             className="w-full resize-none bg-transparent border-0 focus:ring-0 focus:outline-none text-base placeholder:text-muted-foreground px-2 py-2"
@@ -434,9 +228,6 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
         </div>
         <Button variant="ghost" size="icon" className="h-10 w-10 shrink-0 text-muted-foreground" onClick={() => toggleView('emoji')}>
           <Smile className="w-5 h-5" />
-        </Button>
-        <Button variant="ghost" size="icon" className="h-10 w-10 shrink-0 text-muted-foreground" onClick={() => toggleView('keyboard')}>
-          <Keyboard className="w-5 h-5" />
         </Button>
         <div className="relative h-10 w-10 shrink-0">
           <AnimatePresence>
@@ -588,14 +379,6 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
                                <Button variant="ghost" size="icon" onClick={handleBackspace}><Delete className="w-5 h-5"/></Button>
                            </div>
                        </div>
-                    )}
-                    {view === 'keyboard' && (
-                        <CustomKeyboard 
-                          onKeyPress={(key) => handleInputChange(message + key)}
-                          onBackspace={handleBackspace}
-                          onEnter={handleSend}
-                          onSpace={() => handleInputChange(message + ' ')}
-                        />
                     )}
                 </motion.div>
             )}
