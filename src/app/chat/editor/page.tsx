@@ -638,15 +638,15 @@ function EditorComponent() {
                             </Button>
                         </header>
                          <motion.div
-                            className="w-full"
+                            className="w-full flex-1 flex flex-col justify-center"
                             initial={{ opacity: 0, scale: 0.8 }}
                             animate={{ opacity: 1, scale: 1 }}
                             transition={{ delay: 0.1, type: 'spring' }}
                          >
                             <Textarea
                                 value={textInputValue}
-                                readOnly // Prevent system keyboard
-                                onFocus={(e) => e.target.blur()} // Prevent focus to also block system keyboard
+                                readOnly
+                                onFocus={(e) => e.target.blur()}
                                 placeholder="Votre texte..."
                                 className={cn(
                                     "w-full bg-transparent border-none text-3xl md:text-5xl font-bold placeholder:text-white/50 focus-visible:ring-0 resize-none cursor-default",
@@ -668,7 +668,7 @@ function EditorComponent() {
                             />
                          </motion.div>
                          <ColorSlider onColorChange={setTextColor} />
-                        <div className="absolute bottom-0 left-0 right-0">
+                        <div className="w-full">
                            <CustomKeyboard 
                                 onKeyPress={(key) => setTextInputValue(prev => prev + key)}
                                 onBackspace={() => setTextInputValue(prev => prev.slice(0, -1))}
@@ -713,5 +713,3 @@ export default function EditorPage() {
         </Suspense>
     );
 }
-
-    

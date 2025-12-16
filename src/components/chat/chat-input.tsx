@@ -72,7 +72,7 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
   const [activeEmojiCategory, setActiveEmojiCategory] = useState(emojiCategories[0].name);
   const [searchMode, setSearchMode] = useState(false);
   const [emojiSearchQuery, setEmojiSearchQuery] = useState('');
-  const [showCustomKeyboard, setShowCustomKeyboard] = useState(true);
+  const [showCustomKeyboard, setShowCustomKeyboard] = useState(false);
 
   // Voice recording state
   const [isRecording, setIsRecording] = useState(false);
@@ -83,8 +83,7 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
   const recordingIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const cancelAreaRef = useRef<HTMLDivElement>(null);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    const value = e.target.value;
+  const handleInputChange = (value: string) => {
     setMessage(value);
 
     if (!firestore || !currentUser || !chat) return;
@@ -137,14 +136,7 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
        }
     }
   };
-
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      handleSend();
-    }
-  };
-
+  
   // --- Voice Recording Handlers ---
   const startRecording = async () => {
     // Implement recording logic
@@ -171,22 +163,22 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
   };
 
   const handleEmojiClick = (emoji: string) => {
-      setMessage(prev => prev + emoji);
+      handleInputChange(message + emoji);
   }
 
   const handleBackspace = () => {
-    setMessage(prev => Array.from(prev).slice(0, -1).join(''));
+    handleInputChange(Array.from(message).slice(0, -1).join(''));
   };
   
   const toggleView = (newView: 'attachments' | 'emoji') => {
       if (view === newView) {
           setView('closed');
-          setShowCustomKeyboard(true);
+          setShowCustomKeyboard(false);
       } else {
           setView(newView);
           setSearchMode(false);
           setEmojiSearchQuery('');
-          setShowCustomKeyboard(false);
+          setShowCustomKeyboard(true);
       }
   }
 
@@ -289,15 +281,13 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
                   <TextareaAutosize
                     ref={input => input && !replyInfo && !showCustomKeyboard && input.focus()}
                     value={message}
-                    onChange={handleInputChange}
-                    onKeyDown={handleKeyDown}
-                    placeholder="Message"
-                    maxRows={5}
-                    readOnly={showCustomKeyboard}
+                    onChange={(e) => handleInputChange(e.target.value)}
                     onFocus={(e) => {
                         setShowCustomKeyboard(true);
                         e.target.blur();
                     }}
+                    placeholder="Message"
+                    maxRows={5}
                     className="flex-1 resize-none bg-transparent border-0 focus:ring-0 focus:outline-none text-base placeholder:text-muted-foreground px-2"
                   />
                   <div className="relative h-10 w-10 shrink-0">
@@ -348,31 +338,7 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
               ) : ( // emoji or custom keyboard view
                  <div className="flex-1 flex flex-col overflow-hidden">
                     <AnimatePresence mode="wait">
-                    {showCustomKeyboard ? (
-                        <motion.div
-                            key="custom-keyboard"
-                            className="flex-1 flex flex-col"
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
-                        >
-                            <TextareaAutosize
-                                value={message}
-                                readOnly
-                                onFocus={(e) => e.target.blur()}
-                                placeholder="Message"
-                                maxRows={3}
-                                className="w-full resize-none bg-transparent border-0 focus:ring-0 focus:outline-none text-base placeholder:text-muted-foreground px-4 py-3"
-                            />
-                             <div className="flex-1" />
-                            <CustomKeyboard 
-                                onKeyPress={(key) => setMessage(prev => prev + key)}
-                                onBackspace={handleBackspace}
-                                onSpace={() => setMessage(prev => prev + ' ')}
-                                onEnter={handleSend}
-                            />
-                        </motion.div>
-                    ) : searchMode ? (
+                    {searchMode ? (
                         <motion.div
                             key="search-interface"
                             className="flex-1 flex flex-col overflow-hidden"
@@ -381,17 +347,15 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
                             exit={{ opacity: 0 }}
                             transition={{ duration: 0.2 }}
                         >
-                             <div className="p-2 border-b border-border/50">
-                                <TextareaAutosize
-                                    value={message}
-                                    onChange={handleInputChange}
-                                    onKeyDown={handleKeyDown}
-                                    placeholder="Message"
-                                    maxRows={2}
-                                    className="w-full resize-none bg-transparent border-0 focus:ring-0 focus:outline-none text-base placeholder:text-muted-foreground px-2 py-2"
-                                />
-                            </div>
-                            <div className="px-3 py-2 flex items-center gap-2 border-b border-border/50">
+                            <TextareaAutosize
+                                value={message}
+                                readOnly
+                                onFocus={(e) => e.target.blur()}
+                                placeholder="Message"
+                                maxRows={2}
+                                className="w-full resize-none bg-transparent border-0 focus:ring-0 focus:outline-none text-base placeholder:text-muted-foreground px-4 py-2"
+                            />
+                            <div className="px-3 py-2 flex items-center gap-2 border-t border-b border-border/50">
                                 <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={() => {setSearchMode(false); setEmojiSearchQuery('');}}>
                                     <ArrowLeft className="w-5 h-5" />
                                 </Button>
@@ -437,18 +401,15 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
                             exit={{ opacity: 0 }}
                             transition={{ duration: 0.2 }}
                         >
-                            <div className="p-2 border-b border-border/50">
-                                <TextareaAutosize
-                                    value={message}
-                                    onChange={handleInputChange}
-                                    onKeyDown={handleKeyDown}
-                                    placeholder="Message"
-                                    maxRows={2}
-                                    className="w-full resize-none bg-transparent border-0 focus:ring-0 focus:outline-none text-base placeholder:text-muted-foreground px-2 py-2"
-                                    autoFocus
-                                />
-                            </div>
-                            <div className="px-3 py-2 flex items-center justify-between border-b border-border/50">
+                            <TextareaAutosize
+                                value={message}
+                                readOnly
+                                onFocus={(e) => e.target.blur()}
+                                placeholder="Message"
+                                maxRows={2}
+                                className="w-full resize-none bg-transparent border-0 focus:ring-0 focus:outline-none text-base placeholder:text-muted-foreground px-4 py-2"
+                            />
+                            <div className="px-3 py-2 flex items-center justify-between border-t border-b border-border/50">
                                 <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground" onClick={() => setSearchMode(true)}>
                                     <Search className="w-5 h-5" />
                                 </Button>
@@ -512,7 +473,7 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
         </AnimatePresence>
         
         <AnimatePresence>
-            {(view !== 'closed' || showCustomKeyboard) && !searchMode && (
+            {(view !== 'closed' || showCustomKeyboard) && (
                 <motion.div
                     className="absolute top-2 right-2 z-10"
                     initial={{ opacity: 0, scale: 0.5, rotate: -90 }}
@@ -534,9 +495,23 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
                 </motion.div>
             )}
         </AnimatePresence>
+         <AnimatePresence>
+            {message && showCustomKeyboard && (
+                <motion.div
+                    key="send"
+                    initial={{ scale: 0, rotate: -90 }}
+                    animate={{ scale: 1, rotate: 0 }}
+                    exit={{ scale: 0, rotate: 90 }}
+                    className="absolute top-2 left-2 z-10"
+                >
+                    <Button size="icon" className="h-10 w-10 rounded-full bg-primary text-primary-foreground" onClick={handleSend}>
+                    <Send className="w-5 h-5" />
+                    </Button>
+                </motion.div>
+            )}
+        </AnimatePresence>
+
       </motion.div>
     </div>
   );
 }
-
-    
