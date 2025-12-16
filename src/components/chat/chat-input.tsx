@@ -391,15 +391,6 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
                     transition={{ type: 'spring', stiffness: 400, damping: 40 }}
                 >
                     <div className="w-full h-px bg-border"/>
-                    <div className={cn("relative", message ? 'h-auto' : 'h-0')}>
-                        <TextareaAutosize
-                            readOnly
-                            value={message}
-                            placeholder="Message"
-                            maxRows={2}
-                            className="w-full resize-none bg-transparent border-0 focus:ring-0 focus:outline-none text-base placeholder:text-muted-foreground px-4 py-2"
-                        />
-                    </div>
                     <CustomKeyboard 
                       onKeyPress={(key) => handleInputChange(message + key)}
                       onBackspace={handleBackspace}
