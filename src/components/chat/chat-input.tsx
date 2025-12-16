@@ -3,7 +3,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Paperclip, Mic, Send, X, Trash2, Smile, Image, Camera, MapPin, User, FileText, Music, Vote, Calendar } from 'lucide-react';
+import { Paperclip, Mic, Send, X, Trash2, Smile, Image, Camera, MapPin, User, FileText, Music, Vote, Calendar, Keyboard } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import type { ReplyInfo } from './chat-messages';
 import type { Chat as ChatType } from '@/lib/types';
@@ -36,6 +36,12 @@ const attachmentActions = [
     { icon: Calendar, label: "Évènement", color: "text-teal-500" },
 ]
 
+const popularEmojis = [
+  '👍', '❤️', '😂', '😮', '😢', '🙏', '🎉', '🔥', '😊', '😍', '🤔', '😎',
+  '🙌', '💯', '✨', '🚀', '👀', '✅', '👋', '👏', '🥳', '🤯', '🤞', '💔'
+];
+
+
 export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: ChatInputProps) {
   const [message, setMessage] = useState('');
   const { user: currentUser } = useUser();
@@ -43,6 +49,7 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   
   const [isAttachmentMenuOpen, setIsAttachmentMenuOpen] = useState(false);
+  const [isEmojiMenuOpen, setIsEmojiMenuOpen] = useState(false);
 
   // Voice recording state
   const [isRecording, setIsRecording] = useState(false);
@@ -193,6 +200,22 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
     }
   };
 
+  const handleEmojiClick = (emoji: string) => {
+      setMessage(prev => prev + emoji);
+  }
+  
+  const toggleAttachmentMenu = () => {
+      setIsEmojiMenuOpen(false);
+      setIsAttachmentMenuOpen(prev => !prev);
+  }
+
+  const toggleEmojiMenu = () => {
+      setIsAttachmentMenuOpen(false);
+      setIsEmojiMenuOpen(prev => !prev);
+  }
+
+  const isMenuOpen = isAttachmentMenuOpen || isEmojiMenuOpen;
+
   return (
     <div className="relative p-4 pt-2">
       <AnimatePresence>
@@ -223,113 +246,142 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
         className="relative bg-background/50 backdrop-blur-sm rounded-3xl shadow-lg border"
       >
         <AnimatePresence mode="wait">
-          {isAttachmentMenuOpen ? (
             <motion.div
-              key="attachment-menu"
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
-              exit={{ opacity: 0, height: 0 }}
-              transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-              className="p-6 overflow-hidden"
-            >
-              <div className="grid grid-cols-4 gap-x-4 gap-y-6">
-                {attachmentActions.map((action, index) => (
-                  <motion.div
-                    key={action.label}
-                    custom={index}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={(i) => ({
-                      opacity: 1,
-                      y: 0,
-                      transition: { delay: i * 0.03 + 0.1 },
-                    })}
-                    className="flex flex-col items-center gap-2 text-center cursor-pointer group"
-                  >
-                    <div className={`w-14 h-14 rounded-full flex items-center justify-center bg-background group-hover:scale-110 transition-transform`}>
-                      <action.icon className={`w-7 h-7 ${action.color}`} />
-                    </div>
-                    <span className="text-xs font-medium text-muted-foreground">{action.label}</span>
-                  </motion.div>
-                ))}
-              </div>
-            </motion.div>
-          ) : (
-            <motion.div
-              key="chat-bar"
+              key={isMenuOpen ? "menu" : "input"}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              transition={{ duration: 0.2, delay: 0.1 }}
-              className="flex items-center gap-1 p-2"
+              transition={{ duration: 0.2 }}
             >
-              <Button variant="ghost" size="icon" className="h-10 w-10 shrink-0 text-muted-foreground" onClick={() => setIsAttachmentMenuOpen(prev => !prev)}>
-                  <motion.div animate={{ rotate: isAttachmentMenuOpen ? 135 : 0 }} transition={{type: 'spring', stiffness: 400, damping: 20}}>
+              {isAttachmentMenuOpen ? (
+                <div className="p-6 overflow-hidden">
+                    <div className="grid grid-cols-4 gap-x-4 gap-y-6">
+                        {attachmentActions.map((action, index) => (
+                        <motion.div
+                            key={action.label}
+                            custom={index}
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={(i) => ({
+                                opacity: 1,
+                                y: 0,
+                                transition: { delay: i * 0.03 + 0.1 },
+                            })}
+                            className="flex flex-col items-center gap-2 text-center cursor-pointer group"
+                        >
+                            <div className={`w-14 h-14 rounded-full flex items-center justify-center bg-background group-hover:scale-110 transition-transform`}>
+                            <action.icon className={`w-7 h-7 ${action.color}`} />
+                            </div>
+                            <span className="text-xs font-medium text-muted-foreground">{action.label}</span>
+                        </motion.div>
+                        ))}
+                    </div>
+                </div>
+              ) : isEmojiMenuOpen ? (
+                 <div className="p-4 overflow-hidden h-56 overflow-y-auto">
+                    <div className="grid grid-cols-8 gap-2">
+                         {popularEmojis.map((emoji, index) => (
+                             <motion.div
+                                key={emoji}
+                                custom={index}
+                                initial={{ opacity: 0, scale: 0.5 }}
+                                animate={(i) => ({
+                                    opacity: 1,
+                                    scale: 1,
+                                    transition: { delay: i * 0.015 },
+                                })}
+                             >
+                                 <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="w-full h-10 text-2xl"
+                                    onClick={() => handleEmojiClick(emoji)}
+                                >
+                                    {emoji}
+                                </Button>
+                             </motion.div>
+                         ))}
+                    </div>
+                 </div>
+              ) : (
+                <div className="flex items-end gap-1 p-2">
+                  <Button variant="ghost" size="icon" className="h-10 w-10 shrink-0 text-muted-foreground" onClick={toggleAttachmentMenu}>
                       <Paperclip className="w-5 h-5" />
-                  </motion.div>
-              </Button>
-              <TextareaAutosize
-                ref={input => input && !replyInfo && input.focus()}
-                value={message}
-                onChange={handleInputChange}
-                onKeyDown={handleKeyDown}
-                placeholder="Message"
-                maxRows={5}
-                className="flex-1 resize-none bg-transparent border-0 focus:ring-0 focus:outline-none text-base placeholder:text-muted-foreground px-2"
-              />
-               <Button variant="ghost" size="icon" className="h-10 w-10 shrink-0 text-muted-foreground">
-                  <Smile className="w-5 h-5" />
-              </Button>
-              <div className="relative h-10 w-10 shrink-0">
-                <AnimatePresence>
-                  {message ? (
-                    <motion.div
-                      key="send"
-                      initial={{ scale: 0, rotate: -90 }}
-                      animate={{ scale: 1, rotate: 0 }}
-                      exit={{ scale: 0, rotate: 90 }}
-                      className="absolute inset-0"
-                    >
-                      <Button size="icon" className="h-10 w-10 rounded-full bg-primary text-primary-foreground" onClick={handleSend}>
-                        <Send className="w-5 h-5" />
-                      </Button>
-                    </motion.div>
-                  ) : (
-                    <motion.div
-                      key="mic"
-                      initial={{ scale: 0, rotate: 90 }}
-                      animate={{ scale: 1, rotate: 0 }}
-                      exit={{ scale: 0, rotate: -90 }}
-                      className="absolute inset-0"
-                    >
-                      <Button
-                          size="icon"
-                          variant="ghost"
-                          className="h-10 w-10 rounded-full text-muted-foreground"
-                          onPointerDown={handlePointerDown}
-                          onPointerUp={handlePointerUp}
-                          onPointerMove={handlePointerMove}
-                          onPointerLeave={handlePointerUp} // Stop if pointer leaves button
-                      >
-                        <Mic className="w-5 h-5" />
-                      </Button>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
+                  </Button>
+                  <Button variant="ghost" size="icon" className="h-10 w-10 shrink-0 text-muted-foreground" onClick={toggleEmojiMenu}>
+                      <Smile className="w-5 h-5" />
+                  </Button>
+                  <TextareaAutosize
+                    ref={input => input && !replyInfo && input.focus()}
+                    value={message}
+                    onChange={handleInputChange}
+                    onKeyDown={handleKeyDown}
+                    placeholder="Message"
+                    maxRows={5}
+                    className="flex-1 resize-none bg-transparent border-0 focus:ring-0 focus:outline-none text-base placeholder:text-muted-foreground px-2"
+                  />
+                  <div className="relative h-10 w-10 shrink-0">
+                    <AnimatePresence>
+                      {message ? (
+                        <motion.div
+                          key="send"
+                          initial={{ scale: 0, rotate: -90 }}
+                          animate={{ scale: 1, rotate: 0 }}
+                          exit={{ scale: 0, rotate: 90 }}
+                          className="absolute inset-0"
+                        >
+                          <Button size="icon" className="h-10 w-10 rounded-full bg-primary text-primary-foreground" onClick={handleSend}>
+                            <Send className="w-5 h-5" />
+                          </Button>
+                        </motion.div>
+                      ) : (
+                        <motion.div
+                          key="mic"
+                          initial={{ scale: 0, rotate: 90 }}
+                          animate={{ scale: 1, rotate: 0 }}
+                          exit={{ scale: 0, rotate: -90 }}
+                          className="absolute inset-0"
+                        >
+                          <Button
+                              size="icon"
+                              variant="ghost"
+                              className="h-10 w-10 rounded-full text-muted-foreground"
+                              onPointerDown={handlePointerDown}
+                              onPointerUp={handlePointerUp}
+                              onPointerMove={handlePointerMove}
+                              onPointerLeave={handlePointerUp} // Stop if pointer leaves button
+                          >
+                            <Mic className="w-5 h-5" />
+                          </Button>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                </div>
+              )}
             </motion.div>
-          )}
         </AnimatePresence>
         
-         <motion.div 
-            className="absolute top-2 right-2"
-            animate={{ rotate: isAttachmentMenuOpen ? 180 : 0 }}
-            transition={{type: 'spring', stiffness: 400, damping: 20}}
-         >
-            <Button variant="ghost" size="icon" className="h-10 w-10 shrink-0 text-muted-foreground" onClick={() => isAttachmentMenuOpen && setIsAttachmentMenuOpen(false)}>
-                 {isAttachmentMenuOpen && <X className="w-5 h-5" />}
-            </Button>
-        </motion.div>
-
+        <AnimatePresence>
+            {isMenuOpen && (
+                <motion.div
+                    className="absolute top-2 right-2"
+                    initial={{ opacity: 0, scale: 0.5 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.5 }}
+                >
+                    <Button
+                        variant="ghost" size="icon"
+                        className="h-10 w-10 shrink-0 text-muted-foreground"
+                        onClick={() => {
+                            setIsAttachmentMenuOpen(false);
+                            setIsEmojiMenuOpen(false);
+                        }}
+                    >
+                         <X className="w-5 h-5" />
+                    </Button>
+                </motion.div>
+            )}
+        </AnimatePresence>
 
       </motion.div>
 
