@@ -170,8 +170,12 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
   };
   
   const toggleView = (newView: 'attachments' | 'emoji') => {
-    setView(prev => prev === newView ? 'closed' : newView);
-  }
+    if (view === newView) {
+      setView('closed');
+    } else {
+      setView(newView);
+    }
+  };
 
   const handleAttachmentAction = (action: string) => {
     if (action === 'openGallery') {
@@ -304,17 +308,17 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
       />
         
         <AnimatePresence>
-            {view !== 'closed' && (
-                <motion.div
+            {(view === 'attachments' || view === 'emoji') && (
+                 <motion.div
                     key={view}
-                    className="w-full"
+                    className="w-full bg-background/80 backdrop-blur-sm"
                     initial={{ height: 0, opacity: 0 }}
                     animate={{ height: 'auto', opacity: 1 }}
                     exit={{ height: 0, opacity: 0, transition: { duration: 0.2, ease: 'easeOut' } }}
                     transition={{ type: 'spring', stiffness: 400, damping: 40 }}
                 >
                     {view === 'attachments' && (
-                        <div className="bg-background/80 backdrop-blur-sm p-4 pt-2">
+                        <div className="p-4 pt-2">
                           <div className="grid grid-cols-4 gap-4">
                               {attachmentActions.map(item => (
                                   <div key={item.label} className="flex flex-col items-center gap-2" onClick={() => handleAttachmentAction(item.action || item.label)}>
@@ -328,11 +332,11 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
                         </div>
                     )}
                     {view === 'emoji' && (
-                       <div className="h-[300px] flex flex-col bg-background/80 backdrop-blur-sm">
+                       <div className="h-[300px] flex flex-col">
                            <div className="flex items-center justify-between p-2 border-b">
-                               <div className="flex gap-1">
+                               <div className="flex gap-1 bg-black/20 p-1 rounded-full border">
                                    {mainTabs.map(tab => (
-                                       <Button key={tab.name} variant="ghost" size="icon" className={cn("h-9 w-9", activeMainTab === tab.name && 'bg-primary/20 text-primary')}>
+                                       <Button key={tab.name} variant={activeMainTab === tab.name ? 'secondary' : 'ghost'} size="icon" className="h-8 w-8 rounded-full" onClick={() => setActiveMainTab(tab.name)}>
                                            <tab.icon className="w-5 h-5"/>
                                        </Button>
                                    ))}
@@ -353,7 +357,7 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
                            ) : (
                                <div className="flex items-center gap-1 p-2 border-b overflow-x-auto no-scrollbar">
                                    {emojiCategories.map(cat => (
-                                       <Button key={cat.name} variant={activeEmojiCategory === cat.name ? 'default' : 'ghost'} size="icon" className="h-9 w-9 shrink-0" onClick={() => setActiveEmojiCategory(cat.name)}>
+                                       <Button key={cat.name} variant={activeEmojiCategory === cat.name ? 'default' : 'ghost'} size="icon" className="h-9 w-9 shrink-0 rounded-full" onClick={() => setActiveEmojiCategory(cat.name)}>
                                            <cat.icon className="w-5 h-5"/>
                                        </Button>
                                    ))}
@@ -368,8 +372,7 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
                                     ))}
                                 </div>
                            </div>
-                           <div className="p-2 border-t flex items-center justify-between">
-                               <span className="text-sm text-muted-foreground">{activeMainTab === 'emoji' ? activeEmojiCategory : 'GIFs'}</span>
+                           <div className="p-2 border-t flex items-center justify-end">
                                <Button variant="ghost" size="icon" onClick={handleBackspace}><Delete className="w-5 h-5"/></Button>
                            </div>
                        </div>
