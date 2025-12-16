@@ -380,9 +380,10 @@ const MessageFocusView = ({
     const [loadingShare, setLoadingShare] = useState(false);
 
     useEffect(() => {
-        if (viewMode !== 'share' || !chatContext.firestore || !chatContext.loggedInUser) return;
+        if (viewMode !== 'share') return;
         
         const fetchShareList = async () => {
+            if (!chatContext.firestore || !chatContext.loggedInUser) return;
             setLoadingShare(true);
             try {
                 const usersRef = collection(chatContext.firestore, 'users');
