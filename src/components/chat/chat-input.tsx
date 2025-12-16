@@ -91,12 +91,10 @@ const CustomKeyboard = ({ onKeyPress, onBackspace, onEnter, onSpace, onEmojiTogg
         <div className="w-full bg-black/50 backdrop-blur-sm p-2 space-y-1">
             <div className="flex justify-around items-center p-1 bg-black/30 rounded-full mb-2 text-muted-foreground">
                 <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full"><Menu /></Button>
-                <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full"><Smile /></Button>
                 <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full"><Clipboard /></Button>
                 <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full"><Film /></Button>
                 <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full"><Settings /></Button>
                 <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full"><Palette /></Button>
-                <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full"><Mic /></Button>
             </div>
             {currentLayout.map((row, rowIndex) => (
                 <div key={rowIndex} className="flex justify-center gap-1">
@@ -133,7 +131,6 @@ const CustomKeyboard = ({ onKeyPress, onBackspace, onEnter, onSpace, onEmojiTogg
                     {layout === 'letters' ? '?123' : 'ABC'}
                 </Button>
                  <Button onClick={() => handleKeyPress(',')} className="h-10 w-12">,</Button>
-                <Button onClick={onEmojiToggle} className="h-10 w-16">😊</Button>
                 <Button onClick={onSpace} className="h-10 flex-1">
                     Espace
                 </Button>
