@@ -76,7 +76,7 @@ const superscriptMap: { [key: string]: string } = {
     'y': '6', 'u': '7', 'i': '8', 'o': '9', 'p': '0'
 };
 
-const CustomKeyboard = ({ message, onMessageChange, onKeyPress, onBackspace, onEnter, onSpace, onEmojiToggle }: { message: string, onMessageChange: (value: string) => void, onKeyPress: (key: string) => void, onBackspace: () => void, onEnter: () => void, onSpace: () => void, onEmojiToggle: () => void }) => {
+const CustomKeyboard = ({ onKeyPress, onBackspace, onEnter, onSpace, onEmojiToggle }: { onKeyPress: (key: string) => void, onBackspace: () => void, onEnter: () => void, onSpace: () => void, onEmojiToggle: () => void }) => {
     const [layout, setLayout] = useState<'letters' | 'numbers'>('letters');
     const [isShift, setIsShift] = useState(false);
 
@@ -89,16 +89,7 @@ const CustomKeyboard = ({ message, onMessageChange, onKeyPress, onBackspace, onE
 
     return (
         <div className="w-full bg-black/50 backdrop-blur-sm p-2 space-y-1">
-            <div className="p-2 border-b border-border/50">
-                <TextareaAutosize
-                    value={message}
-                    onChange={(e) => onMessageChange(e.target.value)}
-                    placeholder="Écrivez votre message..."
-                    maxRows={3}
-                    className="w-full resize-none bg-transparent border-0 focus:ring-0 focus:outline-none text-base placeholder:text-muted-foreground px-2 py-2"
-                />
-            </div>
-             <div className="flex justify-around items-center p-1 bg-black/30 rounded-full mb-2 text-muted-foreground">
+            <div className="flex justify-around items-center p-1 bg-black/30 rounded-full mb-2 text-muted-foreground">
                 <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full"><Grip /></Button>
                 <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full"><StickyNote /></Button>
                 <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full"><Clipboard /></Button>
@@ -122,7 +113,7 @@ const CustomKeyboard = ({ message, onMessageChange, onKeyPress, onBackspace, onE
                             )}
                         </Button>
                     ))}
-                     {rowIndex === 2 && layout === 'letters' && (
+                    {rowIndex === 2 && layout === 'letters' && (
                         <Button onClick={() => handleKeyPress("'")} className="h-10 w-12">'</Button>
                     )}
                     {rowIndex === 2 && layout === 'letters' && (
@@ -373,7 +364,7 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
   );
 
   return (
-    <div className={cn("p-4 pt-2", view !== 'closed' ? 'pb-0' : '')}>
+    <div className="p-4 pt-2">
       <AnimatePresence>
         {replyInfo && (
           <motion.div
@@ -397,10 +388,10 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
       </AnimatePresence>
 
       <AnimatePresence>
-        {view === 'keyboard' && (
-             <motion.div
-                key="main-input-floating"
-                className="p-4"
+        {(view === 'closed' || view === 'keyboard') && (
+            <motion.div
+                key="main-input-wrapper"
+                className={cn(view === 'keyboard' && "p-4")}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: 20 }}
@@ -409,28 +400,13 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
                 <div
                     className={cn(
                         "relative bg-background/50 backdrop-blur-sm rounded-3xl shadow-lg border flex flex-col",
-                        replyInfo ? 'rounded-t-none' : ''
+                        replyInfo && view === 'closed' ? 'rounded-t-none' : ''
                     )}
                 >
                     {mainInputSection}
                 </div>
             </motion.div>
         )}
-      </AnimatePresence>
-
-       <AnimatePresence>
-          {view === 'closed' && (
-             <motion.div
-                key="main-input-default"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 20 }}
-              >
-                  <div className="relative bg-background/50 backdrop-blur-sm rounded-3xl shadow-lg border flex flex-col">
-                      {mainInputSection}
-                  </div>
-              </motion.div>
-          )}
       </AnimatePresence>
         
         <AnimatePresence>
@@ -444,8 +420,6 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
                     transition={{ type: 'spring', stiffness: 400, damping: 40 }}
                 >
                     <CustomKeyboard 
-                      message={message}
-                      onMessageChange={handleInputChange}
                       onKeyPress={(key) => handleInputChange(message + key)}
                       onBackspace={handleBackspace}
                       onEnter={handleSend}
