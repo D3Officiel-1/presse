@@ -369,7 +369,7 @@ function EditorComponent() {
                                     <AlignmentIcon />
                                 </Button>
                             </div>
-                            <Button onClick={handleAddText}>
+                            <Button size="sm" onClick={handleAddText}>
                                 <Check className="w-4 h-4 mr-2" />
                                 Enregistrer
                             </Button>
