@@ -271,7 +271,7 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.2 }}
-              className="flex flex-col flex-1"
+              className="flex flex-col flex-1 h-full"
             >
               {isAttachmentMenuOpen ? (
                 <div className="p-6 overflow-auto flex-1">
@@ -363,9 +363,6 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
                   <Button variant="ghost" size="icon" className="h-10 w-10 shrink-0 text-muted-foreground" onClick={toggleAttachmentMenu}>
                       <Paperclip className="w-5 h-5" />
                   </Button>
-                   <Button variant="ghost" size="icon" className="h-10 w-10 shrink-0 text-muted-foreground" onClick={toggleEmojiMenu}>
-                      <Smile className="w-5 h-5" />
-                  </Button>
                   <TextareaAutosize
                     ref={input => input && !replyInfo && input.focus()}
                     value={message}
@@ -375,6 +372,9 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
                     maxRows={5}
                     className="flex-1 resize-none bg-transparent border-0 focus:ring-0 focus:outline-none text-base placeholder:text-muted-foreground px-2"
                   />
+                   <Button variant="ghost" size="icon" className="h-10 w-10 shrink-0 text-muted-foreground" onClick={toggleEmojiMenu}>
+                      <Smile className="w-5 h-5" />
+                  </Button>
                   <div className="relative h-10 w-10 shrink-0">
                     <AnimatePresence>
                       {message ? (
@@ -418,7 +418,7 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
         </AnimatePresence>
         
         <AnimatePresence>
-            {isAttachmentMenuOpen && (
+            {(isAttachmentMenuOpen || isEmojiMenuOpen) && (
                 <motion.div
                     className="absolute top-2 right-2 z-10"
                     initial={{ opacity: 0, scale: 0.5, rotate: -90 }}
@@ -428,7 +428,7 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
                     <Button
                         variant="ghost" size="icon"
                         className="h-10 w-10 shrink-0 text-muted-foreground rounded-full"
-                        onClick={toggleAttachmentMenu}
+                        onClick={isAttachmentMenuOpen ? toggleAttachmentMenu : toggleEmojiMenu}
                     >
                          <X className="w-5 h-5" />
                     </Button>
