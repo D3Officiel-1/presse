@@ -1,4 +1,3 @@
-
 'use client'
 
 import React, { useState, useEffect } from 'react';
@@ -6,14 +5,13 @@ import { useParams, useRouter } from 'next/navigation';
 import { useFirestore } from '@/firebase/provider';
 import { collection, doc, onSnapshot, query, orderBy, Timestamp } from 'firebase/firestore';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Calendar as CalendarIcon, CheckCircle, XCircle, Loader2, User, Activity, BarChart3, TrendingUp, TrendingDown } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
+import { ArrowLeft, Calendar as CalendarIcon, CheckCircle, XCircle, Loader2, BarChart3 } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import { format, startOfMonth, endOfMonth, eachDayOfInterval, getMonth, getYear } from 'date-fns';
+import { format, getMonth, getYear } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Separator } from '@/components/ui/separator';
 
 interface PresenceRecord {
     id: string;
@@ -80,15 +78,6 @@ export default function HistoryPage() {
     const totalPresent = presentDays.length;
     const totalAbsent = absentDays.length;
 
-    const monthlyStats = React.useMemo(() => {
-        const month = getMonth(currentMonth);
-        const year = getYear(currentMonth);
-        const presentCount = presentDays.filter(d => getMonth(d) === month && getYear(d) === year).length;
-        const absentCount = absentDays.filter(d => getMonth(d) === month && getYear(d) === year).length;
-        return { presentCount, absentCount };
-    }, [currentMonth, presentDays, absentDays]);
-
-
     if (loading) {
         return (
             <div className="flex h-screen w-full items-center justify-center bg-background">
@@ -149,40 +138,21 @@ export default function HistoryPage() {
                     transition={{ duration: 0.5, ease: "easeOut" }}
                     className='lg:sticky lg:top-24'
                  >
-                    <Card className='bg-card/30 backdrop-blur-md border-white/10 shadow-lg'>
-                        <CardHeader>
-                            <CardTitle className="flex items-center gap-2 text-xl"><CalendarIcon className="w-5 h-5 text-muted-foreground"/> Calendrier d'Activité</CardTitle>
-                        </CardHeader>
-                        <CardContent className="flex justify-center">
-                           <CalendarComponent
-                                mode="single"
-                                selected={new Date()}
-                                onMonthChange={setCurrentMonth}
-                                locale={fr}
-                                modifiers={{
-                                    present: presentDays,
-                                    absent: absentDays,
-                                }}
-                                modifiersClassNames={{
-                                    present: 'day-present',
-                                    absent: 'day-absent',
-                                }}
-                                className="p-0"
-                            />
-                        </CardContent>
-                        <CardFooter className="flex-col items-start gap-4 border-t border-white/10 pt-4">
-                            <div className="text-sm font-semibold">Résumé pour {format(currentMonth, 'MMMM yyyy', { locale: fr })}</div>
-                            <div className="flex w-full justify-around">
-                                <div className="text-center">
-                                    <div className="text-2xl font-bold text-green-400">{monthlyStats.presentCount}</div>
-                                    <div className="text-xs text-muted-foreground">Présences</div>
-                                </div>
-                                <div className="text-center">
-                                     <div className="text-2xl font-bold text-red-400">{monthlyStats.absentCount}</div>
-                                    <div className="text-xs text-muted-foreground">Absences</div>
-                                </div>
-                            </div>
-                        </CardFooter>
+                    <Card className='bg-card/30 backdrop-blur-md border-white/10 shadow-lg p-4'>
+                         <CalendarComponent
+                            mode="single"
+                            selected={new Date()}
+                            onMonthChange={setCurrentMonth}
+                            locale={fr}
+                            modifiers={{
+                                present: presentDays,
+                                absent: absentDays,
+                            }}
+                            modifiersClassNames={{
+                                present: 'day-present',
+                                absent: 'day-absent',
+                            }}
+                        />
                     </Card>
                 </motion.div>
 
@@ -233,17 +203,3 @@ export default function HistoryPage() {
         </div>
     );
 }
-
-// Custom styles for calendar days are now in globals.css for better management.
-// The styles in globals.css should look like this:
-/*
-  .day-present:not(.rdp-day_outside) {
-    background-color: hsl(var(--primary) / 0.1);
-    border-color: hsl(var(--primary) / 0.2);
-  }
-
-  .day-absent:not(.rdp-day_outside) {
-    background-color: hsl(var(--destructive) / 0.1);
-    border-color: hsl(var(--destructive) / 0.2);
-  }
-*/
