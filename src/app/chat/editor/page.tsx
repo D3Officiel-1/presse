@@ -130,6 +130,14 @@ function EditorComponent() {
     // State for drag-to-delete
     const [isDraggingText, setIsDraggingText] = useState(false);
     const deleteZoneRef = useRef<HTMLDivElement>(null);
+    
+    // State for drawing
+    const [isDrawing, setIsDrawing] = useState(false);
+    const [drawColor, setDrawColor] = useState('#FFFFFF');
+    const [lineWidth, setLineWidth] = useState(5);
+    const canvasRef = useRef<HTMLCanvasElement>(null);
+    const contextRef = useRef<CanvasRenderingContext2D | null>(null);
+    const isDrawingRef = useRef(false);
 
     useEffect(() => {
         const mediaData = sessionStorage.getItem('media-to-edit');
@@ -148,6 +156,74 @@ function EditorComponent() {
             router.back();
         }
     }, [router, toast]);
+    
+    // Setup drawing canvas
+    useEffect(() => {
+        if (isDrawing && canvasRef.current) {
+            const canvas = canvasRef.current;
+            const context = canvas.getContext('2d');
+            if (context) {
+                canvas.width = imageContainerRef.current?.clientWidth || 500;
+                canvas.height = imageContainerRef.current?.clientHeight || 500;
+                context.lineCap = 'round';
+                context.strokeStyle = drawColor;
+                context.lineWidth = lineWidth;
+                contextRef.current = context;
+            }
+        }
+    }, [isDrawing, drawColor, lineWidth]);
+
+    const startDrawing = ({ nativeEvent }: React.MouseEvent | React.TouchEvent) => {
+        const { offsetX, offsetY } = nativeEvent as MouseEvent; // Simplified for mouse
+        if (contextRef.current) {
+            contextRef.current.beginPath();
+            contextRef.current.moveTo(offsetX, offsetY);
+            isDrawingRef.current = true;
+        }
+    };
+
+    const finishDrawing = () => {
+        if (contextRef.current) {
+            contextRef.current.closePath();
+            isDrawingRef.current = false;
+        }
+    };
+
+    const draw = ({ nativeEvent }: React.MouseEvent | React.TouchEvent) => {
+        if (!isDrawingRef.current || !contextRef.current) {
+            return;
+        }
+        const { offsetX, offsetY } = nativeEvent as MouseEvent;
+        contextRef.current.lineTo(offsetX, offsetY);
+        contextRef.current.stroke();
+    };
+
+    const confirmDrawing = async () => {
+        if (!canvasRef.current || !imageContainerRef.current) return;
+        
+        const drawingCanvas = canvasRef.current;
+        const finalCanvas = document.createElement('canvas');
+        const finalCtx = finalCanvas.getContext('2d');
+
+        const imageElement = imageContainerRef.current.querySelector('img');
+        if (!imageElement || !finalCtx) return;
+
+        finalCanvas.width = imageElement.naturalWidth;
+        finalCanvas.height = imageElement.naturalHeight;
+
+        finalCtx.drawImage(imageElement, 0, 0);
+
+        // Scale and draw the drawing canvas onto the final canvas
+        finalCtx.drawImage(
+            drawingCanvas, 
+            0, 0, drawingCanvas.width, drawingCanvas.height, // Source
+            0, 0, finalCanvas.width, finalCanvas.height // Destination
+        );
+
+        const dataUrl = finalCanvas.toDataURL('image/png');
+        setMediaSrc(dataUrl);
+        setIsDrawing(false);
+    };
     
     function onImageLoad(e: React.SyntheticEvent<HTMLImageElement>) {
         const { width, height } = e.currentTarget;
@@ -314,7 +390,7 @@ function EditorComponent() {
         { icon: Crop, label: 'Recadrer', action: startCropping },
         { icon: Smile, label: 'Stickers', action: () => {} },
         { icon: Type, label: 'Texte', action: () => setIsAddingText(true) },
-        { icon: Brush, label: 'Dessiner', action: () => {} },
+        { icon: Brush, label: 'Dessiner', action: () => setIsDrawing(true) },
         { icon: RotateCw, label: 'Pivoter', action: handleRotate },
     ];
 
@@ -323,7 +399,7 @@ function EditorComponent() {
         <div className="relative flex flex-col h-screen w-full bg-black text-white overflow-hidden">
             {/* Header */}
             <AnimatePresence>
-                {!isDraggingText && !isAddingText && (
+                {!isDraggingText && !isAddingText && !isDrawing && (
                     <motion.header 
                         initial={{ opacity: 0, y: -20 }}
                         animate={{ opacity: 1, y: 0 }}
@@ -356,6 +432,29 @@ function EditorComponent() {
                             </>
                         )}
                     </motion.header>
+                )}
+            </AnimatePresence>
+
+             {/* Drawing UI */}
+            <AnimatePresence>
+                {isDrawing && (
+                    <motion.div
+                        className="absolute inset-0 z-30"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                    >
+                        <header className="absolute top-0 left-0 right-0 p-4 flex items-center justify-between">
+                            <Button variant="ghost" size="icon" onClick={() => setIsDrawing(false)} className="h-10 w-10 rounded-full bg-black/30 hover:bg-black/50">
+                                <X />
+                            </Button>
+                            <Button size="sm" onClick={confirmDrawing}>
+                                <Check className="w-4 h-4 mr-2" />
+                                Terminer
+                            </Button>
+                        </header>
+                         <ColorSlider onColorChange={setDrawColor} />
+                    </motion.div>
                 )}
             </AnimatePresence>
             
@@ -438,6 +537,18 @@ function EditorComponent() {
                                 {overlayText}
                             </span>
                         </motion.div>
+                    )}
+                    {isDrawing && (
+                        <canvas
+                            ref={canvasRef}
+                            className="absolute top-0 left-0 w-full h-full"
+                            onMouseDown={startDrawing}
+                            onMouseUp={finishDrawing}
+                            onMouseMove={draw}
+                            onTouchStart={startDrawing}
+                            onTouchEnd={finishDrawing}
+                            onTouchMove={draw}
+                        />
                     )}
                 </div>
             </div>
@@ -582,7 +693,7 @@ function EditorComponent() {
 
             {/* Footer */}
             <AnimatePresence>
-                {!isDraggingText && !isAddingText && (
+                {!isDraggingText && !isAddingText && !isDrawing && (
                     <motion.footer
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
