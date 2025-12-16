@@ -24,6 +24,7 @@ import {
   MessageSquare,
   Check,
   CheckCheck,
+  Edit,
 } from 'lucide-react';
 import { ChatMessageStatus } from './chat-message-status';
 import { useToast } from '@/hooks/use-toast';
@@ -313,7 +314,7 @@ const MessageFocusView = ({
     };
 
     const mainActions: ActionItem[] = [
-        { label: 'Répondre', icon: CornerUpLeft, action: onReply },
+        { label: 'Modifier', icon: Edit, action: () => {} },
         { label: 'Copier', icon: Copy, action: () => navigator.clipboard.writeText(message.content) },
         { label: 'Transférer', icon: Share2, action: () => {} },
         { label: isStarred ? 'Important' : 'Important', icon: Star, action: onToggleStar },
