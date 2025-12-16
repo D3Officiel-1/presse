@@ -52,7 +52,7 @@ const emojiCategories = [
     { name: 'Personnes & Corps', icon: User, emojis: ['👋', '🤚', '🖐️', '✋', '🖖', '👌', '🤌', '🤏', '✌️', '🤞', '🤟', '🤘', '🤙', '👈', '👉', '👆', '🖕', '👇', '☝️', '👍', '👎', '✊', '👊', '🤛', '🤜', '👏', '🙌', '👐', '🤲', '🤝', '🙏', '✍️', '💅', '🤳', '💪', '🦾', '🦵', '🦿', '🦶', '👣', '👂', '🦻', '👃', '🧠', '🫀', '🫁', '🦷', '🦴', '👀', '👁️', '👅', '👄', '💋', '👶', '🧒', '👦', '👧', '🧑', '👱', '👨', '🧔', '👨‍🦰', '👨‍', '👨‍🦳', '👨‍🦲', '👩', '👩‍🦰', '🧑‍🦰', '👩‍🦱', '🧑‍🦱', '👩‍🦳', '🧑‍🦳', '👩‍🦲', '🧑‍🦲', '👱‍♀️', '👱‍♂️', '🧓', '👴', '👵'] },
     { name: 'Animaux & Nature', icon: Sprout, emojis: ['🙈', '🙉', '🙊', '🐵', '🐒', '🦍', '🦧', '🐶', '🐕', '🦮', '🐕‍🦺', '🐩', '🐺', '🦊', '🦝', '🐱', '🐈', '🐈‍⬛', '🦁', '🐯', '🐅', '🐆', '🐴', '🐎', '🦄', '🦓', '🦌', '🦬', '🐮', '🐂', '🐃', '🐄', '🐷', '🐖', '🐗', '🐽', '🐏', '🐑', '🐐', '🐪', '🐫', '🦙', '🦒', '🐘', '🦣', '🦏', '🦛', '🐭', '🐁', '🐀', '🐹', '🐰', '🐇', '🐿️', '🦫', '🦔', '🦇', '🐻', '🐻‍❄️', '🐨', '🐼', '🦥', '🦦', '🦨', '🦘', '🦡', '🐾', '🦃', '🐔', '🐓', '🐣', '🐤', '🐥', '🐦', '🐧', '🕊️', '🦅', '🦆', '🦢', '🦉', '🦤', '🪶', '🐸', '🐊', '🐢', '🦎', '🐍', '🐲', '🐉', '🦕', '🦖', '🐳', '🐋', '🐬', '🦭', '🐟', '🐠', '🐡', '🦈', '🐙', '🐚', '🐌', '🦋', '🐛', '🐜', '🐝', '🪲', '🐞', '🦗', '🪳', '🕷️', '🕸️', '🦂', '🦟', '🪰', '🪱', '🦠', '💐', '🌸', '💮', '🏵️', '🌹', '🥀', '🌺', '🌻', '🌼', '🌷', '🌱', '🪴', '🌲', '🌳', '🌴', '🌵', '🌾', '🌿', '☘️', '🍀', '🍁', '🍂', '🍃'] },
     { name: 'Nourriture & Boisson', icon: Pizza, emojis: ['🍇', '🍈', '🍉', '🍊', '🍋', '🍌', '🍍', '🥭', '🍎', '🍏', '🍐', '🍑', '🍒', '🍓', '🥝', '🍅', '🥥', '🥑', '🍆', '🥔', '🥕', '🌽', '🌶️', '🥒', '🥬', '🥦', '🧄', '🧅', '🍄', '🥜', '🌰', '🍞', '🥐', '🥖', '🥨', '🥯', '🥞', '🧇', '🧀', '🍖', '🍗', '🥩', '🥓', '🍔', '🍟', '🍕', '🌭', '🥪', '🌮', '🌯', '🥙', '🧆', '🥚', '🍳', '🥘', '🍲', '🥣', '🥗', '🍿', '🧈', '🧂', '🥫', '🍱', '🍘', '🍙', '🍚', '🍛', '🍜', '🍝', '🍠', '🍢', '🍣', '🍤', '🍥', '🥮', '🍡', '🥟', '🥠', '🥡', '🦀', '🦞', '🦐', '🦑', '🦪', '🍦', '🍧', '🍨', '🍩', '🍪', '🎂', '🍰', '🧁', '🥧', '🍫', '🍬', '🍭', '🍮', '🍯', '🍼', '🥛', '☕', '🍵', '🍶', '🍾', '🍷', '🍸', '🍹', '🍺', '🍻', '🥂', '🥃', '🥤', '🧃', '🧉', '🧊', '🥢', '🍽️', '🍴', '🥄', '🔪', '🏺'] },
-    { name: 'Activités', icon: Dumbbell, emojis: ['🤺', '🤸', '⛹️', '🤾', '🧘', '🧗', '🏌️', '🏄', '🚣', '🏊', '🤽', '🚴', '🚵', '🤹', '🎭', '🎨', '🎬', '🎤', '🎧', '🎼', '🎹', '🥁', '🎷', '🎺', '🎸', '🪕', '🎻', '🎲', '♟️', '🎯', '🎳', '🎮', '🎰', '🧩'] },
+    { name: 'Activités', icon: Dumbbell, emojis: ['🤺', '🤸', '⛹️', '𤾾', '🧘', '🧗', '🏌️', '🏄', '🚣', '🏊', '🤽', '🚴', '🚵', '🤹', '🎭', '🎨', '🎬', '🎤', '🎧', '🎼', '🎹', '🥁', '🎷', '🎺', '🎸', '🪕', '🎻', '🎲', '♟️', '🎯', '🎳', '🎮', '🎰', '🧩'] },
     { name: 'Objets', icon: ToyBrick, emojis: ['🚗', '🚕', '🚙', '🚌', '🚎', '🏎️', '🚓', '🚑', '🚒', '🚐', '🚚', '🚛', '🚜', '🛴', '🚲', '🛵', '🏍️', '🛺', '🚨', '🚔', '🚍', '🚘', '🚖', '✈️', '🛫', '🛬', '🛩️', '🚁', '🛶', '⛵', '🚤', '🛥️', '🛳️', '⛴️', '🚀', '🛰️', '🛸', '🛎️', '🧳', '⌛', '⏳', '⌚', '⏰', '⏱️', '⏲️', '🕰️', '🌡️', '🎈', '🎉', '🎊', '🎀', '🎁', '🎂', '🎄', '🎃', '✨', '🎇', '🎆', '🧨', '🧧', '🎐', '🎏', '🎎', '🎑', '🏺', '🔮', '🧿', '📿', '💎', '💍', '💄', '💋', '💌', '❤️', '💔', '❣️', '💕', '💞', '💓', '💗', '💖', '💘', '💝', '💟', '☮️', '✝️', '☪️', '🕉️', '☸️', '✡️', '🔯', '🕎', '☯️', '☦️', '🛐', '⛎', '♈', '♉', '♊', '♋', '♌', '♍', '♎', '♏', '♐', '♑', '♒', '♓', '🆔', '⚛️', '☢️', '☣️', '📴', '📳', '🈶', '🈚', '🈸', '🈺', '🈷️', '✴️', '🆚', '🉑', '💮', '🉐', '㊙️', '㊗️', '🈴', '🈵', '🈹', '🈲', '🅰️', '🅱️', '🆎', '🆑', '🅾️', '🆘', '⛔', '📛', '🚫', '❌', '⭕', '💢', '♨️', '🚷', '🚯', '🚳', '🚱', '🔞', '📵', '🚭'] },
 ];
 
@@ -72,7 +72,7 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
   const [activeEmojiCategory, setActiveEmojiCategory] = useState(emojiCategories[0].name);
   const [searchMode, setSearchMode] = useState(false);
   const [emojiSearchQuery, setEmojiSearchQuery] = useState('');
-  const [showCustomKeyboard, setShowCustomKeyboard] = useState(false);
+  const [showCustomKeyboard, setShowCustomKeyboard] = useState(true);
 
   // Voice recording state
   const [isRecording, setIsRecording] = useState(false);
@@ -181,10 +181,12 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
   const toggleView = (newView: 'attachments' | 'emoji') => {
       if (view === newView) {
           setView('closed');
+          setShowCustomKeyboard(true);
       } else {
           setView(newView);
           setSearchMode(false);
           setEmojiSearchQuery('');
+          setShowCustomKeyboard(false);
       }
   }
 
@@ -222,7 +224,7 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
       open: { height: 350 },
   };
 
-  const currentVariant = view === 'closed' ? 'closed' : 'open';
+  const currentVariant = view === 'closed' && !showCustomKeyboard ? 'closed' : 'open';
 
   const searchResults = emojiSearchQuery 
     ? allEmojis.filter(emoji => emoji.includes(emojiSearchQuery))
@@ -276,7 +278,7 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
               transition={{ duration: 0.2 }}
               className="flex flex-col flex-1 h-full"
             >
-              {view === 'closed' ? (
+              {view === 'closed' && !showCustomKeyboard ? (
                 <div className="flex items-center gap-1 p-2">
                   <Button variant="ghost" size="icon" className="h-10 w-10 shrink-0 text-muted-foreground" onClick={() => toggleView('attachments')}>
                     <Paperclip className="w-5 h-5" />
@@ -293,7 +295,8 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
                     maxRows={5}
                     readOnly={showCustomKeyboard}
                     onFocus={(e) => {
-                        if (showCustomKeyboard) e.target.blur();
+                        setShowCustomKeyboard(true);
+                        e.target.blur();
                     }}
                     className="flex-1 resize-none bg-transparent border-0 focus:ring-0 focus:outline-none text-base placeholder:text-muted-foreground px-2"
                   />
@@ -342,10 +345,34 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
                       </div>
                     ))}
                  </div>
-              ) : (
+              ) : ( // emoji or custom keyboard view
                  <div className="flex-1 flex flex-col overflow-hidden">
                     <AnimatePresence mode="wait">
-                    {searchMode ? (
+                    {showCustomKeyboard ? (
+                        <motion.div
+                            key="custom-keyboard"
+                            className="flex-1 flex flex-col"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                        >
+                            <TextareaAutosize
+                                value={message}
+                                readOnly
+                                onFocus={(e) => e.target.blur()}
+                                placeholder="Message"
+                                maxRows={3}
+                                className="w-full resize-none bg-transparent border-0 focus:ring-0 focus:outline-none text-base placeholder:text-muted-foreground px-4 py-3"
+                            />
+                             <div className="flex-1" />
+                            <CustomKeyboard 
+                                onKeyPress={(key) => setMessage(prev => prev + key)}
+                                onBackspace={handleBackspace}
+                                onSpace={() => setMessage(prev => prev + ' ')}
+                                onEnter={handleSend}
+                            />
+                        </motion.div>
+                    ) : searchMode ? (
                         <motion.div
                             key="search-interface"
                             className="flex-1 flex flex-col overflow-hidden"
@@ -499,9 +526,7 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
                             if (view !== 'closed') {
                                 setView('closed');
                             }
-                            if (showCustomKeyboard) {
-                                setShowCustomKeyboard(false);
-                            }
+                            setShowCustomKeyboard(false);
                         }}
                     >
                          <Keyboard className="w-5 h-5" />
@@ -509,30 +534,9 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
                 </motion.div>
             )}
         </AnimatePresence>
-        
-        {!message && view === 'closed' && (
-             <Button
-                variant="ghost"
-                size="icon"
-                className="absolute top-2 right-2 h-10 w-10 shrink-0 text-muted-foreground rounded-full"
-                onClick={() => setShowCustomKeyboard(!showCustomKeyboard)}
-            >
-                <Keyboard className="w-5 h-5" />
-            </Button>
-        )}
       </motion.div>
-      <AnimatePresence>
-        {showCustomKeyboard && (
-            <div className="fixed bottom-0 left-0 right-0 z-50">
-                <CustomKeyboard 
-                    onKeyPress={(key) => setMessage(prev => prev + key)}
-                    onBackspace={handleBackspace}
-                    onSpace={() => setMessage(prev => prev + ' ')}
-                    onEnter={handleSend}
-                />
-            </div>
-        )}
-      </AnimatePresence>
     </div>
   );
 }
+
+    
