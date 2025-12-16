@@ -681,7 +681,7 @@ function EditorComponent() {
                                         className="rounded-full"
                                         onClick={() => setFontListExpanded(false)}
                                     >
-                                        <ChevronDown className="h-5 w-5 text-white" />
+                                        <ChevronDown className="h-5 h-5 text-white" />
                                     </Button>
                                     </div>
                                     <ScrollArea className="flex-1 px-2 pb-2 h-[180px]">
