@@ -7,6 +7,12 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft, Bell, Volume2, Vibrate } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
+import { motion } from 'framer-motion';
+
+const FADE_UP_ANIMATION_VARIANTS = {
+  hidden: { opacity: 0, y: 10 },
+  visible: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 100, damping: 15, duration: 0.3 } },
+};
 
 const SettingsItem = ({ icon: Icon, title, description, checked, onCheckedChange }: { icon: React.ElementType, title: string, description: string, checked: boolean, onCheckedChange: (checked: boolean) => void }) => (
     <div className="flex items-center justify-between p-4">
@@ -67,31 +73,43 @@ export default function NotificationsPage() {
 
             <main className="flex-1 overflow-auto p-4 md:p-6">
                  <div className="max-w-2xl mx-auto">
-                    <Card>
-                        <div className="divide-y divide-border">
-                            <SettingsItem 
-                                icon={Bell}
-                                title="Notifications des messages"
-                                description="Recevoir des notifications pour les nouveaux messages."
-                                checked={settings.allNotifications}
-                                onCheckedChange={(value) => handleSettingChange('allNotifications', value)}
-                            />
-                            <SettingsItem 
-                                icon={Volume2}
-                                title="Sons dans l'application"
-                                description="Émettre un son pour les messages entrants et sortants."
-                                checked={settings.inAppSounds}
-                                onCheckedChange={(value) => handleSettingChange('inAppSounds', value)}
-                            />
-                            <SettingsItem 
-                                icon={Vibrate}
-                                title="Vibreur"
-                                description="Faire vibrer l'appareil à la réception d'une notification."
-                                checked={settings.vibrate}
-                                onCheckedChange={(value) => handleSettingChange('vibrate', value)}
-                            />
-                        </div>
-                    </Card>
+                    <motion.div
+                        initial="hidden"
+                        animate="visible"
+                        variants={{
+                            visible: {
+                                transition: { staggerChildren: 0.1, delayChildren: 0.1 },
+                            },
+                        }}
+                    >
+                        <motion.div variants={FADE_UP_ANIMATION_VARIANTS}>
+                            <Card className="bg-card/50 backdrop-blur-lg border-border/20 shadow-lg">
+                                <div className="divide-y divide-border">
+                                    <SettingsItem 
+                                        icon={Bell}
+                                        title="Notifications des messages"
+                                        description="Recevoir des notifications pour les nouveaux messages."
+                                        checked={settings.allNotifications}
+                                        onCheckedChange={(value) => handleSettingChange('allNotifications', value)}
+                                    />
+                                    <SettingsItem 
+                                        icon={Volume2}
+                                        title="Sons dans l'application"
+                                        description="Émettre un son pour les messages entrants et sortants."
+                                        checked={settings.inAppSounds}
+                                        onCheckedChange={(value) => handleSettingChange('inAppSounds', value)}
+                                    />
+                                    <SettingsItem 
+                                        icon={Vibrate}
+                                        title="Vibreur"
+                                        description="Faire vibrer l'appareil à la réception d'une notification."
+                                        checked={settings.vibrate}
+                                        onCheckedChange={(value) => handleSettingChange('vibrate', value)}
+                                    />
+                                </div>
+                            </Card>
+                        </motion.div>
+                    </motion.div>
                  </div>
             </main>
         </div>
