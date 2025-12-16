@@ -76,9 +76,37 @@ const superscriptMap: { [key: string]: string } = {
     'y': '6', 'u': '7', 'i': '8', 'o': '9', 'p': '0'
 };
 
-const CustomKeyboard = ({ onKeyPress, onBackspace, onEnter, onSpace, onEmojiToggle }: { onKeyPress: (key: string) => void, onBackspace: () => void, onEnter: () => void, onSpace: () => void, onEmojiToggle: () => void }) => {
+const CustomKeyboard = ({ onKeyPress, onBackspace, onEnter, onSpace }: { onKeyPress: (key: string) => void, onBackspace: () => void, onEnter: () => void, onSpace: () => void }) => {
     const [layout, setLayout] = useState<'letters' | 'numbers'>('letters');
     const [isShift, setIsShift] = useState(false);
+    const [longPressedKey, setLongPressedKey] = useState<string | null>(null);
+    const longPressTimer = useRef<NodeJS.Timeout>();
+
+    const keysWithLongPress = ['a', 'z', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p', 'c', "'", '.'];
+
+    const handlePointerDown = (key: string) => {
+        if (!keysWithLongPress.includes(key)) return;
+        longPressTimer.current = setTimeout(() => {
+            setLongPressedKey(key);
+        }, 300); // 300ms for long press
+    };
+
+    const handlePointerUp = (key: string) => {
+        if (longPressTimer.current) {
+            clearTimeout(longPressTimer.current);
+        }
+        if (longPressedKey === null) {
+            handleKeyPress(key);
+        }
+        setLongPressedKey(null);
+    };
+
+    const handlePointerLeave = () => {
+        if (longPressTimer.current) {
+            clearTimeout(longPressTimer.current);
+        }
+        setLongPressedKey(null);
+    };
 
     const handleKeyPress = (key: string) => {
         onKeyPress(isShift ? key.toUpperCase() : key);
@@ -89,7 +117,7 @@ const CustomKeyboard = ({ onKeyPress, onBackspace, onEnter, onSpace, onEmojiTogg
 
     return (
         <div className="w-full bg-black/50 backdrop-blur-sm p-2 space-y-1">
-            <div className="flex justify-around items-center p-1 bg-black/30 rounded-full mb-2 text-muted-foreground">
+             <div className="flex justify-around items-center p-1 bg-black/30 rounded-full mb-2 text-muted-foreground">
                 <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full"><Menu /></Button>
                 <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full"><Clipboard /></Button>
                 <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full"><Film /></Button>
@@ -104,7 +132,22 @@ const CustomKeyboard = ({ onKeyPress, onBackspace, onEnter, onSpace, onEmojiTogg
                         </Button>
                     )}
                     {row.map(key => (
-                        <Button key={key} onClick={() => handleKeyPress(key)} className="h-10 flex-1 relative">
+                        <Button 
+                            key={key} 
+                            onPointerDown={() => handlePointerDown(key)}
+                            onPointerUp={() => handlePointerUp(key)}
+                            onPointerLeave={handlePointerLeave}
+                            className="h-10 flex-1 relative"
+                        >
+                            {longPressedKey === key && (
+                                <motion.div 
+                                    className="absolute -top-10 left-1/2 -translate-x-1/2 bg-popover text-popover-foreground rounded-md px-3 py-1 shadow-lg text-lg"
+                                    initial={{ opacity: 0, y: 10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                >
+                                    {isShift ? key.toUpperCase() : key}
+                                </motion.div>
+                            )}
                             {isShift ? key.toUpperCase() : key}
                             {layout === 'letters' && superscriptMap[key] && (
                                 <span className="absolute top-1 right-1.5 text-xs opacity-70">{superscriptMap[key]}</span>
@@ -112,7 +155,24 @@ const CustomKeyboard = ({ onKeyPress, onBackspace, onEnter, onSpace, onEmojiTogg
                         </Button>
                     ))}
                     {rowIndex === 2 && layout === 'letters' && (
-                        <Button onClick={() => handleKeyPress("'")} className="h-10 w-12">'</Button>
+                        <Button 
+                            onClick={() => handleKeyPress("'")} 
+                            onPointerDown={() => handlePointerDown("'")}
+                            onPointerUp={() => handlePointerUp("'")}
+                            onPointerLeave={handlePointerLeave}
+                            className="h-10 w-12 relative"
+                        >
+                             {longPressedKey === "'" && (
+                                <motion.div 
+                                    className="absolute -top-10 left-1/2 -translate-x-1/2 bg-popover text-popover-foreground rounded-md px-3 py-1 shadow-lg text-lg"
+                                    initial={{ opacity: 0, y: 10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                >
+                                    '
+                                </motion.div>
+                            )}
+                            '
+                        </Button>
                     )}
                     {rowIndex === 2 && layout === 'letters' && (
                         <Button onClick={onBackspace} className="h-10 w-12">
@@ -134,7 +194,24 @@ const CustomKeyboard = ({ onKeyPress, onBackspace, onEnter, onSpace, onEmojiTogg
                 <Button onClick={onSpace} className="h-10 flex-1">
                     Espace
                 </Button>
-                <Button onClick={() => handleKeyPress('.')} className="h-10 w-12">.</Button>
+                <Button 
+                    onClick={() => handleKeyPress('.')} 
+                    onPointerDown={() => handlePointerDown('.')}
+                    onPointerUp={() => handlePointerUp('.')}
+                    onPointerLeave={handlePointerLeave}
+                    className="h-10 w-12 relative"
+                >
+                    {longPressedKey === "." && (
+                        <motion.div 
+                            className="absolute -top-10 left-1/2 -translate-x-1/2 bg-popover text-popover-foreground rounded-md px-3 py-1 shadow-lg text-lg"
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                        >
+                            .
+                        </motion.div>
+                    )}
+                    .
+                </Button>
                 <Button onClick={onEnter} className="h-10 w-24">
                     <CornerDownLeft />
                 </Button>
@@ -384,39 +461,29 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
         )}
       </AnimatePresence>
 
-      <AnimatePresence>
-        {view === 'closed' ? (
-            <motion.div
-                key="main-input-wrapper-closed"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 20 }}
-                transition={{ duration: 0.2 }}
-            >
-                <div
-                    className={cn(
-                        "relative bg-background/50 backdrop-blur-sm shadow-lg border flex flex-col m-4 rounded-3xl",
-                        replyInfo ? 'rounded-t-none' : ''
-                    )}
-                >
-                    {mainInputSection}
-                </div>
-            </motion.div>
-        ) : (
-             <motion.div
-                key="main-input-wrapper-open"
-             >
-                <div
-                    className={cn(
-                        "relative bg-background/50 backdrop-blur-sm shadow-lg border flex flex-col m-4 rounded-3xl",
-                        replyInfo ? 'rounded-t-none' : ''
-                    )}
-                >
-                    {mainInputSection}
-                </div>
-            </motion.div>
-        )}
-      </AnimatePresence>
+      
+      {view === 'closed' ? (
+          <div className="p-4 pt-2">
+              <div
+                  className={cn(
+                      "relative bg-background/50 backdrop-blur-sm shadow-lg border flex flex-col rounded-3xl",
+                      replyInfo ? 'rounded-t-none' : ''
+                  )}
+              >
+                  {mainInputSection}
+              </div>
+          </div>
+      ) : (
+          mainInputSection
+      )}
+
+      <input
+        type="file"
+        ref={fileInputRef}
+        className="hidden"
+        onChange={onFileSelect}
+        accept="image/*,video/*"
+      />
         
         <AnimatePresence>
             {view === 'keyboard' && (
@@ -433,9 +500,6 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
                       onBackspace={handleBackspace}
                       onEnter={handleSend}
                       onSpace={() => handleInputChange(message + ' ')}
-                      onEmojiToggle={() => {
-                        setView('emoji');
-                      }}
                     />
                 </motion.div>
             )}
