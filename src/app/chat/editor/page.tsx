@@ -12,6 +12,8 @@ import 'react-image-crop/dist/ReactCrop.css';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import * as htmlToImage from 'html-to-image';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Textarea } from '@/components/ui/textarea';
 
 
 function centerAspectCrop(
@@ -162,11 +164,14 @@ function EditorComponent() {
     }
     
     const handleAddText = async () => {
-        if (textInputValue.trim() === '' || !imageContainerRef.current) return;
+        if (textInputValue.trim() === '' || !imageContainerRef.current) {
+             setIsAddingText(false);
+             setTextInputValue('');
+             return;
+        };
         
         setOverlayText(textInputValue);
         setIsAddingText(false);
-        setTextInputValue('');
         
         // Wait for state to update and text to render
         setTimeout(async () => {
@@ -179,6 +184,7 @@ function EditorComponent() {
                     toast({ variant: 'destructive', title: 'Erreur', description: 'Impossible d\'ajouter le texte.'});
                 } finally {
                     setOverlayText(null); // Clean up overlay text after capture
+                    setTextInputValue(''); // Clear input value
                 }
             }
         }, 100);
@@ -281,25 +287,41 @@ function EditorComponent() {
                 </div>
             </div>
             
-            {/* Text Input Dialog */}
-             <Dialog open={isAddingText} onOpenChange={setIsAddingText}>
-                <DialogContent>
-                    <DialogHeader>
-                        <DialogTitle>Ajouter du texte</DialogTitle>
-                        <DialogDescription>Saisissez le texte à ajouter sur votre image.</DialogDescription>
-                    </DialogHeader>
-                    <Input 
-                        value={textInputValue}
-                        onChange={(e) => setTextInputValue(e.target.value)}
-                        placeholder="Votre texte ici..."
-                        autoFocus
-                    />
-                    <DialogFooter>
-                        <Button variant="ghost" onClick={() => setIsAddingText(false)}>Annuler</Button>
-                        <Button onClick={handleAddText}>Ajouter</Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
+            {/* Text Input Fullscreen Overlay */}
+            <AnimatePresence>
+                {isAddingText && (
+                    <motion.div
+                        className="absolute inset-0 z-30 flex flex-col items-center justify-center bg-background/80 backdrop-blur-sm"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                    >
+                        <header className="absolute top-0 left-0 right-0 p-4 flex items-center justify-between">
+                            <Button variant="ghost" size="icon" onClick={() => setIsAddingText(false)} className="h-10 w-10 rounded-full bg-black/30 hover:bg-black/50">
+                                <X />
+                            </Button>
+                            <Button onClick={handleAddText}>
+                                <Check className="w-4 h-4 mr-2" />
+                                Enregistrer
+                            </Button>
+                        </header>
+                         <motion.div
+                            className="w-full px-4"
+                            initial={{ opacity: 0, scale: 0.8 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            transition={{ delay: 0.1, type: 'spring' }}
+                         >
+                            <Textarea
+                                value={textInputValue}
+                                onChange={(e) => setTextInputValue(e.target.value)}
+                                placeholder="Votre texte..."
+                                className="w-full bg-transparent border-0 text-3xl md:text-5xl text-center font-bold text-white placeholder:text-white/50 focus-visible:ring-0 resize-none"
+                                autoFocus
+                            />
+                         </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
 
             {/* Footer */}
             <footer className="absolute bottom-0 left-0 right-0 p-4 z-20 bg-gradient-to-t from-black/50 to-transparent">
