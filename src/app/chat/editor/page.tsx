@@ -224,6 +224,14 @@ function EditorComponent() {
         });
     };
 
+    const toggleTextStyle = () => {
+        setTextStyle(prev => {
+            if (prev === 'none') return 'solid';
+            if (prev === 'solid') return 'outline';
+            return 'none';
+        })
+    }
+
     const AlignmentIcon = () => {
         if (textAlign === 'left') return <AlignCenter />;
         if (textAlign === 'center') return <AlignRight />;
@@ -354,9 +362,9 @@ function EditorComponent() {
                                 <X />
                             </Button>
                              <div className="flex items-center gap-2">
-                                <Button variant="ghost" size="icon" onClick={() => setTextStyle('none')} className={cn("h-10 w-10 rounded-full", textStyle === 'none' && 'bg-white text-black')}>Aa</Button>
-                                <Button variant="ghost" size="icon" onClick={() => setTextStyle('solid')} className={cn("h-10 w-10 rounded-full", textStyle === 'solid' && 'bg-white text-black')}>[Aa]</Button>
-                                <Button variant="ghost" size="icon" onClick={() => setTextStyle('outline')} className={cn("h-10 w-10 rounded-full", textStyle === 'outline' && 'bg-white text-black')}>A</Button>
+                                <Button variant="ghost" size="icon" onClick={toggleTextStyle} className={cn("h-10 w-10 rounded-full", 'bg-white text-black')}>
+                                    <Type />
+                                </Button>
                                 <Button variant="ghost" size="icon" onClick={toggleTextAlign} className={cn("h-10 w-10 rounded-full", 'bg-white text-black')}>
                                     <AlignmentIcon />
                                 </Button>
@@ -377,7 +385,7 @@ function EditorComponent() {
                                 onChange={(e) => setTextInputValue(e.target.value)}
                                 placeholder="Votre texte..."
                                 className={cn(
-                                    "w-full bg-transparent border-0 text-3xl md:text-5xl font-bold text-white placeholder:text-white/50 focus-visible:ring-0 resize-none",
+                                    "w-full bg-transparent border-none text-3xl md:text-5xl font-bold text-white placeholder:text-white/50 focus-visible:ring-0 resize-none",
                                     fontFamily,
                                     textAlign === 'center' && 'text-center',
                                     textAlign === 'left' && 'text-left',
