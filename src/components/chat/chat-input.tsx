@@ -43,11 +43,11 @@ const emojiCategories = [
     },
     {
         name: 'Personnes & Corps',
-        emojis: ['👋', '🤚', '🖐️', '✋', '🖖', '👌', '🤌', '🤏', '✌️', '🤞', '🤟', '🤘', '🤙', '👈', '👉', '👆', '🖕', '👇', '☝️', '👍', '👎', '✊', '👊', '🤛', '🤜', '👏', '🙌', '👐', '🤲', '🤝', '🙏', '✍️', '💅', '🤳', '💪', '🦾', '🦵', '🦿', '🦶', '👣', '👂', '🦻', '👃', '🧠', '🫀', '🫁', '🦷', '🦴', '👀', '👁️', '👅', '👄', '💋', '👶', '🧒', '👦', '👧', '🧑', '👱', '👨', '🧔', '👨‍🦰', '👨‍🦱', '👨‍🦳', '👨‍🦲', '👩', '👩‍🦰', '🧑‍🦰', '👩‍🦱', '🧑‍🦱', '👩‍🦳', '🧑‍🦳', '👩‍🦲', '🧑‍🦲', '👱‍♀️', '👱‍♂️', '🧓', '👴', '👵']
+        emojis: ['👋', '🤚', '🖐️', '✋', '🖖', '👌', '🤌', '🤏', '✌️', '🤞', '🤟', '🤘', '🤙', '👈', '👉', '👆', '🖕', '👇', '☝️', '👍', '👎', '✊', '👊', '🤛', '🤜', '👏', '🙌', '👐', '🤲', '🤝', '🙏', '✍️', '💅', '🤳', '💪', '🦾', '🦵', '🦿', '🦶', '👣', '👂', '🦻', '👃', '🧠', '🫀', '𫁁', '🦷', '🦴', '👀', '👁️', '👅', '👄', '💋', '👶', '🧒', '👦', '👧', '🧑', '👱', '👨', '🧔', '👨‍🦰', '👨‍🦱', '👨‍🦳', '👨‍🦲', '👩', '👩‍🦰', '🧑‍🦰', '👩‍🦱', '🧑‍🦱', '👩‍🦳', '🧑‍🦳', '👩‍🦲', '🧑‍🦲', '👱‍♀️', '👱‍♂️', '🧓', '👴', '👵']
     },
     {
         name: 'Animaux & Nature',
-        emojis: ['🙈', '🙉', '🙊', '🐵', '🐒', '🦍', '🦧', '🐶', '🐕', '🦮', '🐕‍🦺', '🐩', '🐺', '🦊', '🦝', '🐱', '🐈', '🐈‍⬛', '🦁', '🐯', '🐅', '🐆', '🐴', '🐎', '🦄', '🦓', '🦌', '🦬', '🐮', '🐂', '🐃', '🐄', '🐷', '🐖', '🐗', '🐽', '🐏', '🐑', '🐐', '🐪', '🐫', '🦙', '🦒', '🐘', '🦣', '🦏', '🦛', '🐭', '🐁', '🐀', '🐹', '🐰', '🐇', '🐿️', '🦫', '🦔', '🦇', '🐻', '🐻‍❄️', '🐨', '🐼', '🦥', '🦦', '🦨', '🦘', '🦡', '🐾', '🦃', '🐔', '🐓', '🐣', '🐤', '🐥', '🐦', '🐧', '🕊️', '🦅', '🦆', '🦢', '🦉', '🦤', '🪶', '🐸', '🐊', '🐢', '🦎', '🐍', '🐲', '🐉', '🦕', '🦖', '🐳', '🐋', '🐬', '🦭', '🐟', '🐠', '🐡', '🦈', '🐙', '🐚', '🐌', '🦋', '🐛', '🐜', '🐝', '🪲', '🐞', '🦗', '🪳', '🕷️', '🕸️', '🦂', '🦟', '🪰', '🪱', '🦠', '💐', '🌸', '💮', '🏵️', '🌹', '🥀', '🌺', '🌻', '🌼', '🌷', '🌱', '🪴', '🌲', '🌳', '🌴', '🌵', '🌾', '🌿', '☘️', '🍀', '🍁', '🍂', '🍃']
+        emojis: ['🙈', '🙉', '🙊', '🐵', '🐒', '🦍', '🦧', '🐶', '🐕', '🦮', '🐕‍', '🐩', '🐺', '🦊', '🦝', '🐱', '🐈', '🐈‍⬛', '🦁', '🐯', '🐅', '🐆', '🐴', '🐎', '🦄', '🦓', '🦌', '🦬', '🐮', '🐂', '🐃', '🐄', '🐷', '🐖', '🐗', '🐽', '🐏', '🐑', '🐐', '🐪', '🐫', '🦙', '🦒', '🐘', '🦣', '🦏', '🦛', '🐭', '🐁', '🐀', '🐹', '🐰', '🐇', '🐿️', '🦫', '🦔', '🦇', '🐻', '🐻‍❄️', '🐨', '🐼', '🦥', '🦦', '🦨', '🦘', '🦡', '🐾', '🦃', '🐔', '🐓', '🐣', '🐤', '🐥', '🐦', '🐧', '🕊️', '🦅', '🦆', '🦢', '🦉', '🦤', '🪶', '🐸', '🐊', '🐢', '🦎', '🐍', '🐲', '🐉', '🦕', '🦖', '🐳', '🐋', '🐬', '🦭', '🐟', '🐠', '🐡', '🦈', '🐙', '🐚', '🐌', '🦋', '🐛', '🐜', '🐝', '🪲', '🐞', '🦗', '🪳', '🕷️', '🕸️', '🦂', '🦟', '🪰', '🪱', '🦠', '💐', '🌸', '💮', '🏵️', '🌹', '🥀', '🌺', '🌻', '🌼', '🌷', '🌱', '🪴', '🌲', '🌳', '🌴', '🌵', '🌾', '🌿', '☘️', '🍀', '🍁', '🍂', '🍃']
     }
 ];
 
@@ -299,6 +299,9 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
               ) : isEmojiMenuOpen ? (
                  <div className="flex flex-col flex-1 h-full">
                     <div className="flex items-end gap-1 p-2">
+                         <Button variant="ghost" size="icon" className="h-10 w-10 shrink-0 text-muted-foreground rounded-full" onClick={toggleEmojiMenu}>
+                            <Keyboard className="w-5 h-5" />
+                        </Button>
                         <TextareaAutosize
                             value={message}
                             onChange={handleInputChange}
@@ -309,7 +312,7 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
                         />
                         <div className="relative h-10 w-10 shrink-0">
                             <AnimatePresence>
-                                {message ? (
+                                {message && (
                                     <motion.div
                                         key="send-emoji"
                                         initial={{ scale: 0, opacity: 0 }}
@@ -321,41 +324,24 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
                                             <Send className="w-5 h-5" />
                                         </Button>
                                     </motion.div>
-                                ) : (
-                                    <motion.div
-                                        key="keyboard-emoji"
-                                        initial={{ scale: 0, opacity: 0 }}
-                                        animate={{ scale: 1, opacity: 1 }}
-                                        exit={{ scale: 0, opacity: 0 }}
-                                        className="absolute inset-0"
-                                    >
-                                         <Button variant="ghost" size="icon" className="h-10 w-10 shrink-0 text-muted-foreground rounded-full" onClick={toggleEmojiMenu}>
-                                            <Keyboard className="w-5 h-5" />
-                                        </Button>
-                                    </motion.div>
                                 )}
                             </AnimatePresence>
                         </div>
                     </div>
                     <div className="flex-1 overflow-y-auto px-4 pb-4">
-                        {emojiCategories.map(category => (
-                            <div key={category.name}>
-                                <h3 className="text-sm font-semibold text-muted-foreground my-2">{category.name}</h3>
-                                <div className="grid grid-cols-6 sm:grid-cols-8 gap-1">
-                                    {category.emojis.map((emoji) => (
-                                        <Button
-                                            key={emoji}
-                                            variant="ghost"
-                                            size="icon"
-                                            className="w-full h-10 text-2xl"
-                                            onClick={() => handleEmojiClick(emoji)}
-                                        >
-                                            {emoji}
-                                        </Button>
-                                    ))}
-                                </div>
-                            </div>
-                        ))}
+                       <div className="grid grid-cols-[repeat(auto-fill,minmax(2.5rem,1fr))] gap-1">
+                            {emojiCategories.flatMap(category => category.emojis).map((emoji) => (
+                                <Button
+                                    key={emoji}
+                                    variant="ghost"
+                                    size="icon"
+                                    className="w-full h-10 text-2xl"
+                                    onClick={() => handleEmojiClick(emoji)}
+                                >
+                                    {emoji}
+                                </Button>
+                            ))}
+                        </div>
                     </div>
                  </div>
               ) : (
@@ -418,7 +404,7 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
         </AnimatePresence>
         
         <AnimatePresence>
-            {(isAttachmentMenuOpen || isEmojiMenuOpen) && (
+            {(isAttachmentMenuOpen) && (
                 <motion.div
                     className="absolute top-2 right-2 z-10"
                     initial={{ opacity: 0, scale: 0.5, rotate: -90 }}
@@ -428,7 +414,7 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
                     <Button
                         variant="ghost" size="icon"
                         className="h-10 w-10 shrink-0 text-muted-foreground rounded-full"
-                        onClick={isAttachmentMenuOpen ? toggleAttachmentMenu : toggleEmojiMenu}
+                        onClick={toggleAttachmentMenu}
                     >
                          <X className="w-5 h-5" />
                     </Button>
