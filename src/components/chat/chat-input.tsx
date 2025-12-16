@@ -326,15 +326,15 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
                         </div>
                     </div>
                     
-                    <div className="px-3 py-1 border-y border-border/50">
-                        <div className="flex items-center justify-around gap-2">
+                    <div className="px-3 py-2 flex justify-center">
+                        <div className="inline-flex items-center gap-2 bg-black/20 p-1 rounded-full border border-white/10">
                             {mainTabs.map(tab => (
                                 <Button
                                     key={tab.name}
                                     variant="ghost"
-                                    size="icon"
+                                    size="sm"
                                     onClick={() => setActiveMainTab(tab.name)}
-                                    className={`h-10 w-10 text-muted-foreground relative after:absolute after:bottom-0 after:left-2 after:right-2 after:h-0.5 after:rounded-full after:transition-all ${activeMainTab === tab.name ? 'after:bg-primary text-primary' : 'after:bg-transparent'}`}
+                                    className={`h-8 px-4 rounded-full relative transition-colors duration-300 ${activeMainTab === tab.name ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
                                 >
                                     <tab.icon className="w-5 h-5" />
                                 </Button>
