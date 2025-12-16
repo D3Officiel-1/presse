@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
@@ -393,10 +392,10 @@ const MessageFocusView = ({
             try {
                 // 1. Fetch all users except the current one
                 const usersRef = collection(firestore, 'users');
-                const usersSnap = await getDocs(usersRef);
+                const usersQuery = query(usersRef, where('__name__', '!=', chatContext.loggedInUser.uid));
+                const usersSnap = await getDocs(usersQuery);
                 const allUsersFromDb = usersSnap.docs
-                    .map(doc => ({ id: doc.id, ...doc.data() } as User))
-                    .filter(u => u.id !== chatContext.loggedInUser.uid);
+                    .map(doc => ({ id: doc.id, ...doc.data() } as User));
 
                 // 2. Fetch all private chats involving the current user
                 const chatsRef = collection(firestore, 'chats');
@@ -586,7 +585,10 @@ const MessageFocusView = ({
                                               </div>
                                           )}
                                       </div>
-                                      <span className="font-medium">{user.name}</span>
+                                      <div className="flex-1 min-w-0">
+                                        <p className="font-medium truncate">{user.name}</p>
+                                        {user.class && <p className="text-xs text-muted-foreground truncate">{user.class}</p>}
+                                      </div>
                                   </div>
                               ))}
                           </div>
@@ -608,7 +610,10 @@ const MessageFocusView = ({
                                                </div>
                                            )}
                                        </div>
-                                       <span className="font-medium">{user.name}</span>
+                                       <div className="flex-1 min-w-0">
+                                        <p className="font-medium truncate">{user.name}</p>
+                                        {user.class && <p className="text-xs text-muted-foreground truncate">{user.class}</p>}
+                                      </div>
                                    </div>
                                ))}
                            </div>
@@ -884,3 +889,5 @@ export function ChatMessages({
     </ChatContext.Provider>
   );
 }
+
+    
