@@ -217,139 +217,129 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
         )}
       </AnimatePresence>
 
-      <div className="relative">
-         <AnimatePresence mode="wait">
-             {isAttachmentMenuOpen ? (
-                <motion.div
-                  key="attachment-wrapper"
-                  initial={{ y: 50, opacity: 0 }}
-                  animate={{ y: 0, opacity: 1 }}
-                  exit={{ y: 50, opacity: 0 }}
-                  transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-                  className="absolute bottom-0 w-full"
-                >
-                    <div className="relative">
-                      <motion.div
-                          key="attachment-menu"
-                          className="bg-card/70 backdrop-blur-lg border rounded-2xl p-6 shadow-xl"
-                      >
-                          <div className="grid grid-cols-4 gap-x-4 gap-y-6">
-                              {attachmentActions.map(action => (
-                                  <div key={action.label} className="flex flex-col items-center gap-2 text-center cursor-pointer group">
-                                      <div className={`w-14 h-14 rounded-full flex items-center justify-center bg-background group-hover:scale-110 transition-transform`}>
-                                          <action.icon className={`w-7 h-7 ${action.color}`} />
-                                      </div>
-                                      <span className="text-xs font-medium text-muted-foreground">{action.label}</span>
-                                  </div>
-                              ))}
-                          </div>
-                      </motion.div>
-                      <motion.div
-                          initial={{ scale: 0, y: 20 }}
-                          animate={{ scale: 1, y: 0 }}
-                          exit={{ scale: 0, y: 20 }}
-                          transition={{ delay: 0.1 }}
-                          className="absolute left-1/2 -translate-x-1/2 -top-6"
-                      >
-                          <Button size="icon" className="h-12 w-12 rounded-full" onClick={() => setIsAttachmentMenuOpen(false)}>
-                              <X className="w-6 h-6" />
-                          </Button>
-                      </motion.div>
+      <motion.div
+        layout
+        transition={{ type: 'spring', stiffness: 400, damping: 35 }}
+        className="relative bg-background/50 backdrop-blur-sm rounded-3xl shadow-lg border"
+      >
+        <AnimatePresence mode="wait">
+          {isAttachmentMenuOpen ? (
+            <motion.div
+              key="attachment-menu"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              transition={{ duration: 0.2 }}
+              className="p-6"
+            >
+              <div className="grid grid-cols-4 gap-x-4 gap-y-6">
+                {attachmentActions.map((action, index) => (
+                  <motion.div
+                    key={action.label}
+                    custom={index}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={(i) => ({
+                      opacity: 1,
+                      y: 0,
+                      transition: { delay: i * 0.03 },
+                    })}
+                    className="flex flex-col items-center gap-2 text-center cursor-pointer group"
+                  >
+                    <div className={`w-14 h-14 rounded-full flex items-center justify-center bg-background group-hover:scale-110 transition-transform`}>
+                      <action.icon className={`w-7 h-7 ${action.color}`} />
                     </div>
+                    <span className="text-xs font-medium text-muted-foreground">{action.label}</span>
+                  </motion.div>
+                ))}
+              </div>
+            </motion.div>
+          ) : (
+            <motion.div
+              key="chat-bar"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2, delay: 0.1 }}
+              className="flex items-center gap-1 p-2"
+            >
+              <Button variant="ghost" size="icon" className="h-10 w-10 shrink-0 text-muted-foreground">
+                <Smile className="w-5 h-5" />
+              </Button>
+              <TextareaAutosize
+                ref={input => input && !replyInfo && input.focus()}
+                value={message}
+                onChange={handleInputChange}
+                onKeyDown={handleKeyDown}
+                placeholder="Message"
+                maxRows={5}
+                className="flex-1 resize-none bg-transparent border-0 focus:ring-0 focus:outline-none text-base placeholder:text-muted-foreground"
+              />
+              <div className="relative h-10 w-10 shrink-0">
+                <AnimatePresence>
+                  {message ? (
+                    <motion.div
+                      key="send"
+                      initial={{ scale: 0, rotate: -90 }}
+                      animate={{ scale: 1, rotate: 0 }}
+                      exit={{ scale: 0, rotate: 90 }}
+                      className="absolute inset-0"
+                    >
+                      <Button size="icon" className="h-10 w-10 rounded-full bg-primary text-primary-foreground" onClick={handleSend}>
+                        <Send className="w-5 h-5" />
+                      </Button>
+                    </motion.div>
+                  ) : (
+                    <motion.div
+                      key="mic"
+                      initial={{ scale: 0, rotate: 90 }}
+                      animate={{ scale: 1, rotate: 0 }}
+                      exit={{ scale: 0, rotate: -90 }}
+                      className="absolute inset-0"
+                    >
+                      <Button
+                          size="icon"
+                          variant="ghost"
+                          className="h-10 w-10 rounded-full text-muted-foreground"
+                          onPointerDown={handlePointerDown}
+                          onPointerUp={handlePointerUp}
+                          onPointerMove={handlePointerMove}
+                          onPointerLeave={handlePointerUp} // Stop if pointer leaves button
+                      >
+                        <Mic className="w-5 h-5" />
+                      </Button>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+        
+        <div className="absolute top-1/2 left-2 -translate-y-1/2">
+            <Button variant="ghost" size="icon" className="h-10 w-10 shrink-0 text-muted-foreground" onClick={() => setIsAttachmentMenuOpen(prev => !prev)}>
+                <motion.div animate={{ rotate: isAttachmentMenuOpen ? 135 : 0 }}>
+                    <Paperclip className="w-5 h-5" />
                 </motion.div>
-             ) : (
-                <motion.div
-                    key="chat-bar"
-                    initial={{ opacity: 0, y: 0 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: 20 }}
-                    transition={{ duration: 0.2 }}
-                    className="flex items-center gap-2 bg-background/50 backdrop-blur-sm p-2 rounded-full shadow-lg border"
-                >
-                    {isRecording ? (
-                         <motion.div
-                            key="recording-ui"
-                            className="flex items-center justify-between w-full h-10 px-2"
-                            initial={{ opacity: 0, scale: 0.95 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            exit={{ opacity: 0, scale: 0.95 }}
-                         >
-                            <div ref={cancelAreaRef} className="flex-shrink-0">
-                                 <Trash2 className={`w-6 h-6 transition-colors ${isCancelling ? 'text-destructive' : 'text-muted-foreground'}`}/>
-                            </div>
-                            <div className="flex-1 flex items-center justify-center text-center text-sm font-mono text-muted-foreground gap-2">
-                                 <span className="text-red-500">•</span>
-                                 <span>Recording...</span>
-                                 <span>{formatTime(recordingTime)}</span>
-                            </div>
-                            <div className="w-6"/>
-                         </motion.div>
-                    ) : (
-                        <motion.div
-                            key="text-ui"
-                            className="flex items-center gap-1 w-full"
-                            initial={{ opacity: 0, scale: 0.95 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            exit={{ opacity: 0, scale: 0.95 }}
-                        >
-                            <Button variant="ghost" size="icon" className="h-10 w-10 shrink-0 text-muted-foreground" onClick={() => setIsAttachmentMenuOpen(true)}>
-                                <Paperclip className="w-5 h-5" />
-                            </Button>
-                            <Button variant="ghost" size="icon" className="h-10 w-10 shrink-0 text-muted-foreground">
-                              <Smile className="w-5 h-5" />
-                            </Button>
-                            <TextareaAutosize
-                              ref={input => input && !replyInfo && input.focus()}
-                              value={message}
-                              onChange={handleInputChange}
-                              onKeyDown={handleKeyDown}
-                              placeholder="Message"
-                              maxRows={5}
-                              className="flex-1 resize-none bg-transparent border-0 focus:ring-0 focus:outline-none text-base placeholder:text-muted-foreground"
-                            />
-                            <div className="relative h-10 w-10 shrink-0">
-                              <AnimatePresence>
-                                {message ? (
-                                  <motion.div
-                                    key="send"
-                                    initial={{ scale: 0, rotate: -90 }}
-                                    animate={{ scale: 1, rotate: 0 }}
-                                    exit={{ scale: 0, rotate: 90 }}
-                                    className="absolute inset-0"
-                                  >
-                                    <Button size="icon" className="h-10 w-10 rounded-full bg-primary text-primary-foreground" onClick={handleSend}>
-                                      <Send className="w-5 h-5" />
-                                    </Button>
-                                  </motion.div>
-                                ) : (
-                                  <motion.div
-                                    key="mic"
-                                    initial={{ scale: 0, rotate: 90 }}
-                                    animate={{ scale: 1, rotate: 0 }}
-                                    exit={{ scale: 0, rotate: -90 }}
-                                    className="absolute inset-0"
-                                  >
-                                    <Button
-                                        size="icon"
-                                        variant="ghost"
-                                        className="h-10 w-10 rounded-full text-muted-foreground"
-                                        onPointerDown={handlePointerDown}
-                                        onPointerUp={handlePointerUp}
-                                        onPointerMove={handlePointerMove}
-                                        onPointerLeave={handlePointerUp} // Stop if pointer leaves button
-                                    >
-                                      <Mic className="w-5 h-5" />
-                                    </Button>
-                                  </motion.div>
-                                )}
-                              </AnimatePresence>
-                            </div>
-                        </motion.div>
-                    )}
-                </motion.div>
-             )}
-         </AnimatePresence>
-      </div>
+            </Button>
+        </div>
+
+      </motion.div>
+
+       {isRecording && (
+        <motion.div
+            key="recording-ui"
+            className="fixed inset-0 bg-black/50 flex items-center justify-center"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+        >
+            <div className="flex flex-col items-center gap-4 text-white">
+                <Trash2 className={`w-10 h-10 transition-colors ${isCancelling ? 'text-destructive' : 'text-white'}`}/>
+                <span ref={cancelAreaRef} className="text-sm">Glisser pour annuler</span>
+                <div className="text-lg font-mono">{formatTime(recordingTime)}</div>
+            </div>
+        </motion.div>
+       )}
     </div>
   );
 }
