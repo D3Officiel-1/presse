@@ -8,11 +8,11 @@ import { Button } from '@/components/ui/button'
 import { ArrowLeft, User, LogOut, Loader2, Shield, Paintbrush, RefreshCw, ChevronRight, HelpCircle, Bell, Moon, Sun, KeyRound, Palette, Info, QrCode } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { useAuth } from '@/firebase/provider'
-import { signOut } from 'firebase/auth'
+import { signOut, onSnapshot } from 'firebase/auth'
 import Link from 'next/link'
 import { Switch } from '@/components/ui/switch'
 import { useToast } from '@/hooks/use-toast'
-import { doc, updateDoc, getDoc, onSnapshot } from 'firebase/firestore'
+import { doc, updateDoc, getDoc } from 'firebase/firestore'
 import { useFirestore } from '@/firebase/provider'
 import Image from 'next/image'
 import { motion } from 'framer-motion'
@@ -132,8 +132,8 @@ export default function SettingsPage() {
                          <div className="space-y-2">
                              <h3 className="text-sm font-semibold text-muted-foreground px-2">Aide & Support</h3>
                              <div className="bg-card rounded-xl border divide-y divide-border">
-                                <SettingsItem icon={HelpCircle} text="Centre d'aide" href="#" />
-                                <SettingsItem icon={Info} text="À propos" href="#" />
+                                <SettingsItem icon={HelpCircle} text="Centre d'aide" href="/chat/settings/help" />
+                                <SettingsItem icon={Info} text="À propos" href="/chat/settings/about" />
                              </div>
                          </div>
                          
