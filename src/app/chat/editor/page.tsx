@@ -19,7 +19,6 @@ function EditorComponent() {
 
     const [isCropperOpen, setIsCropperOpen] = useState(false);
 
-    // Effect for loading data from sessionStorage
     useEffect(() => {
         const mediaData = sessionStorage.getItem('media-to-edit');
         const typeData = sessionStorage.getItem('media-type-to-edit');
@@ -37,14 +36,6 @@ function EditorComponent() {
             router.back();
         }
     }, [router, toast]);
-    
-    // Effect for cleaning up sessionStorage on unmount
-    useEffect(() => {
-        return () => {
-            sessionStorage.removeItem('media-to-edit');
-            sessionStorage.removeItem('media-type-to-edit');
-        };
-    }, []);
 
     const handleCroppedImage = (imageBlob: Blob | null) => {
         setIsCropperOpen(false);
@@ -54,11 +45,19 @@ function EditorComponent() {
             toast({ description: "L'image a été recadrée." });
         }
     };
-
-    const handleSend = () => {
-        // When send logic is implemented, cleanup should also happen here.
+    
+    const cleanupSessionStorage = () => {
         sessionStorage.removeItem('media-to-edit');
         sessionStorage.removeItem('media-type-to-edit');
+    };
+    
+    const handleBack = () => {
+        cleanupSessionStorage();
+        router.back();
+    };
+
+    const handleSend = () => {
+        cleanupSessionStorage();
         toast({
             title: "Fonctionnalité à venir",
             description: "L'envoi de médias sera bientôt disponible."
@@ -94,7 +93,7 @@ function EditorComponent() {
 
             {/* Header */}
             <header className="absolute top-0 left-0 right-0 p-4 z-20 flex items-center justify-between bg-gradient-to-b from-black/50 to-transparent">
-                <Button variant="ghost" size="icon" onClick={() => router.back()} className="h-10 w-10 rounded-full bg-black/30 hover:bg-black/50">
+                <Button variant="ghost" size="icon" onClick={handleBack} className="h-10 w-10 rounded-full bg-black/30 hover:bg-black/50">
                     <X />
                 </Button>
                 <div className="flex items-center gap-2">
