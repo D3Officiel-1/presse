@@ -380,13 +380,12 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
             replyInfo ? 'rounded-t-none' : ''
         )}
       >
-        <AnimatePresence>
+        <AnimatePresence mode="wait">
             {view === 'closed' && (
-                <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                >
+                 <motion.div
+                    key="input"
+                    exit={{ opacity: 0, y: 10 }}
+                 >
                     {mainInputSection}
                 </motion.div>
             )}
@@ -395,12 +394,23 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
         <AnimatePresence>
             {view === 'keyboard' && (
                 <motion.div
+                    key="keyboard"
                     className="w-full"
                     initial={{ y: "100%", opacity: 0 }}
                     animate={{ y: 0, opacity: 1 }}
-                    exit={{ y: "100%", opacity: 0 }}
+                    exit={{ y: "100%", opacity: 0, transition: { duration: 0.3, ease: 'easeOut' } }}
                     transition={{ type: 'spring', stiffness: 400, damping: 40 }}
                 >
+                     <div className="p-2 border-b border-border/50">
+                        <TextareaAutosize
+                            value={message}
+                            onChange={(e) => handleInputChange(e.target.value)}
+                            placeholder="Écrivez votre message..."
+                            maxRows={3}
+                            className="w-full resize-none bg-transparent border-0 focus:ring-0 focus:outline-none text-base placeholder:text-muted-foreground px-2 py-2"
+                            autoFocus
+                        />
+                    </div>
                     <CustomKeyboard 
                       onKeyPress={(key) => handleInputChange(message + key)}
                       onBackspace={handleBackspace}
@@ -415,3 +425,5 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
     </div>
   );
 }
+
+    
