@@ -97,21 +97,6 @@ export default function ArchivedChatsPage() {
     return format(date, 'dd/MM/yyyy');
   };
 
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1,
-      },
-    },
-  };
-
-  const itemVariants = {
-    hidden: { opacity: 0, y: 50, rotateX: -30 },
-    visible: { opacity: 1, y: 0, rotateX: 0, transition: { type: 'spring', stiffness: 100, damping: 15 } },
-  };
-
   if (loading || userLoading) {
     return (
       <div className="flex flex-col h-screen bg-background">
@@ -155,12 +140,9 @@ export default function ArchivedChatsPage() {
                     </motion.div>
                 </div>
             ) : (
-                <motion.div 
-                    variants={containerVariants}
-                    initial="hidden"
-                    animate="visible"
-                    className="p-4 md:p-8 space-y-[-40px]" 
-                    style={{ perspective: '1000px' }}
+                <div 
+                    className="p-4 md:p-8 space-y-[-50px] relative" 
+                    style={{ perspective: '1200px' }}
                 >
                     <AnimatePresence>
                         {archivedChats.map((chat, index) => {
@@ -173,17 +155,16 @@ export default function ArchivedChatsPage() {
                                 <motion.div
                                     key={chat.id}
                                     layout
-                                    variants={itemVariants}
-                                    initial="hidden"
-                                    animate="visible"
-                                    exit={{ opacity: 0, y: -50 }}
-                                    transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+                                    initial={{ opacity: 0, y: 50, z: -100 * index }}
+                                    animate={{ opacity: 1, y: 0, z: -100 * index }}
+                                    exit={{ opacity: 0, z: 200, transition: { duration: 0.5 } }}
+                                    transition={{ type: 'spring', stiffness: 100, damping: 20, delay: index * 0.05 }}
                                     className="group relative h-28"
-                                    style={{ zIndex: archivedChats.length - index }}
                                 >
-                                    <div 
-                                        className="absolute inset-0 bg-card/40 border border-white/10 rounded-2xl shadow-2xl backdrop-blur-lg transition-all duration-300 ease-out group-hover:!rotate-x-0 group-hover:scale-105"
-                                        style={{ transform: `rotateX(50deg) scale(0.9) translateY(-${index * 50}px)`}}
+                                    <motion.div 
+                                        className="absolute inset-0 bg-card/40 border border-white/10 rounded-2xl shadow-2xl backdrop-blur-lg transition-all duration-300 ease-out cursor-pointer"
+                                        style={{ transform: `rotateX(50deg) scale(0.9) translateY(-${index * 60}px)`}}
+                                        whileHover={{ rotateX: 0, scale: 1.05, y: -10, z: 50 }}
                                         onClick={() => router.push(`/chat/${chat.id}`)}
                                     >
                                         <div className="p-4 h-full flex items-center gap-4">
@@ -206,12 +187,12 @@ export default function ArchivedChatsPage() {
                                         <div className="absolute top-2 right-3 text-xs text-muted-foreground transition-opacity duration-300 group-hover:opacity-0">
                                             {formatTimestamp(chat.lastMessageTimestamp)}
                                         </div>
-                                    </div>
+                                    </motion.div>
                                 </motion.div>
                             );
                         })}
                     </AnimatePresence>
-                </motion.div>
+                </div>
             )}
         </main>
     </div>
