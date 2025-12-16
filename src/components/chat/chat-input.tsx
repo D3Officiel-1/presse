@@ -27,7 +27,7 @@ const attachmentActions = [
     { icon: MapPin, label: "Localisation", color: "text-green-500" },
     { icon: User, label: "Membre", color: "text-orange-500" },
     { icon: FileText, label: "Document", color: "text-indigo-500" },
-    { icon: Music, label: "Audio", color: "text-red-500" },
+    { icon: Music, label: "Audio", color: "text-red-500", action: 'Audio' },
     { icon: Vote, label: "Sondage", color: "text-yellow-500" },
     { icon: Calendar, label: "Évènement", color: "text-teal-500" },
 ];
@@ -146,7 +146,6 @@ const CustomKeyboard = ({ onKeyPress, onBackspace, onEnter, onSpace }: { onKeyPr
                 <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full"><Film /></Button>
                 <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full"><Settings /></Button>
                 <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full"><Palette /></Button>
-                <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full"><Voicemail /></Button>
             </div>
             {currentLayout.map((row, rowIndex) => (
                 <div key={rowIndex} className="flex justify-center gap-1">
@@ -165,7 +164,7 @@ const CustomKeyboard = ({ onKeyPress, onBackspace, onEnter, onSpace }: { onKeyPr
                         >
                             {longPressedKey === key && (
                                 <motion.div 
-                                    className="absolute -top-24 left-1/2 -translate-x-1/2 z-20"
+                                    className="absolute -top-14 left-1/2 -translate-x-1/2 z-20"
                                     initial={{ opacity: 0, y: 10 }}
                                     animate={{ opacity: 1, y: 0 }}
                                 >
@@ -415,13 +414,6 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
     e.target.value = '';
   };
 
-  const containerVariants = {
-      closed: { height: 'auto' },
-      open: { height: 350 },
-  };
-
-  const currentVariant = view === 'closed' ? 'closed' : 'open';
-
   const searchResults = emojiSearchQuery 
     ? allEmojis.filter(emoji => emoji.includes(emojiSearchQuery))
     : [];
@@ -432,7 +424,7 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
           <Paperclip className="w-5 h-5" />
         </Button>
         <div className="flex-1 relative">
-          <TextareaAutosize
+           <TextareaAutosize
             value={message}
             onChange={(e) => handleInputChange(e.target.value)}
             placeholder="Message"
@@ -527,21 +519,84 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
       />
         
         <AnimatePresence>
-            {view === 'keyboard' && (
+            {view !== 'closed' && (
                 <motion.div
-                    key="keyboard"
+                    key={view}
                     className="w-full"
-                    initial={{ y: "100%", opacity: 0 }}
-                    animate={{ y: 0, opacity: 1 }}
-                    exit={{ y: "100%", opacity: 0, transition: { duration: 0.3, ease: 'easeOut' } }}
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: 'auto', opacity: 1 }}
+                    exit={{ height: 0, opacity: 0, transition: { duration: 0.2, ease: 'easeOut' } }}
                     transition={{ type: 'spring', stiffness: 400, damping: 40 }}
                 >
-                    <CustomKeyboard 
-                      onKeyPress={(key) => handleInputChange(message + key)}
-                      onBackspace={handleBackspace}
-                      onEnter={handleSend}
-                      onSpace={() => handleInputChange(message + ' ')}
-                    />
+                    {view === 'attachments' && (
+                        <div className="bg-background/80 backdrop-blur-sm p-4 pt-2">
+                          <div className="grid grid-cols-4 gap-4">
+                              {attachmentActions.map(item => (
+                                  <div key={item.label} className="flex flex-col items-center gap-2" onClick={() => handleAttachmentAction(item.action || item.label)}>
+                                      <Button variant="ghost" size="icon" className={cn("h-14 w-14 rounded-full", item.color.replace('text-', 'bg-') + '/20', item.color)}>
+                                          <item.icon className="w-6 h-6" />
+                                      </Button>
+                                      <span className="text-xs text-muted-foreground">{item.label}</span>
+                                  </div>
+                              ))}
+                          </div>
+                        </div>
+                    )}
+                    {view === 'emoji' && (
+                       <div className="h-[300px] flex flex-col bg-background/80 backdrop-blur-sm">
+                           <div className="flex items-center justify-between p-2 border-b">
+                               <div className="flex gap-1">
+                                   {mainTabs.map(tab => (
+                                       <Button key={tab.name} variant="ghost" size="icon" className={cn("h-9 w-9", activeMainTab === tab.name && 'bg-primary/20 text-primary')}>
+                                           <tab.icon className="w-5 h-5"/>
+                                       </Button>
+                                   ))}
+                               </div>
+                               <Button variant="ghost" size="icon" className="h-9 w-9" onClick={() => setSearchMode(!searchMode)}>
+                                   <Search className="w-5 h-5"/>
+                               </Button>
+                           </div>
+                           {searchMode ? (
+                               <div className="p-2">
+                                   <Input 
+                                       placeholder="Rechercher des émojis..."
+                                       value={emojiSearchQuery}
+                                       onChange={(e) => setEmojiSearchQuery(e.target.value)}
+                                       autoFocus
+                                   />
+                               </div>
+                           ) : (
+                               <div className="flex items-center gap-1 p-2 border-b overflow-x-auto no-scrollbar">
+                                   {emojiCategories.map(cat => (
+                                       <Button key={cat.name} variant={activeEmojiCategory === cat.name ? 'default' : 'ghost'} size="icon" className="h-9 w-9 shrink-0" onClick={() => setActiveEmojiCategory(cat.name)}>
+                                           <cat.icon className="w-5 h-5"/>
+                                       </Button>
+                                   ))}
+                               </div>
+                           )}
+                           <div className="flex-1 overflow-y-auto p-2">
+                                <div className="grid grid-cols-8 gap-1">
+                                    {(searchMode ? searchResults : emojiCategories.find(c => c.name === activeEmojiCategory)?.emojis || []).map((emoji, i) => (
+                                        <Button key={i} variant="ghost" size="icon" className="text-2xl" onClick={() => handleEmojiClick(emoji)}>
+                                            {emoji}
+                                        </Button>
+                                    ))}
+                                </div>
+                           </div>
+                           <div className="p-2 border-t flex items-center justify-between">
+                               <span className="text-sm text-muted-foreground">{activeMainTab === 'emoji' ? activeEmojiCategory : 'GIFs'}</span>
+                               <Button variant="ghost" size="icon" onClick={handleBackspace}><Delete className="w-5 h-5"/></Button>
+                           </div>
+                       </div>
+                    )}
+                    {view === 'keyboard' && (
+                        <CustomKeyboard 
+                          onKeyPress={(key) => handleInputChange(message + key)}
+                          onBackspace={handleBackspace}
+                          onEnter={handleSend}
+                          onSpace={() => handleInputChange(message + ' ')}
+                        />
+                    )}
                 </motion.div>
             )}
         </AnimatePresence>
