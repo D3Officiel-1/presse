@@ -156,7 +156,7 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
     };
 
     const visualizeAudio = (stream: MediaStream) => {
-        if (!audioContextRef.current) {
+        if (!audioContextRef.current || audioContextRef.current.state === 'closed') {
             audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
         }
         if (!analyserRef.current) {
@@ -345,109 +345,97 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
     : [];
 
     const RecordingUI = () => (
-      <motion.div 
-          className="flex-1 flex items-center justify-between px-2"
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          exit={{ opacity: 0, scale: 0.95 }}
-          transition={{ duration: 0.2 }}
-      >
-          <Button variant="ghost" size="icon" onClick={cancelRecording} className="text-destructive h-12 w-12 rounded-full">
-              <Trash2 size={24}/>
-          </Button>
+      <React.Fragment>
+        <Button variant="ghost" size="icon" onClick={cancelRecording} className="text-destructive h-12 w-12 rounded-full">
+            <Trash2 size={24}/>
+        </Button>
 
-          <div className="flex flex-col items-center">
-              <div className="font-mono text-lg">{formatTime(recordingTime)}</div>
-              <div className="flex items-center justify-center h-8 gap-0.5 w-32">
-                {audioWaveform.map((v, i) => (
-                    <motion.div
-                        key={i}
-                        className="w-1 bg-primary rounded-full"
-                        animate={{ height: `${Math.max(2, v * 100)}%` }}
-                        transition={{ duration: 0.1 }}
-                    />
-                ))}
-              </div>
-          </div>
-          
-           <Button size="icon" onClick={stopAndSendRecording} className="h-12 w-12 rounded-full bg-green-500 hover:bg-green-600 text-white">
-              <Check size={24} />
-           </Button>
-      </motion.div>
+        <div className="flex flex-col items-center">
+            <div className="font-mono text-lg">{formatTime(recordingTime)}</div>
+            <div className="flex items-center justify-center h-8 gap-0.5 w-32">
+              {audioWaveform.map((v, i) => (
+                  <motion.div
+                      key={i}
+                      className="w-1 bg-primary rounded-full"
+                      animate={{ height: `${Math.max(2, v * 100)}%` }}
+                      transition={{ duration: 0.1 }}
+                  />
+              ))}
+            </div>
+        </div>
+        
+         <Button size="icon" onClick={stopAndSendRecording} className="h-12 w-12 rounded-full bg-green-500 hover:bg-green-600 text-white">
+            <Check size={24} />
+         </Button>
+      </React.Fragment>
     );
 
-  const mainInputSection = (
+    const mainInputSection = (
       <div className="flex items-end gap-1 p-2">
-        {isRecording ? (
-          <RecordingUI />
+        {inputMode === 'emoji-search' ? (
+          <Button variant="ghost" size="icon" className="h-10 w-10 shrink-0 text-muted-foreground" onClick={handleCancelEmojiSearch}>
+            <X className="w-5 h-5" />
+          </Button>
         ) : (
-          <>
-            {inputMode === 'emoji-search' ? (
-              <Button variant="ghost" size="icon" className="h-10 w-10 shrink-0 text-muted-foreground" onClick={handleCancelEmojiSearch}>
-                <X className="w-5 h-5" />
-              </Button>
-            ) : (
-              <Button variant="ghost" size="icon" className="h-10 w-10 shrink-0 text-muted-foreground" onClick={() => toggleView('attachments')}>
-                <Paperclip className="w-5 h-5" />
-              </Button>
-            )}
-
-            <div className="flex-1 relative">
-              <TextareaAutosize
-                ref={inputRef}
-                value={inputMode === 'message' ? message : emojiSearchQuery}
-                onChange={handleInputChange}
-                onFocus={() => {
-                  if (inputMode === 'message') setView('closed');
-                }}
-                placeholder={inputMode === 'message' ? 'Message' : 'Rechercher un emoji...'}
-                maxRows={5}
-                className="w-full resize-none bg-transparent border-0 focus:ring-0 focus:outline-none text-base placeholder:text-muted-foreground px-2 py-2"
-              />
-            </div>
-            
-            {inputMode === 'message' && (
-              <Button variant="ghost" size="icon" className="h-10 w-10 shrink-0 text-muted-foreground" onClick={() => toggleView('emoji')}>
-                <Smile className="w-5 h-5" />
-              </Button>
-            )}
-          
-            <div className="relative h-10 w-10 shrink-0">
-              <AnimatePresence>
-                {message && inputMode === 'message' && !isRecording ? (
-                  <motion.div
-                    key="send"
-                    initial={{ scale: 0, rotate: -90 }}
-                    animate={{ scale: 1, rotate: 0 }}
-                    exit={{ scale: 0, rotate: 90 }}
-                    className="absolute inset-0"
-                  >
-                    <Button size="icon" className="h-10 w-10 rounded-full bg-primary text-primary-foreground" onClick={handleSend}>
-                      <Send className="w-5 h-5" />
-                    </Button>
-                  </motion.div>
-                ) : inputMode === 'message' ? (
-                  <motion.div
-                    key="mic"
-                    initial={{ scale: 0, rotate: 90 }}
-                    animate={{ scale: 1, rotate: 0 }}
-                    exit={{ scale: 0, rotate: -90 }}
-                    className="absolute inset-0"
-                  >
-                    <Button
-                      size="icon"
-                      variant="ghost"
-                      onClick={startRecording}
-                      className="h-10 w-10 rounded-full text-muted-foreground"
-                    >
-                      <Mic className="w-5 h-5" />
-                    </Button>
-                  </motion.div>
-                ) : null}
-              </AnimatePresence>
-            </div>
-          </>
+          <Button variant="ghost" size="icon" className="h-10 w-10 shrink-0 text-muted-foreground" onClick={() => toggleView('attachments')}>
+            <Paperclip className="w-5 h-5" />
+          </Button>
         )}
+
+        <div className="flex-1 relative">
+          <TextareaAutosize
+            ref={inputRef}
+            value={inputMode === 'message' ? message : emojiSearchQuery}
+            onChange={handleInputChange}
+            onFocus={() => {
+              if (inputMode === 'message') setView('closed');
+            }}
+            placeholder={inputMode === 'message' ? 'Message' : 'Rechercher un emoji...'}
+            maxRows={5}
+            className="w-full resize-none bg-transparent border-0 focus:ring-0 focus:outline-none text-base placeholder:text-muted-foreground px-2 py-2"
+          />
+        </div>
+        
+        {inputMode === 'message' && (
+          <Button variant="ghost" size="icon" className="h-10 w-10 shrink-0 text-muted-foreground" onClick={() => toggleView('emoji')}>
+            <Smile className="w-5 h-5" />
+          </Button>
+        )}
+      
+        <div className="relative h-10 w-10 shrink-0">
+          <AnimatePresence>
+            {message && inputMode === 'message' && !isRecording ? (
+              <motion.div
+                key="send"
+                initial={{ scale: 0, rotate: -90 }}
+                animate={{ scale: 1, rotate: 0 }}
+                exit={{ scale: 0, rotate: 90 }}
+                className="absolute inset-0"
+              >
+                <Button size="icon" className="h-10 w-10 rounded-full bg-primary text-primary-foreground" onClick={handleSend}>
+                  <Send className="w-5 h-5" />
+                </Button>
+              </motion.div>
+            ) : inputMode === 'message' ? (
+              <motion.div
+                key="mic"
+                initial={{ scale: 0, rotate: 90 }}
+                animate={{ scale: 1, rotate: 0 }}
+                exit={{ scale: 0, rotate: -90 }}
+                className="absolute inset-0"
+              >
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  onClick={startRecording}
+                  className="h-10 w-10 rounded-full text-muted-foreground"
+                >
+                  <Mic className="w-5 h-5" />
+                </Button>
+              </motion.div>
+            ) : null}
+          </AnimatePresence>
+        </div>
       </div>
   );
 
@@ -505,7 +493,24 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
               view !== 'closed' && 'rounded-t-3xl'
           )}
       >
-        {mainInputSection}
+        <AnimatePresence mode="wait">
+            {isRecording ? (
+                <motion.div 
+                    key="recording"
+                    className="flex-1 flex items-center justify-between px-2 h-[56px]"
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.95 }}
+                    transition={{ duration: 0.2 }}
+                >
+                    <RecordingUI />
+                </motion.div>
+            ) : (
+                <motion.div key="input" initial={{opacity: 0}} animate={{opacity: 1}} exit={{opacity: 0}}>
+                    {mainInputSection}
+                </motion.div>
+            )}
+        </AnimatePresence>
       </div>
 
       <input
