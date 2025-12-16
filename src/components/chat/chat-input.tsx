@@ -84,6 +84,7 @@ const CustomKeyboard = ({ onKeyPress, onBackspace, onEnter, onSpace }: { onKeyPr
 
     return (
         <div className="w-full bg-black/50 backdrop-blur-sm p-2 space-y-1">
+            <div className="w-full h-px bg-border"/>
             {currentLayout.map((row, rowIndex) => (
                 <div key={rowIndex} className="flex justify-center gap-1">
                     {rowIndex === 2 && layout === 'letters' && (
@@ -379,18 +380,27 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
             replyInfo ? 'rounded-t-none' : ''
         )}
       >
-        {mainInputSection}
+        <AnimatePresence>
+            {view === 'closed' && (
+                <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                >
+                    {mainInputSection}
+                </motion.div>
+            )}
+        </AnimatePresence>
         
         <AnimatePresence>
             {view === 'keyboard' && (
                 <motion.div
                     className="w-full"
-                    initial={{ y: "100%" }}
-                    animate={{ y: 0 }}
-                    exit={{ y: "100%" }}
+                    initial={{ y: "100%", opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    exit={{ y: "100%", opacity: 0 }}
                     transition={{ type: 'spring', stiffness: 400, damping: 40 }}
                 >
-                    <div className="w-full h-px bg-border"/>
                     <CustomKeyboard 
                       onKeyPress={(key) => handleInputChange(message + key)}
                       onBackspace={handleBackspace}
