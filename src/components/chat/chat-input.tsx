@@ -170,13 +170,7 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
   };
   
   const toggleView = (newView: 'attachments' | 'emoji') => {
-      if (view === newView) {
-          setView('closed');
-      } else {
-          setView(newView);
-          setSearchMode(false);
-          setEmojiSearchQuery('');
-      }
+    setView(prev => prev === newView ? 'closed' : newView);
   }
 
   const handleAttachmentAction = (action: string) => {
