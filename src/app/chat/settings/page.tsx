@@ -8,15 +8,24 @@ import { Button } from '@/components/ui/button'
 import { ArrowLeft, User, LogOut, Loader2, Shield, Paintbrush, RefreshCw, ChevronRight, HelpCircle, Bell, Moon, Sun, KeyRound, Palette, Info, QrCode } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { useAuth } from '@/firebase/provider'
-import { signOut } from 'firebase/auth'
 import Link from 'next/link'
-import { Switch } from '@/components/ui/switch'
 import { useToast } from '@/hooks/use-toast'
 import { doc, updateDoc, getDoc, onSnapshot } from 'firebase/firestore'
 import { useFirestore } from '@/firebase/provider'
 import Image from 'next/image'
 import { motion } from 'framer-motion'
 import type { User as UserType } from '@/lib/types'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
+
 
 export default function SettingsPage() {
     const router = useRouter()
@@ -24,6 +33,7 @@ export default function SettingsPage() {
     const [userData, setUserData] = useState<UserType | null>(null)
     const firestore = useFirestore()
     const { toast } = useToast()
+    const [isLogoutDialogOpen, setIsLogoutDialogOpen] = useState(false);
 
     useEffect(() => {
         if (authUser && firestore) {
@@ -58,6 +68,8 @@ export default function SettingsPage() {
         } catch (error) {
             console.error("Error signing out: ", error);
             toast({ variant: 'destructive', title: 'Erreur', description: 'Impossible de se déconnecter.' });
+        } finally {
+            setIsLogoutDialogOpen(false);
         }
     }
 
@@ -139,12 +151,30 @@ export default function SettingsPage() {
                          
                          <div className="space-y-2">
                              <div className="bg-card rounded-xl border">
-                                 <SettingsItem icon={LogOut} text="Déconnexion" onClick={handleLogout} className="text-destructive font-semibold" />
+                                 <SettingsItem icon={LogOut} text="Déconnexion" onClick={() => setIsLogoutDialogOpen(true)} className="text-destructive font-semibold" />
                              </div>
                          </div>
                     </div>
                 </div>
             </main>
+            
+            <AlertDialog open={isLogoutDialogOpen} onOpenChange={setIsLogoutDialogOpen}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Êtes-vous sûr de vouloir vous déconnecter ?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            Vous devrez vous reconnecter pour accéder à nouveau à vos discussions.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Annuler</AlertDialogCancel>
+                        <AlertDialogAction onClick={handleLogout} className="bg-destructive hover:bg-destructive/90">
+                            <LogOut className="w-4 h-4 mr-2" />
+                            Déconnexion
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </div>
     )
 }
@@ -163,7 +193,7 @@ const SettingsItem: React.FC<SettingsItemProps> = ({ icon: Icon, text, href, isS
         <div className="flex items-center p-4">
             <Icon className="w-5 h-5 mr-4 text-muted-foreground" />
             <span className="flex-1 font-medium">{text}</span>
-            {isSwitch ? <Switch /> : href ? <ChevronRight className="w-5 h-5 text-muted-foreground" /> : null}
+            {href && <ChevronRight className="w-5 h-5 text-muted-foreground" />}
         </div>
     )
 
