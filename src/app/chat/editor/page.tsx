@@ -9,7 +9,6 @@ import { useToast } from '@/hooks/use-toast';
 import Image from 'next/image';
 import ReactCrop, { type Crop as CropType, centerCrop, makeAspectCrop } from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css';
-import { Input } from '@/components/ui/input';
 import * as htmlToImage from 'html-to-image';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Textarea } from '@/components/ui/textarea';
@@ -217,6 +216,20 @@ function EditorComponent() {
         }, 100);
     };
 
+    const toggleTextAlign = () => {
+        setTextAlign(prev => {
+            if (prev === 'left') return 'center';
+            if (prev === 'center') return 'right';
+            return 'left';
+        });
+    };
+
+    const AlignmentIcon = () => {
+        if (textAlign === 'left') return <AlignCenter />;
+        if (textAlign === 'center') return <AlignRight />;
+        return <AlignLeft />;
+    };
+
     if (isLoading) {
         return (
             <div className="flex h-screen w-full items-center justify-center bg-black">
@@ -344,9 +357,9 @@ function EditorComponent() {
                                 <Button variant="ghost" size="icon" onClick={() => setTextStyle('none')} className={cn("h-10 w-10 rounded-full", textStyle === 'none' && 'bg-white text-black')}>Aa</Button>
                                 <Button variant="ghost" size="icon" onClick={() => setTextStyle('solid')} className={cn("h-10 w-10 rounded-full", textStyle === 'solid' && 'bg-white text-black')}>[Aa]</Button>
                                 <Button variant="ghost" size="icon" onClick={() => setTextStyle('outline')} className={cn("h-10 w-10 rounded-full", textStyle === 'outline' && 'bg-white text-black')}>A</Button>
-                                <Button variant="ghost" size="icon" onClick={() => setTextAlign('left')} className={cn("h-10 w-10 rounded-full", textAlign === 'left' && 'bg-white text-black')}><AlignLeft/></Button>
-                                <Button variant="ghost" size="icon" onClick={() => setTextAlign('center')} className={cn("h-10 w-10 rounded-full", textAlign === 'center' && 'bg-white text-black')}><AlignCenter/></Button>
-                                <Button variant="ghost" size="icon" onClick={() => setTextAlign('right')} className={cn("h-10 w-10 rounded-full", textAlign === 'right' && 'bg-white text-black')}><AlignRight/></Button>
+                                <Button variant="ghost" size="icon" onClick={toggleTextAlign} className={cn("h-10 w-10 rounded-full", 'bg-white text-black')}>
+                                    <AlignmentIcon />
+                                </Button>
                             </div>
                             <Button onClick={handleAddText}>
                                 <Check className="w-4 h-4 mr-2" />
@@ -399,7 +412,6 @@ function EditorComponent() {
                                         <ChevronDown className="h-5 w-5 text-white" />
                                     </Button>
                                     </div>
-                                    <div className="bg-black/50 backdrop-blur-md rounded-xl p-2 border border-white/10">
                                     <ScrollArea className="flex-1 px-2 pb-2 h-[180px]">
                                     {fontStyles.map((font) => (
                                         <Button
@@ -419,7 +431,6 @@ function EditorComponent() {
                                         </Button>
                                     ))}
                                     </ScrollArea>
-                                    </div>
                                 </motion.div>
                                 ) : (
                                 <motion.div
