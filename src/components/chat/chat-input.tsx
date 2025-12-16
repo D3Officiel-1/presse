@@ -174,6 +174,7 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
       setView('closed');
     } else {
       setView(newView);
+      document.activeElement instanceof HTMLElement && document.activeElement.blur();
     }
   };
 
@@ -334,6 +335,9 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
                     {view === 'emoji' && (
                        <div className="h-[300px] flex flex-col">
                            <div className="flex items-center justify-between p-2 border-b">
+                                <Button variant="ghost" size="icon" className="h-9 w-9" onClick={() => setSearchMode(!searchMode)}>
+                                   <Search className="w-5 h-5"/>
+                                </Button>
                                 <div className="flex-1 flex justify-center">
                                    <div className="flex gap-1 bg-black/20 p-1 rounded-full border">
                                        {mainTabs.map(tab => (
@@ -343,9 +347,7 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
                                        ))}
                                    </div>
                                 </div>
-                               <Button variant="ghost" size="icon" className="h-9 w-9" onClick={() => setSearchMode(!searchMode)}>
-                                   <Search className="w-5 h-5"/>
-                               </Button>
+                                <div className="w-9"></div>
                            </div>
                            {searchMode ? (
                                <div className="p-2">
@@ -374,8 +376,9 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
                                     ))}
                                 </div>
                            </div>
-                           <div className="p-2 border-t flex items-center justify-end">
+                           <div className="p-2 border-t flex items-center justify-between">
                                <Button variant="ghost" size="icon" onClick={handleBackspace}><Delete className="w-5 h-5"/></Button>
+                                <div className="w-9" />
                            </div>
                        </div>
                     )}
