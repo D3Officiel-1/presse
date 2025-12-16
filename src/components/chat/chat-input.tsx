@@ -220,7 +220,7 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
         }
     };
     
-    const handlePointerLeave = () => {
+    const handlePointerLeave = (e: React.PointerEvent) => {
         if (isRecording) {
             stopRecording();
         }
@@ -562,5 +562,3 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
     </div>
   );
 }
-
-    
