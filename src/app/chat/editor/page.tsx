@@ -2,7 +2,7 @@
 'use client';
 
 import React, { useState, useRef, useEffect, Suspense } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Loader2, ArrowLeft, Crop, RotateCw, Send, Text, Brush, X } from 'lucide-react';
 import { ImageCropper } from '@/components/chat/image-cropper';
@@ -11,23 +11,26 @@ import Image from 'next/image';
 
 function EditorComponent() {
     const router = useRouter();
-    const searchParams = useSearchParams();
     const { toast } = useToast();
 
     const [mediaSrc, setMediaSrc] = useState<string | null>(null);
     const [mediaType, setMediaType] = useState<'image' | 'video' | null>(null);
     const [isLoading, setIsLoading] = useState(true);
 
-    const [imageToCrop, setImageToCrop] = useState<string | null>(null);
     const [isCropperOpen, setIsCropperOpen] = useState(false);
 
     useEffect(() => {
-        const mediaData = searchParams.get('media');
-        const typeData = searchParams.get('type');
+        const mediaData = sessionStorage.getItem('media-to-edit');
+        const typeData = sessionStorage.getItem('media-type-to-edit');
+        
         if (mediaData && typeData) {
             setMediaSrc(mediaData);
             setMediaType(typeData as 'image' | 'video');
             setIsLoading(false);
+            
+            // Clean up session storage after use
+            sessionStorage.removeItem('media-to-edit');
+            sessionStorage.removeItem('media-type-to-edit');
         } else {
             toast({
                 variant: 'destructive',
@@ -36,7 +39,7 @@ function EditorComponent() {
             });
             router.back();
         }
-    }, [searchParams, router, toast]);
+    }, [router, toast]);
 
     const handleCroppedImage = (imageBlob: Blob | null) => {
         setIsCropperOpen(false);
@@ -72,9 +75,9 @@ function EditorComponent() {
 
     return (
         <div className="relative flex flex-col h-screen w-full bg-black text-white overflow-hidden">
-            {mediaType === 'image' && imageToCrop && (
+            {mediaType === 'image' && mediaSrc && (
                 <ImageCropper
-                    imageSrc={imageToCrop}
+                    imageSrc={mediaSrc}
                     open={isCropperOpen}
                     onOpenChange={setIsCropperOpen}
                     onCropped={handleCroppedImage}

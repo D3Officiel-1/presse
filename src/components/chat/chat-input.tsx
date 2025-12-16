@@ -201,8 +201,11 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
     reader.onload = (loadEvent) => {
       const dataUrl = loadEvent.target?.result as string;
       const mediaType = file.type.startsWith('video') ? 'video' : 'image';
-      // Navigate to editor page with the data URL
-      router.push(`/chat/editor?media=${encodeURIComponent(dataUrl)}&type=${mediaType}`);
+      
+      // Store in sessionStorage and navigate
+      sessionStorage.setItem('media-to-edit', dataUrl);
+      sessionStorage.setItem('media-type-to-edit', mediaType);
+      router.push('/chat/editor');
     };
     reader.readAsDataURL(file);
 
@@ -343,7 +346,7 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
                             exit={{ opacity: 0 }}
                             transition={{ duration: 0.2 }}
                         >
-                            <div className="p-2 border-b border-border/50">
+                             <div className="p-2 border-b border-border/50">
                                 <TextareaAutosize
                                     value={message}
                                     onChange={handleInputChange}
@@ -351,7 +354,6 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
                                     placeholder="Message"
                                     maxRows={2}
                                     className="w-full resize-none bg-transparent border-0 focus:ring-0 focus:outline-none text-base placeholder:text-muted-foreground px-2 py-2"
-                                    autoFocus
                                 />
                             </div>
                             <div className="px-3 py-2 flex items-center gap-2 border-b border-border/50">
@@ -369,7 +371,7 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
                                     />
                                 </div>
                             </div>
-                            <div className="p-4 flex-1 overflow-y-auto">
+                            <div className="flex-1 overflow-y-auto px-4 pb-4 pt-2">
                                {searchResults.length > 0 ? (
                                    <div className="grid grid-cols-[repeat(auto-fill,minmax(2.5rem,1fr))] gap-1">
                                         {searchResults.map((emoji, index) => (
@@ -400,7 +402,7 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
                             exit={{ opacity: 0 }}
                             transition={{ duration: 0.2 }}
                         >
-                             <div className="p-2 border-b border-border/50">
+                            <div className="p-2 border-b border-border/50">
                                 <TextareaAutosize
                                     value={message}
                                     onChange={handleInputChange}
@@ -410,8 +412,8 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
                                     className="w-full resize-none bg-transparent border-0 focus:ring-0 focus:outline-none text-base placeholder:text-muted-foreground px-2 py-2"
                                     autoFocus
                                 />
-                             </div>
-                             <div className="px-3 py-2 flex items-center justify-between border-b border-border/50">
+                            </div>
+                            <div className="px-3 py-2 flex items-center justify-between border-b border-border/50">
                                 <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground" onClick={() => setSearchMode(true)}>
                                     <Search className="w-5 h-5" />
                                 </Button>
