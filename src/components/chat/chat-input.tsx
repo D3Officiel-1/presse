@@ -12,6 +12,7 @@ import { useFirestore } from '@/firebase/provider';
 import { doc, updateDoc } from 'firebase/firestore';
 import TextareaAutosize from 'react-textarea-autosize';
 import { Input } from '../ui/input';
+import { useRouter } from 'next/navigation';
 
 interface ChatInputProps {
   chat: ChatType;
@@ -27,7 +28,7 @@ const formatTime = (seconds: number) => {
 };
 
 const attachmentActions = [
-    { icon: ImageIcon, label: "Galerie", color: "text-purple-500" },
+    { icon: ImageIcon, label: "Galerie", color: "text-purple-500", action: 'openGallery' },
     { icon: Camera, label: "Caméra", color: "text-blue-500" },
     { icon: MapPin, label: "Localisation", color: "text-green-500" },
     { icon: User, label: "Membre", color: "text-orange-500" },
@@ -58,10 +59,12 @@ const allEmojis = emojiCategories.flatMap(category => category.emojis);
 
 
 export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: ChatInputProps) {
+  const router = useRouter();
   const [message, setMessage] = useState('');
   const { user: currentUser } = useUser();
   const firestore = useFirestore();
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   
   const [view, setView] = useState<'closed' | 'attachments' | 'emoji'>('closed');
   const [activeMainTab, setActiveMainTab] = useState('emoji');
@@ -183,6 +186,30 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
       }
   }
 
+  const handleAttachmentAction = (action: string) => {
+    if (action === 'openGallery') {
+      fileInputRef.current?.click();
+    }
+    // Handle other actions later
+  };
+
+  const onFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (loadEvent) => {
+      const dataUrl = loadEvent.target?.result as string;
+      const mediaType = file.type.startsWith('video') ? 'video' : 'image';
+      // Navigate to editor page with the data URL
+      router.push(`/chat/editor?media=${encodeURIComponent(dataUrl)}&type=${mediaType}`);
+    };
+    reader.readAsDataURL(file);
+
+    // Reset file input value to allow selecting the same file again
+    e.target.value = '';
+  };
+
   const containerVariants = {
       closed: { height: 'auto' },
       open: { height: 350 },
@@ -196,6 +223,13 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
 
   return (
     <div className="relative p-4 pt-2">
+      <input 
+        type="file" 
+        ref={fileInputRef}
+        className="hidden"
+        accept="image/*,video/*"
+        onChange={onFileSelect}
+      />
       <AnimatePresence>
         {replyInfo && (
           <motion.div
@@ -289,7 +323,7 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
               ) : view === 'attachments' ? (
                  <div className="flex-1 p-4 grid grid-cols-4 gap-4 items-center justify-center">
                     {attachmentActions.map(action => (
-                      <div key={action.label} className="flex flex-col items-center gap-2 text-center cursor-pointer">
+                      <div key={action.label} className="flex flex-col items-center gap-2 text-center cursor-pointer" onClick={() => handleAttachmentAction(action.action as string)}>
                           <div className={`w-14 h-14 rounded-full flex items-center justify-center bg-background`}>
                               <action.icon className={`w-6 h-6 ${action.color}`} />
                           </div>
@@ -338,9 +372,9 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
                             <div className="p-4 flex-1 overflow-y-auto">
                                {searchResults.length > 0 ? (
                                    <div className="grid grid-cols-[repeat(auto-fill,minmax(2.5rem,1fr))] gap-1">
-                                        {searchResults.map((emoji) => (
+                                        {searchResults.map((emoji, index) => (
                                             <Button
-                                                key={emoji}
+                                                key={`${emoji}-${index}`}
                                                 variant="ghost"
                                                 size="icon"
                                                 className="w-full h-10 text-2xl"
@@ -401,9 +435,9 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
                             <div className="flex-1 overflow-y-auto px-4 pb-4 pt-2">
                                {activeMainTab === 'emoji' && (
                                    <div className="grid grid-cols-[repeat(auto-fill,minmax(2.5rem,1fr))] gap-1">
-                                        {emojiCategories.find(c => c.name === activeEmojiCategory)?.emojis.map((emoji) => (
+                                        {emojiCategories.find(c => c.name === activeEmojiCategory)?.emojis.map((emoji, index) => (
                                             <Button
-                                                key={emoji}
+                                                key={`${emoji}-${index}`}
                                                 variant="ghost"
                                                 size="icon"
                                                 className="w-full h-10 text-2xl"
@@ -469,5 +503,3 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
     </div>
   );
 }
-
-    
