@@ -217,11 +217,14 @@ const ChatMessage = ({
   const [editedContent, setEditedContent] = useState(message.content);
   const isStarred = message.starredBy?.includes(loggedInUser.uid);
 
+  const isDeletedForAll = message.content === "Ce message a été supprimé";
+
   useEffect(() => {
     setEditedContent(message.content);
   }, [message.content, isEditing]);
 
   const handlePointerDown = (e: React.PointerEvent) => {
+    if (isDeletedForAll) return;
     if (e.pointerType === 'touch' && !isEditing) {
       longPressTimer.current = setTimeout(() => {
         onOpenContextMenu(e, message);
@@ -236,7 +239,7 @@ const ChatMessage = ({
   };
   
   const onDragEnd = (event: any, info: any) => {
-    if (isEditing) return;
+    if (isEditing || isDeletedForAll) return;
     const dragThreshold = 60;
     const dragDistance = info.offset.x;
     
@@ -261,7 +264,8 @@ const ChatMessage = ({
     'rounded-t-2xl',
     isOwn
         ? isLastInGroup ? 'rounded-bl-2xl' : 'rounded-l-2xl'
-        : isLastInGroup ? 'rounded-br-2xl' : 'rounded-r-2xl'
+        : isLastInGroup ? 'rounded-br-2xl' : 'rounded-r-2xl',
+    isDeletedForAll && 'italic bg-muted text-muted-foreground'
   );
   
   const formatTimestamp = (timestamp: any) => {
@@ -276,14 +280,14 @@ const ChatMessage = ({
         initial={{ opacity: 0, scale: 0.9, y: 10 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         transition={{ duration: 0.3 }}
-        onContextMenu={(e) => !isEditing && onOpenContextMenu(e, message)}
+        onContextMenu={(e) => !isEditing && !isDeletedForAll && onOpenContextMenu(e, message)}
         onPointerDown={handlePointerDown}
         onPointerUp={handlePointerUp}
         onPointerLeave={handlePointerUp}
         className={cn('group flex items-end gap-2 w-full', isOwn ? 'justify-end' : 'justify-start')}
     >
       <motion.div
-        drag={isEditing ? false : "x"}
+        drag={isEditing || isDeletedForAll ? false : "x"}
         dragConstraints={{ left: 0, right: 0 }}
         dragElastic={0.2}
         onDragEnd={onDragEnd}
@@ -313,13 +317,13 @@ const ChatMessage = ({
             </div>
         ) : (
             <>
-                {message.forwardedFrom && (
+                {message.forwardedFrom && !isDeletedForAll && (
                     <div className="flex items-center gap-1.5 text-xs opacity-70 mb-1.5">
                         <CornerUpLeft className="w-3 h-3" />
                         <span>Transféré de {message.forwardedFrom.senderName}</span>
                     </div>
                 )}
-                {message.replyTo?.messageId && (
+                {message.replyTo?.messageId && !isDeletedForAll && (
                     <div 
                       className="border-l-2 border-primary/50 pl-2 text-xs opacity-80 mb-1.5 cursor-pointer"
                       onClick={() => onScrollToMessage(message.replyTo!.messageId)}
@@ -341,10 +345,10 @@ const ChatMessage = ({
                 {message.type === 'audio' && <AudioPlayer src={message.content} metadata={message.audioMetadata} />}
 
                 <div className="flex items-center justify-end gap-1.5 mt-1 float-right">
-                    {message.editedAt && <span className="text-xs opacity-70 italic mr-1">modifié</span>}
+                    {message.editedAt && !isDeletedForAll && <span className="text-xs opacity-70 italic mr-1">modifié</span>}
                     <span className="text-xs opacity-70">{formatTimestamp(message.timestamp)}</span>
-                    {isStarred && <Star className="w-3 h-3 text-current opacity-70 fill-current" />}
-                    {isOwn && <ChatMessageStatus message={message} otherUser={(React.useContext(ChatContext) as any).otherUser} />}
+                    {isStarred && !isDeletedForAll && <Star className="w-3 h-3 text-current opacity-70 fill-current" />}
+                    {isOwn && !isDeletedForAll && <ChatMessageStatus message={message} otherUser={(React.useContext(ChatContext) as any).otherUser} />}
                 </div>
             </>
         )}
@@ -615,28 +619,30 @@ const MessageFocusView = ({
                       ))}
                   </div>
               )}
-              <div className="mb-4">
-                  <h4 className="px-2 text-sm font-semibold text-muted-foreground mb-2">Autres membres</h4>
-                  {otherUsers.map((user: User) => (
-                      <div key={user.id} className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50 cursor-pointer" onClick={() => handleToggleUserSelection(user.id)}>
-                          <div className="relative">
-                              <Avatar>
-                                  <AvatarImage src={user.avatar} />
-                                  <AvatarFallback>{user.name.substring(0,1)}</AvatarFallback>
-                              </Avatar>
-                              {selectedUsers.includes(user.id) && (
-                                  <div className="absolute -bottom-1 -right-1 bg-primary text-primary-foreground rounded-full h-5 w-5 flex items-center justify-center border-2 border-background">
-                                      <Check className="w-3 h-3" />
-                                  </div>
-                              )}
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="font-medium truncate">{user.name}</p>
-                            {user.class && <p className="text-xs text-muted-foreground truncate">{user.class}</p>}
-                          </div>
-                      </div>
-                  ))}
-              </div>
+              {otherUsers.length > 0 && (
+                <div className="mb-4">
+                    <h4 className="px-2 text-sm font-semibold text-muted-foreground mb-2">Autres membres</h4>
+                    {otherUsers.map((user: User) => (
+                        <div key={user.id} className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50 cursor-pointer" onClick={() => handleToggleUserSelection(user.id)}>
+                            <div className="relative">
+                                <Avatar>
+                                    <AvatarImage src={user.avatar} />
+                                    <AvatarFallback>{user.name.substring(0,1)}</AvatarFallback>
+                                </Avatar>
+                                {selectedUsers.includes(user.id) && (
+                                    <div className="absolute -bottom-1 -right-1 bg-primary text-primary-foreground rounded-full h-5 w-5 flex items-center justify-center border-2 border-background">
+                                        <Check className="w-3 h-3" />
+                                    </div>
+                                )}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="font-medium truncate">{user.name}</p>
+                              {user.class && <p className="text-xs text-muted-foreground truncate">{user.class}</p>}
+                            </div>
+                        </div>
+                    ))}
+                </div>
+              )}
             </div>
         )}
         {selectedUsers.length > 0 && (
