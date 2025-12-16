@@ -4,7 +4,7 @@
 import React, { useState, useRef, useEffect, Suspense, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { Loader2, ArrowLeft, Crop, RotateCw, Send, Type, Brush, X, Check, Smile, AlignLeft, AlignCenter, AlignRight, ChevronUp, ChevronDown, Trash2, Minus, Wind } from 'lucide-react';
+import { Loader2, ArrowLeft, Crop, RotateCw, Send, Type, Brush, X, Check, Smile, AlignLeft, AlignCenter, AlignRight, ChevronUp, ChevronDown, Trash2, Minus, Wind, Delete, ArrowUp, CornerDownLeft } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import Image from 'next/image';
 import ReactCrop, { type Crop as CropType, centerCrop, makeAspectCrop } from 'react-image-crop';
@@ -95,6 +95,72 @@ const ColorSlider = ({ onColorChange }: { onColorChange: (color: string) => void
             className="absolute right-4 top-1/2 -translate-y-1/2 h-48 w-6 rounded-full cursor-pointer border border-white/20"
             style={{ background: 'linear-gradient(to bottom, red, yellow, lime, cyan, blue, magenta, red)' }}
         />
+    );
+};
+
+const azertyLayout = {
+    letters: [
+        ['a', 'z', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p'],
+        ['q', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', 'm'],
+        ['w', 'x', 'c', 'v', 'b', 'n']
+    ],
+    numbers: [
+        ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0'],
+        ['@', '#', '€', '_', '&', '-', '+', '(', ')', '/'],
+        ['*', '"', "'", ':', ';', '!', '?', '.']
+    ]
+};
+
+const CustomKeyboard = ({ onKeyPress, onBackspace, onEnter, onSpace }: { onKeyPress: (key: string) => void, onBackspace: () => void, onEnter: () => void, onSpace: () => void }) => {
+    const [layout, setLayout] = useState<'letters' | 'numbers'>('letters');
+    const [isShift, setIsShift] = useState(false);
+
+    const handleKeyPress = (key: string) => {
+        onKeyPress(isShift ? key.toUpperCase() : key);
+        if (isShift) setIsShift(false);
+    };
+
+    const currentLayout = azertyLayout[layout];
+
+    return (
+        <motion.div 
+            className="w-full bg-black/50 backdrop-blur-sm p-2 space-y-1"
+            initial={{ y: "100%" }}
+            animate={{ y: 0 }}
+            exit={{ y: "100%" }}
+            transition={{ type: 'spring', stiffness: 400, damping: 40 }}
+        >
+            {currentLayout.map((row, rowIndex) => (
+                <div key={rowIndex} className="flex justify-center gap-1">
+                    {rowIndex === 2 && layout === 'letters' && (
+                        <Button onClick={() => setIsShift(!isShift)} className={cn("h-10 w-12", isShift && 'bg-white text-black')}>
+                            <ArrowUp />
+                        </Button>
+                    )}
+                    {row.map(key => (
+                        <Button key={key} onClick={() => handleKeyPress(key)} className="h-10 flex-1">
+                            {isShift ? key.toUpperCase() : key}
+                        </Button>
+                    ))}
+                    {rowIndex === 2 && layout === 'letters' && (
+                         <Button onClick={onBackspace} className="h-10 w-12">
+                            <Delete />
+                        </Button>
+                    )}
+                </div>
+            ))}
+            <div className="flex justify-center gap-1">
+                <Button onClick={() => setLayout(layout === 'letters' ? 'numbers' : 'letters')} className="h-10 w-24">
+                    {layout === 'letters' ? '?123' : 'ABC'}
+                </Button>
+                <Button onClick={onSpace} className="h-10 flex-1">
+                    Espace
+                </Button>
+                <Button onClick={onEnter} className="h-10 w-24">
+                    <CornerDownLeft />
+                </Button>
+            </div>
+        </motion.div>
     );
 };
 
@@ -603,9 +669,9 @@ function EditorComponent() {
                             onMouseUp={finishDrawing}
                             onMouseLeave={finishDrawing}
                             onMouseMove={draw}
-                            onTouchStart={startDrawing}
+                            onTouchStart={(e) => startDrawing(e as any)}
                             onTouchEnd={finishDrawing}
-                            onTouchMove={draw}
+                            onTouchMove={(e) => draw(e as any)}
                         />
                     )}
                 </div>
@@ -634,7 +700,7 @@ function EditorComponent() {
                             </div>
                             <Button size="sm" onClick={handleAddText}>
                                 <Check className="w-4 h-4 mr-2" />
-                                Enregistrer
+                                Terminé
                             </Button>
                         </header>
                          <motion.div
@@ -645,10 +711,11 @@ function EditorComponent() {
                          >
                             <Textarea
                                 value={textInputValue}
-                                onChange={(e) => setTextInputValue(e.target.value)}
+                                readOnly // Prevent system keyboard
+                                onFocus={(e) => e.target.blur()} // Prevent focus to also block system keyboard
                                 placeholder="Votre texte..."
                                 className={cn(
-                                    "w-full bg-transparent border-none text-3xl md:text-5xl font-bold placeholder:text-white/50 focus-visible:ring-0 resize-none",
+                                    "w-full bg-transparent border-none text-3xl md:text-5xl font-bold placeholder:text-white/50 focus-visible:ring-0 resize-none cursor-default",
                                     fontFamily,
                                     `text-${textAlign}`,
                                 )}
@@ -664,95 +731,17 @@ function EditorComponent() {
                                     padding: textStyle === 'solid' ? '0.5rem' : '0',
                                     borderRadius: textStyle === 'solid' ? '0.5rem' : '0',
                                 }}
-                                autoFocus
                             />
                          </motion.div>
                          <ColorSlider onColorChange={setTextColor} />
-                        <motion.footer
-                            layout
-                            className="absolute bottom-4 left-4 right-4 bg-black/30 backdrop-blur-md rounded-2xl border border-white/10"
-                            initial={{ height: "auto" }}
-                            animate={{ height: fontListExpanded ? 250 : "auto" }}
-                            transition={{ type: "spring", stiffness: 400, damping: 40 }}
-                        >
-                            <AnimatePresence mode="wait">
-                                {fontListExpanded ? (
-                                <motion.div
-                                    key="list-expanded"
-                                    className="h-full flex flex-col"
-                                    initial={{ opacity: 0 }}
-                                    animate={{ opacity: 1 }}
-                                    exit={{ opacity: 0 }}
-                                >
-                                    <div className="flex justify-end p-2">
-                                    <Button
-                                        variant="ghost"
-                                        size="icon"
-                                        className="rounded-full"
-                                        onClick={() => setFontListExpanded(false)}
-                                    >
-                                        <ChevronDown className="h-5 h-5 text-white" />
-                                    </Button>
-                                    </div>
-                                    <ScrollArea className="flex-1 px-2 pb-2 h-[180px]">
-                                    {fontStyles.map((font) => (
-                                        <Button
-                                        key={`list-${font.class}`}
-                                        variant="ghost"
-                                        onClick={() => {
-                                            setFontFamily(font.class);
-                                            setFontListExpanded(false);
-                                        }}
-                                        className={cn(
-                                            "w-full justify-start text-white text-lg h-12",
-                                            font.class,
-                                            fontFamily === font.class && "bg-white/20"
-                                        )}
-                                        >
-                                        {font.label}
-                                        </Button>
-                                    ))}
-                                    </ScrollArea>
-                                </motion.div>
-                                ) : (
-                                <motion.div
-                                    key="list-collapsed"
-                                    className="flex items-center p-2"
-                                    initial={{ opacity: 0 }}
-                                    animate={{ opacity: 1 }}
-                                    exit={{ opacity: 0 }}
-                                >
-                                    <div className="flex-1 overflow-x-auto no-scrollbar">
-                                        <div className="flex items-center gap-2">
-                                            {fontStyles.slice(0,5).map((font) => (
-                                                <Button
-                                                    key={font.class}
-                                                    variant="ghost"
-                                                    size="sm"
-                                                    onClick={() => setFontFamily(font.class)}
-                                                    className={cn(
-                                                    "rounded-full text-white shrink-0",
-                                                    font.class,
-                                                    fontFamily === font.class && "bg-white text-black"
-                                                    )}
-                                                >
-                                                    {font.label}
-                                                </Button>
-                                            ))}
-                                        </div>
-                                    </div>
-                                    <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    className="rounded-full"
-                                    onClick={() => setFontListExpanded(true)}
-                                    >
-                                    <ChevronUp className="h-5 w-5 text-white" />
-                                    </Button>
-                                </motion.div>
-                                )}
-                            </AnimatePresence>
-                        </motion.footer>
+                        <div className="absolute bottom-0 left-0 right-0">
+                           <CustomKeyboard 
+                                onKeyPress={(key) => setTextInputValue(prev => prev + key)}
+                                onBackspace={() => setTextInputValue(prev => prev.slice(0, -1))}
+                                onSpace={() => setTextInputValue(prev => prev + ' ')}
+                                onEnter={() => setTextInputValue(prev => prev + '\n')}
+                           />
+                        </div>
                     </motion.div>
                 )}
             </AnimatePresence>
