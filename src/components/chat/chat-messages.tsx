@@ -77,15 +77,14 @@ const AudioPlayer: React.FC<{ src: string; metadata?: { duration: number } }> = 
     if (!audio) return;
 
     const timeUpdate = () => {
-      setCurrentTime(audio.currentTime);
       if (audio.duration > 0 && isFinite(audio.duration)) {
+        setCurrentTime(audio.currentTime);
         setProgress((audio.currentTime / audio.duration) * 100);
       }
     };
     const onEnded = () => {
       setIsPlaying(false);
-      setProgress(0);
-      setCurrentTime(0);
+      // Don't reset progress to allow seeing the final state
     };
 
     const onLoadedMetadata = () => {
@@ -107,14 +106,32 @@ const AudioPlayer: React.FC<{ src: string; metadata?: { duration: number } }> = 
 
   const togglePlay = (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (audioRef.current) {
+    const audio = audioRef.current;
+    if (audio) {
       if (isPlaying) {
-        audioRef.current.pause();
+        audio.pause();
       } else {
-        audioRef.current.play();
+        if (audio.ended) {
+          audio.currentTime = 0;
+        }
+        audio.play();
       }
       setIsPlaying(!isPlaying);
     }
+  };
+  
+  const handleSeek = (e: React.MouseEvent<HTMLDivElement>) => {
+    const audio = audioRef.current;
+    if (!audio || duration === 0) return;
+    
+    const progressBar = e.currentTarget;
+    const rect = progressBar.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const percentage = x / rect.width;
+    const newTime = percentage * duration;
+    
+    audio.currentTime = newTime;
+    setCurrentTime(newTime);
   };
   
   const formatTime = (seconds: number) => {
@@ -126,22 +143,27 @@ const AudioPlayer: React.FC<{ src: string; metadata?: { duration: number } }> = 
   };
 
   return (
-    <div className="flex items-center gap-3 w-48">
+    <div className="flex items-center gap-2 w-48 md:w-56">
       <audio ref={audioRef} src={src} preload="metadata" />
       <Button
         variant="ghost"
         size="icon"
-        className="h-8 w-8 shrink-0 rounded-full bg-foreground/10 hover:bg-foreground/20"
+        className="h-10 w-10 shrink-0 rounded-full bg-foreground/10 hover:bg-foreground/20"
         onClick={togglePlay}
       >
-        {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
+        {isPlaying ? <Pause className="h-4 w-4 text-background" /> : <Play className="h-4 w-4 text-background" />}
       </Button>
-      <div className="flex-1 flex flex-col gap-1">
-        <div className="w-full h-1 bg-foreground/20 rounded-full">
-            <div className="h-full bg-foreground/80 rounded-full" style={{ width: `${progress}%` }}></div>
+      <div className="flex-1 flex flex-col gap-1.5 justify-center">
+        <div 
+            className="w-full h-1.5 bg-foreground/20 rounded-full cursor-pointer group"
+            onClick={handleSeek}
+        >
+            <div className="h-full bg-foreground/80 rounded-full relative" style={{ width: `${progress}%` }}>
+                 <div className="absolute right-0 top-1/2 -translate-y-1/2 h-3 w-3 rounded-full bg-background shadow group-hover:scale-110 transition-transform" />
+            </div>
         </div>
         <div className="text-xs text-right opacity-70 font-mono">
-            {formatTime(currentTime)} / {formatTime(duration)}
+            {isPlaying ? formatTime(currentTime) : formatTime(duration)}
         </div>
       </div>
     </div>

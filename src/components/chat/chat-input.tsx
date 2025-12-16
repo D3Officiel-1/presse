@@ -3,7 +3,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Paperclip, Mic, Send, X, Smile, Image as ImageIcon, Camera, MapPin, User, FileText, Music, Vote, Calendar, Keyboard, Sprout, Pizza, ToyBrick, Dumbbell, Film, FileImage, UserCircle, Clock, Search, Delete, ArrowUp, CornerDownLeft, Grip, StickyNote, Clipboard, Settings, Palette, Menu, Voicemail, Heart, Flag } from 'lucide-react';
+import { Paperclip, Mic, Send, X, Smile, Image as ImageIcon, Camera, MapPin, User, FileText, Music, Vote, Calendar, Keyboard, Sprout, Pizza, ToyBrick, Dumbbell, Film, FileImage, UserCircle, Clock, Search, Delete, ArrowUp, CornerDownLeft, Grip, StickyNote, Clipboard, Settings, Palette, Menu, Voicemail, Heart, Flag, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import type { ReplyInfo } from './chat-messages';
 import type { Chat as ChatType } from '@/lib/types';
@@ -14,11 +14,13 @@ import TextareaAutosize from 'react-textarea-autosize';
 import { Input } from '../ui/input';
 import { useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
+import { useToast } from '@/hooks/use-toast';
+
 
 const formatTime = (seconds: number) => {
     const minutes = Math.floor(seconds / 60);
     const secs = Math.floor(seconds % 60);
-    return `${minutes}:${secs.toString().padStart(2, '0')}`;
+    return `${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
 };
 
 const attachmentActions = [
@@ -62,6 +64,7 @@ interface ChatInputProps {
 
 export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: ChatInputProps) {
   const router = useRouter();
+  const { toast } = useToast();
   const [message, setMessage] = useState('');
   const { user: currentUser } = useUser();
   const firestore = useFirestore();
@@ -113,6 +116,9 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
       if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
       if (recordingIntervalRef.current) clearInterval(recordingIntervalRef.current);
       if (longPressTimerRef.current) clearTimeout(longPressTimerRef.current);
+      if (mediaRecorderRef.current && mediaRecorderRef.current.state === "recording") {
+        mediaRecorderRef.current.stop();
+      }
     };
   }, []);
 
@@ -127,12 +133,93 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
     }
   };
   
-  const startRecording = async () => {};
-  const stopRecording = () => {};
-  const resetRecordingState = () => {};
-  const handlePointerDown = (e: React.PointerEvent) => {};
-  const handlePointerUp = () => {};
-  const handlePointerMove = (e: React.PointerEvent) => {};
+    const resetRecordingState = () => {
+        setIsRecording(false);
+        setRecordingTime(0);
+        if (recordingIntervalRef.current) clearInterval(recordingIntervalRef.current);
+        audioChunksRef.current = [];
+        if (mediaRecorderRef.current && mediaRecorderRef.current.state === "recording") {
+            mediaRecorderRef.current.stop();
+        }
+    };
+
+
+    const startRecording = async () => {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            const mediaRecorder = new MediaRecorder(stream);
+            mediaRecorderRef.current = mediaRecorder;
+
+            mediaRecorder.ondataavailable = (event) => {
+                if (event.data.size > 0) {
+                    audioChunksRef.current.push(event.data);
+                }
+            };
+
+            mediaRecorder.onstart = () => {
+                setIsRecording(true);
+                setRecordingTime(0);
+                recordingIntervalRef.current = setInterval(() => {
+                    setRecordingTime(prev => prev + 1);
+                }, 1000);
+            };
+
+            mediaRecorder.onstop = () => {
+                stream.getTracks().forEach(track => track.stop());
+                if (!isCancelling) {
+                    const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+                    const reader = new FileReader();
+                    reader.onload = () => {
+                        const base64Audio = reader.result as string;
+                        onSendMessage(base64Audio, 'audio', { duration: recordingTime });
+                    };
+                    reader.readAsDataURL(audioBlob);
+                }
+                resetRecordingState();
+            };
+            
+            mediaRecorder.start();
+
+        } catch (error) {
+            console.error("Error starting recording:", error);
+            toast({
+                variant: 'destructive',
+                title: 'Erreur d\'enregistrement',
+                description: "Impossible d'accéder au microphone. Veuillez vérifier les permissions.",
+            });
+            resetRecordingState();
+        }
+    };
+
+    const stopRecording = () => {
+        if (mediaRecorderRef.current && mediaRecorderRef.current.state === "recording") {
+            mediaRecorderRef.current.stop();
+        }
+    };
+
+    const handlePointerDown = (e: React.PointerEvent) => {
+        if (e.pointerType === 'touch' || e.button === 0) { // Only for touch and left-click
+            e.preventDefault();
+            setIsCancelling(false);
+            startRecording();
+        }
+    };
+
+    const handlePointerUp = () => {
+        stopRecording();
+    };
+    
+    const handlePointerMove = (e: React.PointerEvent) => {
+        if (isRecording && cancelAreaRef.current) {
+            const cancelRect = cancelAreaRef.current.getBoundingClientRect();
+            if (e.clientX < cancelRect.right) {
+                 setIsCancelling(true);
+            } else {
+                 setIsCancelling(false);
+            }
+        }
+    };
+
 
   const handleEmojiClick = (emoji: string) => {
     if (inputMode === 'message') {
@@ -179,7 +266,7 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
         setView('closed');
     } else {
         setView(newView);
-        if (document.activeElement instanceof HTMLElement) {
+        if (document.activeElement instanceof HTMLElement && document.activeElement !== document.body) {
             document.activeElement.blur();
         }
     }
@@ -227,41 +314,69 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
     ? allEmojis.filter(emoji => emoji.includes(emojiSearchQuery))
     : [];
 
+    const RecordingUI = () => (
+      <motion.div 
+          className="flex-1 flex items-center justify-between px-4"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+      >
+          <div className="flex items-center gap-2">
+              <Mic className="text-destructive w-5 h-5 animate-pulse" />
+              <p className="font-mono text-lg">{formatTime(recordingTime)}</p>
+          </div>
+          <motion.div
+            ref={cancelAreaRef}
+            animate={{ x: isCancelling ? -10 : 0 }}
+            className="flex items-center gap-2 text-muted-foreground"
+          >
+              <Trash2 className={cn("w-5 h-5", isCancelling && 'text-destructive')} />
+              <span>Glisser pour annuler</span>
+          </motion.div>
+      </motion.div>
+    );
+
   const mainInputSection = (
       <div className="flex items-end gap-1 p-2">
-        {inputMode === 'emoji-search' ? (
-          <Button variant="ghost" size="icon" className="h-10 w-10 shrink-0 text-muted-foreground" onClick={handleCancelEmojiSearch}>
-            <X className="w-5 h-5" />
-          </Button>
+        {isRecording ? (
+          <RecordingUI />
         ) : (
-          <Button variant="ghost" size="icon" className="h-10 w-10 shrink-0 text-muted-foreground" onClick={() => toggleView('attachments')}>
-            <Paperclip className="w-5 h-5" />
-          </Button>
-        )}
+          <>
+            {inputMode === 'emoji-search' ? (
+              <Button variant="ghost" size="icon" className="h-10 w-10 shrink-0 text-muted-foreground" onClick={handleCancelEmojiSearch}>
+                <X className="w-5 h-5" />
+              </Button>
+            ) : (
+              <Button variant="ghost" size="icon" className="h-10 w-10 shrink-0 text-muted-foreground" onClick={() => toggleView('attachments')}>
+                <Paperclip className="w-5 h-5" />
+              </Button>
+            )}
 
-        <div className="flex-1 relative">
-           <TextareaAutosize
-            ref={inputRef}
-            value={inputMode === 'message' ? message : emojiSearchQuery}
-            onChange={handleInputChange}
-            onFocus={() => {
-              if (inputMode === 'message') setView('closed');
-            }}
-            placeholder={inputMode === 'message' ? 'Message' : 'Rechercher un emoji...'}
-            maxRows={5}
-            className="w-full resize-none bg-transparent border-0 focus:ring-0 focus:outline-none text-base placeholder:text-muted-foreground px-2 py-2"
-          />
-        </div>
-        
-        {inputMode === 'message' && (
-          <Button variant="ghost" size="icon" className="h-10 w-10 shrink-0 text-muted-foreground" onClick={() => toggleView('emoji')}>
-            <Smile className="w-5 h-5" />
-          </Button>
+            <div className="flex-1 relative">
+              <TextareaAutosize
+                ref={inputRef}
+                value={inputMode === 'message' ? message : emojiSearchQuery}
+                onChange={handleInputChange}
+                onFocus={() => {
+                  if (inputMode === 'message') setView('closed');
+                }}
+                placeholder={inputMode === 'message' ? 'Message' : 'Rechercher un emoji...'}
+                maxRows={5}
+                className="w-full resize-none bg-transparent border-0 focus:ring-0 focus:outline-none text-base placeholder:text-muted-foreground px-2 py-2"
+              />
+            </div>
+            
+            {inputMode === 'message' && (
+              <Button variant="ghost" size="icon" className="h-10 w-10 shrink-0 text-muted-foreground" onClick={() => toggleView('emoji')}>
+                <Smile className="w-5 h-5" />
+              </Button>
+            )}
+          </>
         )}
 
         <div className="relative h-10 w-10 shrink-0">
           <AnimatePresence>
-            {message && inputMode === 'message' ? (
+            {message && inputMode === 'message' && !isRecording ? (
               <motion.div
                 key="send"
                 initial={{ scale: 0, rotate: -90 }}
@@ -277,14 +392,18 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
               <motion.div
                 key="mic"
                 initial={{ scale: 0, rotate: 90 }}
-                animate={{ scale: 1, rotate: 0 }}
+                animate={{ scale: isRecording ? 1.2 : 1, rotate: 0 }}
                 exit={{ scale: 0, rotate: -90 }}
                 className="absolute inset-0"
+                onPointerDown={handlePointerDown}
+                onPointerUp={handlePointerUp}
+                onPointerMove={handlePointerMove}
+                onPointerLeave={handlePointerUp}
               >
                 <Button
                   size="icon"
                   variant="ghost"
-                  className="h-10 w-10 rounded-full text-muted-foreground"
+                  className={cn("h-10 w-10 rounded-full text-muted-foreground transition-colors", isRecording && 'bg-primary text-primary-foreground')}
                 >
                   <Mic className="w-5 h-5" />
                 </Button>
@@ -437,5 +556,3 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
     </div>
   );
 }
-
-    
