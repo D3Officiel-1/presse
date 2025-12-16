@@ -387,6 +387,7 @@ function EditorComponent() {
                                 className={cn(
                                     "w-full bg-transparent border-none text-3xl md:text-5xl font-bold text-white placeholder:text-white/50 focus-visible:ring-0 resize-none",
                                     fontFamily,
+                                    textStyle === 'outline' && 'text-stroke-2 text-stroke-black',
                                     textAlign === 'center' && 'text-center',
                                     textAlign === 'left' && 'text-left',
                                     textAlign === 'right' && 'text-right'
@@ -506,3 +507,5 @@ export default function EditorPage() {
         </Suspense>
     );
 }
+
+    
