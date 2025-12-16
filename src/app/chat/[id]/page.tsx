@@ -45,6 +45,7 @@ function ChatPageContent() {
   const [loading, setLoading] = useState(true);
   const [replyInfo, setReplyInfo] = useState<ReplyInfo | undefined>();
   const [isAdmin, setIsAdmin] = useState(false);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (currentUser && firestore) {
@@ -251,6 +252,17 @@ function ChatPageContent() {
     }
   };
 
+  const scrollToMessage = (messageId: string) => {
+    const messageElement = document.getElementById(`message-${messageId}`);
+    if (messageElement) {
+      messageElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      messageElement.classList.add('animate-ping-slow-once');
+      setTimeout(() => {
+        messageElement.classList.remove('animate-ping-slow-once');
+      }, 1500);
+    }
+  };
+
   if (loading || userLoading) {
     return (
       <div className="flex h-full w-full items-center justify-center">
@@ -282,10 +294,16 @@ function ChatPageContent() {
        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/80 to-transparent -z-10"/>
 
       <div className="sticky top-0 z-20 backdrop-blur-sm">
-        <ChatTopbar info={otherUser || { name: chatData.name, users: chatMembers }} isGroup={chatData.type !== 'private'} chat={chatData} allUsers={allUsersInApp} />
+        <ChatTopbar 
+          info={otherUser || { name: chatData.name, users: chatMembers }} 
+          isGroup={chatData.type !== 'private'} 
+          chat={chatData} 
+          allUsers={allUsersInApp}
+          onPinnedMessageClick={scrollToMessage}
+        />
       </div>
       
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto" ref={messagesContainerRef}>
         <ChatMessages
           messages={messages}
           chat={chatData}

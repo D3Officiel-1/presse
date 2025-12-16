@@ -97,7 +97,7 @@ export default {
           '100%': { opacity: '1', transform: 'scale(1)' },
         },
         'ping-slow-once': {
-          '0%': { transform: 'scale(1)', opacity: '1' },
+          '0%': { transform: 'scale(1)', opacity: '1', 'background-color': 'hsl(var(--primary))' },
           '75%, 100%': { transform: 'scale(2)', opacity: '0' },
         },
         'spin-slow': {

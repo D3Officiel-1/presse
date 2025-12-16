@@ -13,9 +13,10 @@ interface ChatTopbarProps {
   isGroup: boolean;
   chat: Chat;
   allUsers: User[];
+  onPinnedMessageClick: (messageId: string) => void;
 }
 
-export function ChatTopbar({ info, isGroup, chat, allUsers }: ChatTopbarProps) {
+export function ChatTopbar({ info, isGroup, chat, allUsers, onPinnedMessageClick }: ChatTopbarProps) {
   const user = !isGroup ? (info as User) : undefined;
   const group = isGroup ? (info as { name?: string; users: User[] }) : undefined;
   
@@ -90,7 +91,7 @@ export function ChatTopbar({ info, isGroup, chat, allUsers }: ChatTopbarProps) {
                     {chat.pinnedMessages.map((pinnedMessage, index) => {
                         const senderOfPinned = pinnedMessage ? allUsers.find(u => u.id === pinnedMessage.senderId) : null;
                         return (
-                            <CarouselItem key={index}>
+                            <CarouselItem key={index} onClick={() => onPinnedMessageClick(pinnedMessage.id)} className="cursor-pointer">
                                 <div className="flex items-center justify-between gap-4">
                                     <div className="flex items-center gap-2 overflow-hidden">
                                         <Pin className="w-4 h-4 text-primary shrink-0" />

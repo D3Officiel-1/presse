@@ -231,6 +231,7 @@ const ChatMessage = ({
   
   return (
     <motion.div
+        id={`message-${message.id}`}
         initial={{ opacity: 0, scale: 0.9, y: 10 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         transition={{ duration: 0.3 }}
