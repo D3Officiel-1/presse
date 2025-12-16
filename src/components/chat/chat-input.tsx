@@ -72,8 +72,11 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
   const [view, setView] = useState<'closed' | 'attachments' | 'emoji'>('closed');
   const [activeMainTab, setActiveMainTab] = useState('emoji');
   const [activeEmojiCategory, setActiveEmojiCategory] = useState(emojiCategories[0].name);
-  const [searchMode, setSearchMode] = useState(false);
+  
+  const [inputMode, setInputMode] = useState<'message' | 'emoji-search'>('message');
   const [emojiSearchQuery, setEmojiSearchQuery] = useState('');
+  const inputRef = useRef<HTMLTextAreaElement>(null);
+
 
   // Voice recording state
   const [isRecording, setIsRecording] = useState(false);
@@ -86,46 +89,30 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
 
   const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const value = e.target.value;
-    setMessage(value);
-
-    if (!firestore || !currentUser || !chat) return;
-
-    const typingRef = doc(firestore, 'chats', chat.id);
-
-    // Set user as typing
-    if (value.length > 0) {
-      updateDoc(typingRef, { [`typing.${currentUser.uid}`]: true });
-
-      // Clear previous timeout
-      if (typingTimeoutRef.current) {
-        clearTimeout(typingTimeoutRef.current);
-      }
-
-      // Set a new timeout to mark as not typing
-      typingTimeoutRef.current = setTimeout(() => {
-        updateDoc(typingRef, { [`typing.${currentUser.uid}`]: false });
-      }, 3000); // 3 seconds of inactivity
+    if (inputMode === 'message') {
+        setMessage(value);
+        if (!firestore || !currentUser || !chat) return;
+        const typingRef = doc(firestore, 'chats', chat.id);
+        if (value.length > 0) {
+            updateDoc(typingRef, { [`typing.${currentUser.uid}`]: true });
+            if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+            typingTimeoutRef.current = setTimeout(() => {
+                updateDoc(typingRef, { [`typing.${currentUser.uid}`]: false });
+            }, 3000);
+        } else {
+            if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+            updateDoc(typingRef, { [`typing.${currentUser.uid}`]: false });
+        }
     } else {
-      // Immediately mark as not typing if input is empty
-      if (typingTimeoutRef.current) {
-        clearTimeout(typingTimeoutRef.current);
-      }
-      updateDoc(typingRef, { [`typing.${currentUser.uid}`]: false });
+        setEmojiSearchQuery(value);
     }
   };
 
   useEffect(() => {
-    // Cleanup timeout on component unmount
     return () => {
-      if (typingTimeoutRef.current) {
-        clearTimeout(typingTimeoutRef.current);
-      }
-      if (recordingIntervalRef.current) {
-        clearInterval(recordingIntervalRef.current);
-      }
-      if (longPressTimerRef.current) {
-        clearTimeout(longPressTimerRef.current);
-      }
+      if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+      if (recordingIntervalRef.current) clearInterval(recordingIntervalRef.current);
+      if (longPressTimerRef.current) clearTimeout(longPressTimerRef.current);
     };
   }, []);
 
@@ -133,50 +120,45 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
     if (message.trim()) {
       onSendMessage(message.trim(), 'text');
       setMessage('');
-
-      // Clear typing status on send
-       if (firestore && currentUser && chat) {
+      if (firestore && currentUser && chat) {
          if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
          updateDoc(doc(firestore, 'chats', chat.id), { [`typing.${currentUser.uid}`]: false });
-       }
+      }
     }
   };
   
-  // --- Voice Recording Handlers ---
-  const startRecording = async () => {
-    // Implement recording logic
-  };
-
-  const stopRecording = () => {
-    // Implement stop recording logic
-  };
-
-  const resetRecordingState = () => {
-    // Implement reset logic
-  };
-  
-  const handlePointerDown = (e: React.PointerEvent) => {
-    // Implement pointer down logic
-  };
-
-  const handlePointerUp = () => {
-    // Implement pointer up logic
-  };
-
-  const handlePointerMove = (e: React.PointerEvent) => {
-    // Implement pointer move logic
-  };
+  const startRecording = async () => {};
+  const stopRecording = () => {};
+  const resetRecordingState = () => {};
+  const handlePointerDown = (e: React.PointerEvent) => {};
+  const handlePointerUp = () => {};
+  const handlePointerMove = (e: React.PointerEvent) => {};
 
   const handleEmojiClick = (emoji: string) => {
-      setMessage(prev => prev + emoji);
+    if (inputMode === 'message') {
+        setMessage(prev => prev + emoji);
+    } else {
+        // In search mode, clicking an emoji could copy it or insert it, then exit search.
+        setMessage(prev => prev + emoji);
+        setInputMode('message');
+        setEmojiSearchQuery('');
+    }
   }
 
   const handleBackspace = () => {
-    setMessage(prev => Array.from(prev).slice(0, -1).join(''));
+    if (inputMode === 'message') {
+      setMessage(prev => Array.from(prev).slice(0, -1).join(''));
+    } else {
+      setEmojiSearchQuery(prev => Array.from(prev).slice(0, -1).join(''));
+    }
   };
   
   const handleClearMessage = () => {
-    setMessage('');
+    if (inputMode === 'message') {
+        setMessage('');
+    } else {
+        setEmojiSearchQuery('');
+    }
   };
   
   const handlePointerDownBackspace = () => {
@@ -191,7 +173,6 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
           longPressTimerRef.current = null;
       }
   };
-
 
   const toggleView = (newView: 'attachments' | 'emoji') => {
     if (view === newView) {
@@ -222,16 +203,25 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
       const dataUrl = loadEvent.target?.result as string;
       const mediaType = file.type.startsWith('video') ? 'video' : 'image';
       
-      // Store in sessionStorage and navigate
       sessionStorage.setItem('media-to-edit', dataUrl);
       sessionStorage.setItem('media-type-to-edit', mediaType);
       router.push('/chat/editor');
     };
     reader.readAsDataURL(file);
-
-    // Reset file input value to allow selecting the same file again
     e.target.value = '';
   };
+  
+  const handleStartEmojiSearch = () => {
+      setView('closed');
+      setInputMode('emoji-search');
+      setEmojiSearchQuery('');
+      setTimeout(() => inputRef.current?.focus(), 100);
+  }
+
+  const handleCancelEmojiSearch = () => {
+      setInputMode('message');
+      setEmojiSearchQuery('');
+  }
 
   const searchResults = emojiSearchQuery 
     ? allEmojis.filter(emoji => emoji.includes(emojiSearchQuery))
@@ -239,25 +229,39 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
 
   const mainInputSection = (
       <div className="flex items-end gap-1 p-2">
-        <Button variant="ghost" size="icon" className="h-10 w-10 shrink-0 text-muted-foreground" onClick={() => toggleView('attachments')}>
-          <Paperclip className="w-5 h-5" />
-        </Button>
+        {inputMode === 'emoji-search' ? (
+          <Button variant="ghost" size="icon" className="h-10 w-10 shrink-0 text-muted-foreground" onClick={handleCancelEmojiSearch}>
+            <X className="w-5 h-5" />
+          </Button>
+        ) : (
+          <Button variant="ghost" size="icon" className="h-10 w-10 shrink-0 text-muted-foreground" onClick={() => toggleView('attachments')}>
+            <Paperclip className="w-5 h-5" />
+          </Button>
+        )}
+
         <div className="flex-1 relative">
            <TextareaAutosize
-            value={message}
+            ref={inputRef}
+            value={inputMode === 'message' ? message : emojiSearchQuery}
             onChange={handleInputChange}
-            onFocus={() => setView('closed')}
-            placeholder="Message"
+            onFocus={() => {
+              if (inputMode === 'message') setView('closed');
+            }}
+            placeholder={inputMode === 'message' ? 'Message' : 'Rechercher un emoji...'}
             maxRows={5}
             className="w-full resize-none bg-transparent border-0 focus:ring-0 focus:outline-none text-base placeholder:text-muted-foreground px-2 py-2"
           />
         </div>
-        <Button variant="ghost" size="icon" className="h-10 w-10 shrink-0 text-muted-foreground" onClick={() => toggleView('emoji')}>
-          <Smile className="w-5 h-5" />
-        </Button>
+        
+        {inputMode === 'message' && (
+          <Button variant="ghost" size="icon" className="h-10 w-10 shrink-0 text-muted-foreground" onClick={() => toggleView('emoji')}>
+            <Smile className="w-5 h-5" />
+          </Button>
+        )}
+
         <div className="relative h-10 w-10 shrink-0">
           <AnimatePresence>
-            {message ? (
+            {message && inputMode === 'message' ? (
               <motion.div
                 key="send"
                 initial={{ scale: 0, rotate: -90 }}
@@ -269,7 +273,7 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
                   <Send className="w-5 h-5" />
                 </Button>
               </motion.div>
-            ) : (
+            ) : inputMode === 'message' ? (
               <motion.div
                 key="mic"
                 initial={{ scale: 0, rotate: 90 }}
@@ -285,14 +289,35 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
                   <Mic className="w-5 h-5" />
                 </Button>
               </motion.div>
-            )}
+            ) : null}
           </AnimatePresence>
         </div>
       </div>
   );
 
   return (
-    <div>
+    <div className='relative'>
+      <AnimatePresence>
+          {inputMode === 'emoji-search' && emojiSearchQuery && (
+              <motion.div
+                  initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                  className="absolute bottom-full left-0 right-0 p-2"
+              >
+                  <div className="bg-background/80 backdrop-blur-lg rounded-xl shadow-lg border p-2">
+                       <div className="grid grid-cols-8 gap-1 max-h-[150px] overflow-y-auto">
+                          {searchResults.slice(0, 40).map((emoji, i) => (
+                              <Button key={i} variant="ghost" size="icon" className="text-2xl" onClick={() => handleEmojiClick(emoji)}>
+                                  {emoji}
+                              </Button>
+                          ))}
+                      </div>
+                      {searchResults.length === 0 && <p className="text-center text-sm text-muted-foreground p-4">Aucun emoji trouvé.</p>}
+                  </div>
+              </motion.div>
+          )}
+      </AnimatePresence>
       <AnimatePresence>
         {replyInfo && (
           <motion.div
@@ -362,7 +387,7 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
                     {view === 'emoji' && (
                        <div className="h-[300px] flex flex-col">
                            <div className="flex items-center justify-between p-2 border-b">
-                                <Button variant="ghost" size="icon" className="h-9 w-9" onClick={() => setSearchMode(!searchMode)}>
+                                <Button variant="ghost" size="icon" className="h-9 w-9" onClick={handleStartEmojiSearch}>
                                    <Search className="w-5 h-5"/>
                                 </Button>
                                <div className="flex-1 flex justify-center">
@@ -386,27 +411,18 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
                                     <Delete className="w-5 h-5"/>
                                 </Button>
                            </div>
-                           {searchMode ? (
-                               <div className="p-2">
-                                   <Input 
-                                       placeholder="Rechercher des émojis..."
-                                       value={emojiSearchQuery}
-                                       onChange={(e) => setEmojiSearchQuery(e.target.value)}
-                                       autoFocus
-                                   />
-                               </div>
-                           ) : (
-                               <div className="flex items-center gap-1 p-2 border-b overflow-x-auto no-scrollbar">
-                                   {emojiCategories.map(cat => (
-                                       <Button key={cat.name} variant={activeEmojiCategory === cat.name ? 'default' : 'ghost'} size="icon" className="h-9 w-9 shrink-0 rounded-full" onClick={() => setActiveEmojiCategory(cat.name)}>
-                                           <cat.icon className="w-5 h-5"/>
-                                       </Button>
-                                   ))}
-                               </div>
-                           )}
+                           
+                           <div className="flex items-center gap-1 p-2 border-b overflow-x-auto no-scrollbar">
+                               {emojiCategories.map(cat => (
+                                   <Button key={cat.name} variant={activeEmojiCategory === cat.name ? 'default' : 'ghost'} size="icon" className="h-9 w-9 shrink-0 rounded-full" onClick={() => setActiveEmojiCategory(cat.name)}>
+                                       <cat.icon className="w-5 h-5"/>
+                                   </Button>
+                               ))}
+                           </div>
+                           
                            <div className="flex-1 overflow-y-auto p-2">
                                 <div className="grid grid-cols-8 gap-1">
-                                    {(searchMode ? searchResults : emojiCategories.find(c => c.name === activeEmojiCategory)?.emojis || []).map((emoji, i) => (
+                                    {(emojiCategories.find(c => c.name === activeEmojiCategory)?.emojis || []).map((emoji, i) => (
                                         <Button key={i} variant="ghost" size="icon" className="text-2xl" onClick={() => handleEmojiClick(emoji)}>
                                             {emoji}
                                         </Button>
@@ -421,3 +437,5 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
     </div>
   );
 }
+
+    
