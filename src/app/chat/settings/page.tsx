@@ -161,15 +161,17 @@ export default function SettingsPage() {
             <AlertDialog open={isLogoutDialogOpen} onOpenChange={setIsLogoutDialogOpen}>
                 <AlertDialogContent>
                     <AlertDialogHeader>
-                        <AlertDialogTitle>Êtes-vous sûr de vouloir vous déconnecter ?</AlertDialogTitle>
-                        <AlertDialogDescription>
-                            Vous devrez vous reconnecter pour accéder à nouveau à vos discussions.
+                        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-destructive/10 mb-4">
+                            <LogOut className="h-6 w-6 text-destructive" />
+                        </div>
+                        <AlertDialogTitle className="text-center text-xl">Êtes-vous sûr de vouloir vous déconnecter ?</AlertDialogTitle>
+                        <AlertDialogDescription className="text-center">
+                            Vous devrez vous reconnecter pour accéder à nouveau à vos discussions. Cette action mettra fin à votre session actuelle.
                         </AlertDialogDescription>
                     </AlertDialogHeader>
-                    <AlertDialogFooter>
-                        <AlertDialogCancel>Annuler</AlertDialogCancel>
-                        <AlertDialogAction onClick={handleLogout} className="bg-destructive hover:bg-destructive/90">
-                            <LogOut className="w-4 h-4 mr-2" />
+                    <AlertDialogFooter className="sm:justify-center flex-row gap-2 pt-4">
+                        <AlertDialogCancel className="flex-1">Annuler</AlertDialogCancel>
+                        <AlertDialogAction onClick={handleLogout} className="bg-destructive hover:bg-destructive/90 flex-1">
                             Déconnexion
                         </AlertDialogAction>
                     </AlertDialogFooter>
