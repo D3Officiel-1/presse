@@ -70,6 +70,7 @@ const AudioPlayer: React.FC<{ src: string; metadata?: { duration: number } }> = 
   const [isPlaying, setIsPlaying] = useState(false);
   const [progress, setProgress] = useState(0);
   const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(metadata?.duration || 0);
 
   useEffect(() => {
     const audio = audioRef.current;
@@ -77,7 +78,9 @@ const AudioPlayer: React.FC<{ src: string; metadata?: { duration: number } }> = 
 
     const timeUpdate = () => {
       setCurrentTime(audio.currentTime);
-      setProgress((audio.currentTime / audio.duration) * 100);
+      if (audio.duration > 0 && isFinite(audio.duration)) {
+        setProgress((audio.currentTime / audio.duration) * 100);
+      }
     };
     const onEnded = () => {
       setIsPlaying(false);
@@ -85,11 +88,20 @@ const AudioPlayer: React.FC<{ src: string; metadata?: { duration: number } }> = 
       setCurrentTime(0);
     };
 
+    const onLoadedMetadata = () => {
+        if (isFinite(audio.duration)) {
+            setDuration(audio.duration);
+        }
+    }
+
     audio.addEventListener('timeupdate', timeUpdate);
     audio.addEventListener('ended', onEnded);
+    audio.addEventListener('loadedmetadata', onLoadedMetadata);
+    
     return () => {
       audio.removeEventListener('timeupdate', timeUpdate);
       audio.removeEventListener('ended', onEnded);
+      audio.removeEventListener('loadedmetadata', onLoadedMetadata);
     };
   }, []);
 
@@ -106,7 +118,7 @@ const AudioPlayer: React.FC<{ src: string; metadata?: { duration: number } }> = 
   };
   
   const formatTime = (seconds: number) => {
-    if (isNaN(seconds)) return '0:00';
+    if (isNaN(seconds) || !isFinite(seconds)) return '0:00';
     const floorSeconds = Math.floor(seconds);
     const min = Math.floor(floorSeconds / 60);
     const sec = floorSeconds % 60;
@@ -129,7 +141,7 @@ const AudioPlayer: React.FC<{ src: string; metadata?: { duration: number } }> = 
             <div className="h-full bg-foreground/80 rounded-full" style={{ width: `${progress}%` }}></div>
         </div>
         <div className="text-xs text-right opacity-70 font-mono">
-            {formatTime(currentTime)} / {metadata?.duration ? formatTime(metadata.duration) : '0:00'}
+            {formatTime(currentTime)} / {formatTime(duration)}
         </div>
       </div>
     </div>

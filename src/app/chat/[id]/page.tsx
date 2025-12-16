@@ -150,16 +150,19 @@ function ChatPageContent() {
   const handleSendMessage = async (content: string, type: 'text' | 'image' | 'audio' = 'text', metadata: any = {}) => {
     if (!firestore || !currentUser || !chatId) return;
 
-    const messageData = {
+    const messageData: Partial<MessageType> = {
       chatId,
       senderId: currentUser.uid,
       content,
-      timestamp: serverTimestamp(),
+      timestamp: serverTimestamp() as Timestamp,
       type,
       readBy: [currentUser.uid],
       ...(replyInfo && { replyTo: { messageId: replyInfo.id, senderName: replyInfo.sender.name, message: replyInfo.content } }),
-      ...metadata,
     };
+
+    if (type === 'audio' && metadata.duration) {
+      messageData.audioMetadata = { duration: metadata.duration };
+    }
     
     // Add message to subcollection
     const messagesRef = collection(firestore, 'chats', chatId, 'messages');
@@ -214,7 +217,7 @@ function ChatPageContent() {
     toast({ description: isStarred ? 'Message retiré des favoris.' : 'Message ajouté aux favoris.' });
   }
 
-  const handleReply = (message: Message) => {
+  const handleReply = (message: MessageType) => {
       const sender = usersData[message.senderId] || message.sender;
       if (sender) {
         setReplyInfo({ ...message, sender });
