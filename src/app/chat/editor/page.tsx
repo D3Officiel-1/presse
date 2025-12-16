@@ -19,6 +19,7 @@ function EditorComponent() {
 
     const [isCropperOpen, setIsCropperOpen] = useState(false);
 
+    // Effect for loading data from sessionStorage
     useEffect(() => {
         const mediaData = sessionStorage.getItem('media-to-edit');
         const typeData = sessionStorage.getItem('media-type-to-edit');
@@ -35,14 +36,15 @@ function EditorComponent() {
             });
             router.back();
         }
-
-        // Cleanup function: this will run when the component is unmounted
+    }, [router, toast]);
+    
+    // Effect for cleaning up sessionStorage on unmount
+    useEffect(() => {
         return () => {
             sessionStorage.removeItem('media-to-edit');
             sessionStorage.removeItem('media-type-to-edit');
         };
-
-    }, [router, toast]);
+    }, []);
 
     const handleCroppedImage = (imageBlob: Blob | null) => {
         setIsCropperOpen(false);
