@@ -122,6 +122,16 @@ export default function ArchivedChatsPage() {
 
   return (
     <div className="flex flex-col h-full bg-background">
+       <video
+          src="https://cdn.pixabay.com/video/2024/05/20/212953-944519999_large.mp4"
+          autoPlay
+          loop
+          muted
+          playsInline
+          className="absolute top-0 left-0 w-full h-full object-cover -z-10 opacity-20"
+        />
+        <div className="absolute inset-0 bg-background/70 -z-10"/>
+
        <header className="p-4 border-b flex items-center gap-4 bg-background/80 backdrop-blur-sm sticky top-0 z-10 shrink-0">
         <Button variant="ghost" size="icon" onClick={() => router.back()} className="size-9 rounded-full">
           <ArrowLeft size={20} />
@@ -145,7 +155,7 @@ export default function ArchivedChatsPage() {
               const chatAvatarUser = chat.type === 'private' ? otherUser : { name: chat.name!, avatar: `https://avatar.vercel.sh/${chat.name}.png` };
 
               return (
-                <div key={chat.id} className="group flex items-center p-3 rounded-lg hover:bg-muted/50">
+                <div key={chat.id} className="group flex items-center p-3 rounded-lg hover:bg-black/10 backdrop-blur-sm">
                     <Link href={`/chat/${chat.id}`} className="flex-1 flex items-center gap-3 min-w-0">
                         {chatAvatarUser ? (
                             <ChatAvatar user={chatAvatarUser} isGroup={chat.type !== 'private'} />
