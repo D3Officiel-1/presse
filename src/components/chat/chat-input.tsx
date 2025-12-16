@@ -428,7 +428,7 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
 
   const mainInputSection = (
       <div className="flex items-end gap-1 p-2">
-        <Button variant="ghost" size="icon" className="h-10 w-10 shrink-0 text-muted-foreground" onClick={()(() => toggleView('attachments'))}>
+        <Button variant="ghost" size="icon" className="h-10 w-10 shrink-0 text-muted-foreground" onClick={() => toggleView('attachments')}>
           <Paperclip className="w-5 h-5" />
         </Button>
         <div className="flex-1 relative">
@@ -548,5 +548,3 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
     </div>
   );
 }
-
-    
