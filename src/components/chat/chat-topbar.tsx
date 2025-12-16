@@ -1,19 +1,24 @@
 
-import { Phone, MoreVertical, Video, ArrowLeft } from 'lucide-react';
+import { Phone, MoreVertical, Video, ArrowLeft, Pin, X } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { cn } from '@/lib/utils';
-import type { User } from '@/lib/types';
+import type { User, Chat } from '@/lib/types';
 import Link from 'next/link';
+import { AnimatePresence, motion } from 'framer-motion';
 
 interface ChatTopbarProps {
   info: User | { name?: string; users: User[] };
   isGroup: boolean;
+  chat: Chat;
+  allUsers: User[];
 }
 
-export function ChatTopbar({ info, isGroup }: ChatTopbarProps) {
+export function ChatTopbar({ info, isGroup, chat, allUsers }: ChatTopbarProps) {
   const user = !isGroup ? (info as User) : undefined;
   const group = isGroup ? (info as { name?: string; users: User[] }) : undefined;
+  const pinnedMessage = chat.pinnedMessages?.[0];
+  const senderOfPinned = pinnedMessage ? allUsers.find(u => u.id === pinnedMessage.senderId) : null;
 
   const TopbarContent = () => (
     <>
@@ -42,35 +47,57 @@ export function ChatTopbar({ info, isGroup }: ChatTopbarProps) {
   );
 
   return (
-    <div className="w-full h-20 flex p-4 justify-between items-center border-b">
-      <div className="flex items-center gap-2">
-        <Link href="/chat">
-          <Button variant="ghost" size="icon">
-            <ArrowLeft className="w-5 h-5" />
-          </Button>
-        </Link>
-        {isGroup ? (
-           <div className="flex items-center gap-2">
-             <TopbarContent />
-           </div>
-        ) : (
-          <Link href={`/profile/${user?.id}`} className="flex items-center gap-2">
-            <TopbarContent />
+    <div className="w-full flex flex-col border-b">
+      <div className="h-20 flex p-4 justify-between items-center w-full">
+        <div className="flex items-center gap-2">
+          <Link href="/chat">
+            <Button variant="ghost" size="icon">
+              <ArrowLeft className="w-5 h-5" />
+            </Button>
           </Link>
-        )}
-      </div>
+          {isGroup ? (
+            <div className="flex items-center gap-2">
+              <TopbarContent />
+            </div>
+          ) : (
+            <Link href={`/profile/${user?.id}`} className="flex items-center gap-2">
+              <TopbarContent />
+            </Link>
+          )}
+        </div>
 
-      <div className="flex items-center gap-2">
-        <Button variant="ghost" size="icon" className="text-muted-foreground">
-          <Phone className="w-5 h-5" />
-        </Button>
-        <Button variant="ghost" size="icon" className="text-muted-foreground">
-          <Video className="w-5 h-5" />
-        </Button>
-        <Button variant="ghost" size="icon" className="text-muted-foreground">
-          <MoreVertical className="w-5 h-5" />
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button variant="ghost" size="icon" className="text-muted-foreground">
+            <Phone className="w-5 h-5" />
+          </Button>
+          <Button variant="ghost" size="icon" className="text-muted-foreground">
+            <Video className="w-5 h-5" />
+          </Button>
+          <Button variant="ghost" size="icon" className="text-muted-foreground">
+            <MoreVertical className="w-5 h-5" />
+          </Button>
+        </div>
       </div>
+      <AnimatePresence>
+        {pinnedMessage && (
+          <motion.div
+            className="bg-muted/50 px-4 py-2 flex items-center justify-between gap-4"
+            initial={{ opacity: 0, y: -20, height: 0 }}
+            animate={{ opacity: 1, y: 0, height: 'auto' }}
+            exit={{ opacity: 0, y: -20, height: 0 }}
+          >
+            <div className="flex items-center gap-2 overflow-hidden">
+              <Pin className="w-4 h-4 text-primary shrink-0" />
+              <div className="flex flex-col overflow-hidden">
+                 <span className="text-xs font-bold text-primary">
+                  {senderOfPinned?.name || 'Message Épinglé'}
+                </span>
+                <span className="text-sm text-foreground truncate">{pinnedMessage.content}</span>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

@@ -44,6 +44,18 @@ function ChatPageContent() {
   const [usersData, setUsersData] = useState<{ [key: string]: UserType }>({});
   const [loading, setLoading] = useState(true);
   const [replyInfo, setReplyInfo] = useState<ReplyInfo | undefined>();
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    if (currentUser && firestore) {
+      const userRef = doc(firestore, 'users', currentUser.uid);
+      getDoc(userRef).then(docSnap => {
+        if (docSnap.exists() && docSnap.data().admin === true) {
+          setIsAdmin(true);
+        }
+      });
+    }
+  }, [currentUser, firestore]);
 
   // Fetch Chat and Users Data
   useEffect(() => {
@@ -224,6 +236,21 @@ function ChatPageContent() {
       }
   };
 
+  const handleTogglePin = async (message: MessageType, isPinned: boolean) => {
+    if (!firestore || !chatData || !isAdmin || chatData.type !== 'community') return;
+    
+    const chatRef = doc(firestore, 'chats', chatData.id);
+    try {
+      await updateDoc(chatRef, {
+        pinnedMessages: isPinned ? arrayRemove(message) : arrayUnion(message)
+      });
+      toast({ description: isPinned ? 'Message désépinglé.' : 'Message épinglé dans la communauté.' });
+    } catch (error) {
+      console.error("Error pinning message:", error);
+      toast({ variant: 'destructive', title: 'Erreur', description: 'Impossible de modifier l\'épinglage du message.' });
+    }
+  };
+
   if (loading || userLoading) {
     return (
       <div className="flex h-full w-full items-center justify-center">
@@ -255,13 +282,13 @@ function ChatPageContent() {
        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/80 to-transparent -z-10"/>
 
       <div className="sticky top-0 z-20 backdrop-blur-sm">
-        <ChatTopbar info={otherUser || { name: chatData.name, users: chatMembers }} isGroup={chatData.type !== 'private'} />
+        <ChatTopbar info={otherUser || { name: chatData.name, users: chatMembers }} isGroup={chatData.type !== 'private'} chat={chatData} allUsers={allUsersInApp} />
       </div>
       
       <div className="flex-1 overflow-y-auto">
         <ChatMessages
           messages={messages}
-          chatType={chatData.type}
+          chat={chatData}
           loggedInUser={currentUser}
           otherUser={otherUser!}
           isTyping={isTyping}
@@ -270,8 +297,10 @@ function ChatPageContent() {
           onDeleteForMe={handleDeleteForMe}
           onDeleteForEveryone={handleDeleteForEveryone}
           onToggleStar={handleToggleStar}
+          onTogglePin={handleTogglePin}
           onShare={()=>{}}
           allUsersInApp={allUsersInApp}
+          isAdmin={isAdmin}
         />
       </div>
       

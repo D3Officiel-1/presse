@@ -5,18 +5,16 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn, formatMessageDate } from '@/lib/utils';
-import type { Message, User } from '@/lib/types';
+import type { Message, User, Chat as ChatType } from '@/lib/types';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import {
   Copy,
-  CornerUpLeft,
   Trash2,
   Star,
   Share2,
   Play,
   Pause,
-  Link as LinkIcon,
   CheckCircle,
   MoreHorizontal,
   ChevronRight,
@@ -41,7 +39,7 @@ export interface ReplyInfo extends Message {}
 
 interface ChatMessagesProps {
   messages: Message[];
-  chatType: 'private' | 'group' | 'community';
+  chat: ChatType;
   loggedInUser: any;
   otherUser: User;
   isTyping: boolean;
@@ -51,7 +49,9 @@ interface ChatMessagesProps {
   onDeleteForMe: (messageId: string) => void;
   onDeleteForEveryone: (messageId: string) => void;
   onToggleStar: (messageId: string, isStarred: boolean) => void;
+  onTogglePin: (message: Message, isPinned: boolean) => void;
   allUsersInApp: User[];
+  isAdmin: boolean;
 }
 
 interface SenderMessageGroup {
@@ -282,6 +282,7 @@ const MessageFocusView = ({
     onDeleteForMe,
     onDeleteForEveryone,
     onToggleStar,
+    onTogglePin
 }: {
     message: Message | null;
     onClose: () => void;
@@ -289,6 +290,7 @@ const MessageFocusView = ({
     onDeleteForMe: () => void;
     onDeleteForEveryone: () => void;
     onToggleStar: () => void;
+    onTogglePin: () => void;
 }) => {
     const chatContext = React.useContext(ChatContext);
     const [viewMode, setViewMode] = React.useState<'main' | 'delete'>('main');
@@ -298,7 +300,9 @@ const MessageFocusView = ({
     const sender = chatContext.allUsersInApp.find((u: User) => u.id === message.senderId) || message.sender;
     const isOwnMessage = sender.id === chatContext.loggedInUser.uid;
     const isStarred = message.starredBy?.includes(chatContext.loggedInUser.uid) ?? false;
-    
+    const isCommunity = chatContext.chat.type === 'community';
+    const isPinned = chatContext.chat.pinnedMessages?.some((m: Message) => m.id === message.id) ?? false;
+
     const handleActionClick = (action: () => void, label: string) => {
         if (label === 'Supprimer') {
             setViewMode('delete');
@@ -317,11 +321,12 @@ const MessageFocusView = ({
         { label: 'Modifier', icon: Edit, action: () => {} },
         { label: 'Copier', icon: Copy, action: () => navigator.clipboard.writeText(message.content) },
         { label: 'Transférer', icon: Share2, action: () => {} },
-        { label: isStarred ? 'Important' : 'Important', icon: Star, action: onToggleStar },
+        { label: isStarred ? 'Retirer' : 'Important', icon: Star, action: onToggleStar },
         { label: 'Supprimer', icon: Trash2, action: () => {}, className: 'text-destructive' },
     ];
-    if (isOwnMessage) {
-       mainActions.push({ label: 'Épingler', icon: Pin, action: () => {} });
+    
+    if (chatContext.isAdmin && isCommunity) {
+       mainActions.push({ label: isPinned ? 'Désépingler' : 'Épingler', icon: Pin, action: onTogglePin });
     }
 
     const itemVariants = {
@@ -432,7 +437,7 @@ const ChatContext = React.createContext<any>({});
 
 export function ChatMessages({
   messages,
-  chatType,
+  chat,
   loggedInUser,
   otherUser,
   isTyping,
@@ -442,7 +447,9 @@ export function ChatMessages({
   onDeleteForMe,
   onDeleteForEveryone,
   onToggleStar,
-  allUsersInApp
+  onTogglePin,
+  allUsersInApp,
+  isAdmin
 }: ChatMessagesProps) {
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const [dailyGroups, setDailyGroups] = useState<DailyMessageGroup[]>([]);
@@ -526,7 +533,7 @@ export function ChatMessages({
     return () => clearTimeout(timeoutId);
   }, [dailyGroups, isTyping]);
   
-  const contextProviderValue = { loggedInUser, allUsersInApp, otherUser };
+  const contextProviderValue = { loggedInUser, allUsersInApp, otherUser, chat, isAdmin };
 
   return (
     <ChatContext.Provider value={contextProviderValue}>
@@ -546,7 +553,7 @@ export function ChatMessages({
 
             {dayGroup.groups.map((senderGroup, senderIndex) => {
               const sender = allUsersInApp.find(u => u.id === senderGroup.senderId);
-              const showSenderInfo = senderGroup.senderId !== loggedInUser.uid && chatType !== 'private';
+              const showSenderInfo = senderGroup.senderId !== loggedInUser.uid && chat.type !== 'private';
               
               return (
                 <div key={`${dayGroup.date}-${senderIndex}`} className={cn('flex flex-col gap-1 w-full my-1', senderGroup.position === 'right' ? 'items-end' : 'items-start')}>
@@ -614,6 +621,7 @@ export function ChatMessages({
                     onDeleteForMe={() => onDeleteForMe(selectedMessage.id)}
                     onDeleteForEveryone={() => onDeleteForEveryone(selectedMessage.id)}
                     onToggleStar={() => onToggleStar(selectedMessage.id, selectedMessage.starredBy?.includes(loggedInUser.uid) ?? false)}
+                    onTogglePin={() => onTogglePin(selectedMessage, chat.pinnedMessages?.some(m => m.id === selectedMessage.id) ?? false)}
                 />
             )}
         </AnimatePresence>

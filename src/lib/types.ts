@@ -64,6 +64,7 @@ export type Chat = {
   unreadCounts?: { [key: string]: number };
   createdAt: Timestamp;
   typing?: { [key: string]: boolean };
+  pinnedMessages?: Message[];
 };
 
 export interface SpotifyTrack {
