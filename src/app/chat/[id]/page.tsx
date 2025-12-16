@@ -136,10 +136,29 @@ function ChatPageContent() {
       }
 
       setLoading(false);
+    }, (error) => {
+        console.error("Error fetching messages:", error);
+        setLoading(false);
     });
 
     return () => unsubscribeMessages();
   }, [firestore, chatId, currentUser, usersData]);
+  
+  // Fetch all users for sharing functionality
+    useEffect(() => {
+        if (!firestore) return;
+        const usersCol = collection(firestore, 'users');
+        const unsubscribe = onSnapshot(usersCol, (snapshot) => {
+            const usersList = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as UserType));
+             const usersMap = usersList.reduce((acc, user) => {
+                acc[user.id] = user;
+                return acc;
+            }, {} as { [key: string]: UserType });
+            setUsersData(prev => ({...prev, ...usersMap}));
+        });
+        return () => unsubscribe();
+    }, [firestore]);
+
 
   // Mark messages as read
   useEffect(() => {

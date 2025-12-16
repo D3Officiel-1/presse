@@ -532,39 +532,37 @@ const MessageFocusView = ({
                         </div>
 
                         <motion.div
-                            className="mt-4 w-full"
+                            className="mt-4 grid grid-cols-3 gap-4 w-full max-w-xs"
                             variants={{
-                              hidden: { opacity: 0, y: 20 },
-                              visible: {
-                                opacity: 1,
-                                y: 0,
-                                transition: {
-                                  delayChildren: 0.2,
-                                  staggerChildren: 0.05,
+                                hidden: { opacity: 0, y: 20 },
+                                visible: {
+                                  opacity: 1,
+                                  y: 0,
+                                  transition: {
+                                    delayChildren: 0.2,
+                                    staggerChildren: 0.05,
+                                  },
                                 },
-                              },
                             }}
                             initial="hidden"
                             animate="visible"
-                          >
-                          <div className="grid grid-cols-3 gap-4 w-full max-w-xs mx-auto">
+                        >
                             {mainActions.map((item, index) => (
-                              <motion.div
-                                key={item.label}
-                                className="flex flex-col items-center justify-center gap-2 text-center text-xs cursor-pointer pointer-events-auto"
-                                variants={itemVariants}
-                                custom={index}
-                                onClick={() => handleActionClick(item.action, item.label)}
-                                whileHover={{ scale: 1.1 }}
-                                whileTap={{ scale: 0.95 }}
-                              >
-                                <div className={cn("flex items-center justify-center w-14 h-14 bg-background/80 backdrop-blur-lg rounded-full shadow-lg border", item.className)}>
-                                    <item.icon className="w-6 h-6" />
-                                </div>
-                                <span className="text-foreground font-medium">{item.label}</span>
-                              </motion.div>
+                                <motion.div
+                                    key={item.label}
+                                    className="flex flex-col items-center justify-center gap-2 text-center text-xs cursor-pointer"
+                                    variants={itemVariants}
+                                    custom={index}
+                                    onClick={() => handleActionClick(item.action, item.label)}
+                                    whileHover={{ scale: 1.1 }}
+                                    whileTap={{ scale: 0.95 }}
+                                >
+                                    <div className={cn("flex items-center justify-center w-14 h-14 bg-background/80 backdrop-blur-lg rounded-full shadow-lg border", item.className)}>
+                                        <item.icon className="w-6 h-6" />
+                                    </div>
+                                    <span className="text-foreground font-medium">{item.label}</span>
+                                </motion.div>
                             ))}
-                          </div>
                         </motion.div>
                     </motion.div>
                 )}
