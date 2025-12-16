@@ -125,7 +125,17 @@ export default {
         "wave": {
             "0%, 100%": { height: '4px' },
             "50%": { height: '16px' },
-        }
+        },
+        'gradient-xy': {
+          '0%, 100%': {
+            'background-size': '200% 200%',
+            'background-position': 'left center',
+          },
+          '50%': {
+            'background-size': '200% 200%',
+            'background-position': 'right center',
+          },
+        },
       },
       animation: {
         'accordion-down': 'accordion-down 0.2s ease-out',
@@ -138,8 +148,11 @@ export default {
         'ripple-2': 'ripple-2 2s cubic-bezier(0.4, 0, 0.6, 1) infinite 0.5s',
         "fade-up": "fade-up 0.5s ease-out forwards",
         'wave': 'wave 1.2s cubic-bezier(0.45, 0, 0.55, 1) infinite',
+        'gradient-xy': 'gradient-xy 15s ease infinite',
       },
     },
   },
   plugins: [require('tailwindcss-animate')],
 } satisfies Config;
+
+    

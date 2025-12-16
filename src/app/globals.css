@@ -114,3 +114,9 @@ body {
     @apply z-50;
   }
 }
+
+.setting-card {
+  transform-style: preserve-3d;
+}
+
+    
