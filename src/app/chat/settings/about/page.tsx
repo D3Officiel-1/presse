@@ -52,7 +52,7 @@ export default function AboutPage() {
                     </motion.p>
                     
                     <motion.p variants={FADE_UP_ANIMATION_VARIANTS} className="mt-6 text-foreground/80">
-                        L'application de communication exclusive pour les membres du Club de Presse du Lycée Classique d'Abidjan.
+                        L'application de communication exclusive pour les membres du Club de Presse du Collège Saint-Exupéry de Port-Bouët Jean Folly.
                     </motion.p>
                 
                     <motion.div
@@ -78,10 +78,9 @@ export default function AboutPage() {
                     transition={{ delay: 0.8 }}
                 >
                     <Copyright className="w-3 h-3 inline-block mr-1" /> 
-                    {new Date().getFullYear()} Club de Presse - Lycée Classique d'Abidjan. Tous droits réservés.
+                    {new Date().getFullYear()} Club de Presse - Collège Saint-Exupéry de Port-Bouët Jean Folly. Tous droits réservés.
                 </motion.div>
             </footer>
         </div>
     );
 }
-
