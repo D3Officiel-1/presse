@@ -209,8 +209,9 @@ const ChatMessage = ({
 }) => {
   const isOwn = position === 'right';
   const longPressTimer = useRef<NodeJS.Timeout>();
-  const { onScrollToMessage } = React.useContext(ChatContext);
+  const { onScrollToMessage, loggedInUser } = React.useContext(ChatContext);
   const [editedContent, setEditedContent] = useState(message.content);
+  const isStarred = message.starredBy?.includes(loggedInUser.uid);
 
   useEffect(() => {
     setEditedContent(message.content);
@@ -332,6 +333,7 @@ const ChatMessage = ({
                 <div className="flex items-center justify-end gap-1.5 mt-1 float-right">
                     {message.editedAt && <span className="text-xs opacity-70 italic mr-1">modifié</span>}
                     <span className="text-xs opacity-70">{formatTimestamp(message.timestamp)}</span>
+                    {isStarred && <Star className="w-3 h-3 text-current opacity-70" />}
                     {isOwn && <ChatMessageStatus message={message} otherUser={(React.useContext(ChatContext) as any).otherUser} />}
                 </div>
             </>
@@ -390,6 +392,7 @@ const MessageFocusView = ({
     };
 
     const mainActions: ActionItem[] = [
+        { label: 'Répondre', icon: MessageSquare, action: onReply },
         ...(canEdit ? [{ label: 'Modifier', icon: Edit, action: onEdit }] : []),
         { label: 'Copier', icon: Copy, action: () => navigator.clipboard.writeText(message.content) },
         { label: 'Transférer', icon: Share2, action: () => {} },
