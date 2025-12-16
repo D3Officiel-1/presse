@@ -203,12 +203,12 @@ function EditorComponent() {
     const startDrawing = (e: React.MouseEvent | React.TouchEvent) => {
         const canvas = canvasRef.current;
         if (!canvas || !contextRef.current) return;
+        isDrawingRef.current = true;
         const rect = canvas.getBoundingClientRect();
         const pos = 'touches' in e.nativeEvent ? e.nativeEvent.touches[0] : e.nativeEvent;
         const offsetX = pos.clientX - rect.left;
         const offsetY = pos.clientY - rect.top;
 
-        isDrawingRef.current = true;
         if (drawMode === 'draw') {
             contextRef.current.beginPath();
             contextRef.current.moveTo(offsetX, offsetY);
@@ -410,7 +410,7 @@ function EditorComponent() {
             setOverlayText(null);
             toast({ description: "Texte supprimé." });
         } else {
-            // framer-motion handles the position
+            setTextPosition({ x: info.point.x, y: info.point.y });
         }
     };
 
@@ -571,7 +571,9 @@ function EditorComponent() {
                             className="absolute cursor-move p-4"
                             style={{
                                 color: textColor,
-                                textShadow: textStyle === 'none' ? '2px 2px 4px rgba(0,0,0,0.7)' : 'none' 
+                                textShadow: textStyle === 'none' ? '2px 2px 4px rgba(0,0,0,0.7)' : 'none' ,
+                                top: textPosition.y,
+                                left: textPosition.x,
                             }}
                             drag
                             dragConstraints={dragConstraintsRef}
