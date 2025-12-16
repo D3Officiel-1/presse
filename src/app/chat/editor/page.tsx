@@ -4,7 +4,7 @@
 import React, { useState, useRef, useEffect, Suspense, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { Loader2, ArrowLeft, Crop, RotateCw, Send, Type, Brush, X, Check, Smile, AlignLeft, AlignCenter, AlignRight, ChevronUp, ChevronDown } from 'lucide-react';
+import { Loader2, ArrowLeft, Crop, RotateCw, Send, Type, Brush, X, Check, Smile, AlignLeft, AlignCenter, AlignRight, ChevronUp, ChevronDown, Trash2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import Image from 'next/image';
 import ReactCrop, { type Crop as CropType, centerCrop, makeAspectCrop } from 'react-image-crop';
@@ -127,6 +127,10 @@ function EditorComponent() {
     const [textPosition, setTextPosition] = useState({ x: 0, y: 0 });
     const dragConstraintsRef = useRef<HTMLDivElement>(null);
 
+    // State for drag-to-delete
+    const [isDraggingText, setIsDraggingText] = useState(false);
+    const deleteZoneRef = useRef<HTMLDivElement>(null);
+
     useEffect(() => {
         const mediaData = sessionStorage.getItem('media-to-edit');
         const typeData = sessionStorage.getItem('media-type-to-edit');
@@ -215,7 +219,7 @@ function EditorComponent() {
         
         try {
             const dataUrl = await htmlToImage.toPng(imageContainerRef.current);
-            // In a real app, you would now send this dataUrl
+            
             console.log("Image prête à être envoyée:", dataUrl.substring(0, 100) + '...');
             
             toast({
@@ -277,6 +281,21 @@ function EditorComponent() {
         if (textAlign === 'center') return <AlignRight />;
         return <AlignLeft />;
     };
+    
+    const onTextDragEnd = (event: MouseEvent | TouchEvent | PointerEvent, info: any) => {
+        setIsDraggingText(false);
+        const deleteZone = deleteZoneRef.current?.getBoundingClientRect();
+        if (deleteZone && 
+            info.point.x >= deleteZone.left && info.point.x <= deleteZone.right &&
+            info.point.y >= deleteZone.top && info.point.y <= deleteZone.bottom
+        ) {
+            setOverlayText(null);
+            toast({ description: "Texte supprimé." });
+        } else {
+            setTextPosition({ x: info.point.x, y: info.point.y });
+        }
+    };
+
 
     if (isLoading) {
         return (
@@ -298,32 +317,58 @@ function EditorComponent() {
     return (
         <div className="relative flex flex-col h-screen w-full bg-black text-white overflow-hidden">
             {/* Header */}
-            <header className="absolute top-0 left-0 right-0 p-4 z-20 flex items-center justify-between bg-gradient-to-b from-black/50 to-transparent">
-                {isCropping ? (
-                    <>
-                        <Button variant="ghost" size="icon" onClick={() => setIsCropping(false)} className="h-10 w-10 rounded-full bg-black/30 hover:bg-black/50">
-                            <X />
-                        </Button>
-                        <Button onClick={handleConfirmCrop} disabled={isProcessingCrop}>
-                            {isProcessingCrop ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Check className="w-4 h-4 mr-2" />}
-                            Confirmer
-                        </Button>
-                    </>
-                ) : (
-                    <>
-                        <Button variant="ghost" size="icon" onClick={handleBack} className="h-10 w-10 rounded-full bg-black/30 hover:bg-black/50">
-                            <X />
-                        </Button>
-                        <div className="flex items-center gap-2">
-                            {editorActions.map(action => (
-                                <Button key={action.label} variant="ghost" size="icon" onClick={action.action} className="h-10 w-10 rounded-full bg-black/30 hover:bg-black/50">
-                                    <action.icon className="w-5 h-5" />
+            <AnimatePresence>
+                {!isDraggingText && (
+                    <motion.header 
+                        initial={{ opacity: 0, y: -20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -20 }}
+                        transition={{ duration: 0.2 }}
+                        className="absolute top-0 left-0 right-0 p-4 z-20 flex items-center justify-between bg-gradient-to-b from-black/50 to-transparent"
+                    >
+                        {isCropping ? (
+                            <>
+                                <Button variant="ghost" size="icon" onClick={() => setIsCropping(false)} className="h-10 w-10 rounded-full bg-black/30 hover:bg-black/50">
+                                    <X />
                                 </Button>
-                            ))}
-                        </div>
-                    </>
+                                <Button onClick={handleConfirmCrop} disabled={isProcessingCrop}>
+                                    {isProcessingCrop ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Check className="w-4 h-4 mr-2" />}
+                                    Confirmer
+                                </Button>
+                            </>
+                        ) : (
+                            <>
+                                 <Button variant="ghost" size="icon" onClick={handleBack} className="h-10 w-10 rounded-full bg-black/30 hover:bg-black/50">
+                                    <X />
+                                </Button>
+                                <div className="flex items-center gap-2">
+                                    {editorActions.map(action => (
+                                        <Button key={action.label} variant="ghost" size="icon" onClick={action.action} className="h-10 w-10 rounded-full bg-black/30 hover:bg-black/50">
+                                            <action.icon className="w-5 h-5" />
+                                        </Button>
+                                    ))}
+                                </div>
+                            </>
+                        )}
+                    </motion.header>
                 )}
-            </header>
+            </AnimatePresence>
+            
+            {/* Delete Zone */}
+             <div ref={deleteZoneRef} className="absolute top-4 left-4 z-20">
+                <AnimatePresence>
+                {isDraggingText && (
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.8 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.8 }}
+                        className="h-14 w-14 rounded-full bg-destructive/50 flex items-center justify-center border-2 border-destructive"
+                    >
+                        <Trash2 className="w-6 h-6 text-white" />
+                    </motion.div>
+                )}
+                </AnimatePresence>
+            </div>
 
             {/* Media Preview */}
             <div ref={dragConstraintsRef} className="flex-1 flex items-center justify-center p-16 overflow-hidden">
@@ -372,9 +417,8 @@ function EditorComponent() {
                             drag
                             dragConstraints={dragConstraintsRef}
                             dragMomentum={false}
-                            onDragEnd={(event, info) => {
-                                setTextPosition({ x: info.point.x, y: info.point.y });
-                            }}
+                            onDragStart={() => setIsDraggingText(true)}
+                            onDragEnd={onTextDragEnd}
                         >
                             <span 
                                 className={cn(
@@ -382,9 +426,7 @@ function EditorComponent() {
                                     fontFamily,
                                     textStyle === 'solid' && 'bg-black/70 px-2 py-1 rounded-md',
                                     textStyle === 'outline' && 'text-stroke-2 text-stroke-black',
-                                    textAlign === 'center' && 'text-center',
-                                    textAlign === 'left' && 'text-left',
-                                    textAlign === 'right' && 'text-right',
+                                    `text-${textAlign}`,
                                 )}
                                 style={{
                                     color: textColor,
@@ -438,9 +480,7 @@ function EditorComponent() {
                                     "w-full bg-transparent border-none text-3xl md:text-5xl font-bold placeholder:text-white/50 focus-visible:ring-0 resize-none",
                                     fontFamily,
                                     textStyle === 'outline' && 'text-stroke-2 text-stroke-black',
-                                    textAlign === 'center' && 'text-center',
-                                    textAlign === 'left' && 'text-left',
-                                    textAlign === 'right' && 'text-right'
+                                    `text-${textAlign}`,
                                 )}
                                 style={{ color: textColor }}
                                 autoFocus
@@ -537,13 +577,23 @@ function EditorComponent() {
             </AnimatePresence>
 
             {/* Footer */}
-            <footer className="absolute bottom-0 left-0 right-0 p-4 z-20 bg-gradient-to-t from-black/50 to-transparent">
-                <div className="flex items-center justify-end">
-                     <Button size="lg" className="rounded-full h-14 w-14 p-0" onClick={handleSend}>
-                        <Send className="w-6 h-6"/>
-                     </Button>
-                </div>
-            </footer>
+            <AnimatePresence>
+                {!isDraggingText && (
+                    <motion.footer
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: 20 }}
+                        transition={{ duration: 0.2 }}
+                        className="absolute bottom-0 left-0 right-0 p-4 z-20 bg-gradient-to-t from-black/50 to-transparent"
+                    >
+                        <div className="flex items-center justify-end">
+                            <Button size="lg" className="rounded-full h-14 w-14 p-0" onClick={handleSend}>
+                                <Send className="w-6 h-6"/>
+                            </Button>
+                        </div>
+                    </motion.footer>
+                )}
+            </AnimatePresence>
         </div>
     );
 }
