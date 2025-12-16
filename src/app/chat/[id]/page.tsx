@@ -319,6 +319,7 @@ function ChatPageContent() {
           onShare={()=>{}}
           allUsersInApp={allUsersInApp}
           isAdmin={isAdmin}
+          onScrollToMessage={scrollToMessage}
         />
       </div>
       

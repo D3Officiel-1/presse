@@ -52,6 +52,7 @@ interface ChatMessagesProps {
   onTogglePin: (message: Message, isPinned: boolean) => void;
   allUsersInApp: User[];
   isAdmin: boolean;
+  onScrollToMessage: (messageId: string) => void;
 }
 
 interface SenderMessageGroup {
@@ -188,6 +189,8 @@ const ChatMessage = ({
 }) => {
   const isOwn = position === 'right';
   const longPressTimer = useRef<NodeJS.Timeout>();
+  const { onScrollToMessage } = React.useContext(ChatContext);
+
 
   const handlePointerDown = (e: React.PointerEvent) => {
     if (e.pointerType === 'touch') {
@@ -249,7 +252,10 @@ const ChatMessage = ({
         className={bubbleClasses}
       >
         {message.replyTo?.messageId && (
-            <div className="border-l-2 border-primary/50 pl-2 text-xs opacity-80 mb-1.5">
+            <div 
+              className="border-l-2 border-primary/50 pl-2 text-xs opacity-80 mb-1.5 cursor-pointer"
+              onClick={() => onScrollToMessage(message.replyTo!.messageId)}
+            >
                 <p className="font-bold">{message.replyTo.senderName}</p>
                 <p className="truncate">{message.replyTo.message}</p>
             </div>
@@ -450,7 +456,8 @@ export function ChatMessages({
   onToggleStar,
   onTogglePin,
   allUsersInApp,
-  isAdmin
+  isAdmin,
+  onScrollToMessage,
 }: ChatMessagesProps) {
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const [dailyGroups, setDailyGroups] = useState<DailyMessageGroup[]>([]);
@@ -534,7 +541,7 @@ export function ChatMessages({
     return () => clearTimeout(timeoutId);
   }, [dailyGroups, isTyping]);
   
-  const contextProviderValue = { loggedInUser, allUsersInApp, otherUser, chat, isAdmin };
+  const contextProviderValue = { loggedInUser, allUsersInApp, otherUser, chat, isAdmin, onScrollToMessage };
 
   return (
     <ChatContext.Provider value={contextProviderValue}>
