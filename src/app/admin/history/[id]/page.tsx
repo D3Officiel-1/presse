@@ -5,11 +5,11 @@ import { useParams, useRouter } from 'next/navigation';
 import { useFirestore } from '@/firebase/provider';
 import { collection, doc, onSnapshot, query, orderBy, Timestamp } from 'firebase/firestore';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Calendar as CalendarIcon, CheckCircle, XCircle, Loader2, BarChart3 } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { ArrowLeft, Calendar as CalendarIcon, CheckCircle, XCircle, Loader2, BarChart3, Check, Minus } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import { format, getMonth, getYear } from 'date-fns';
+import { format, getMonth, getYear, startOfMonth, endOfMonth, isSameMonth } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -34,7 +34,7 @@ export default function HistoryPage() {
     const [user, setUser] = useState<UserData | null>(null);
     const [presenceRecords, setPresenceRecords] = useState<PresenceRecord[]>([]);
     const [loading, setLoading] = useState(true);
-    const [currentMonth, setCurrentMonth] = useState(new Date());
+    const [currentDate, setCurrentDate] = useState(new Date());
 
     useEffect(() => {
         if (!userId || !firestore) return;
@@ -74,7 +74,11 @@ export default function HistoryPage() {
     const absentDays = presenceRecords
         .filter(r => r.status === 'absent')
         .map(r => r.timestamp.toDate());
-    
+
+    const filteredRecordsForMonth = presenceRecords.filter(r => isSameMonth(r.timestamp.toDate(), currentDate));
+    const monthlyPresent = filteredRecordsForMonth.filter(r => r.status === 'present').length;
+    const monthlyAbsent = filteredRecordsForMonth.filter(r => r.status === 'absent').length;
+
     const totalPresent = presentDays.length;
     const totalAbsent = absentDays.length;
 
@@ -138,21 +142,45 @@ export default function HistoryPage() {
                     transition={{ duration: 0.5, ease: "easeOut" }}
                     className='lg:sticky lg:top-24'
                  >
-                    <Card className='bg-card/30 backdrop-blur-md border-white/10 shadow-lg p-4'>
-                         <CalendarComponent
+                     <Card className='bg-card/30 backdrop-blur-md border-white/10 shadow-lg overflow-hidden'>
+                        <CalendarComponent
                             mode="single"
                             selected={new Date()}
-                            onMonthChange={setCurrentMonth}
+                            month={currentDate}
+                            onMonthChange={setCurrentDate}
                             locale={fr}
                             modifiers={{
                                 present: presentDays,
                                 absent: absentDays,
                             }}
-                            modifiersClassNames={{
+                             modifiersClassNames={{
                                 present: 'day-present',
                                 absent: 'day-absent',
                             }}
+                            styles={{
+                                day: {
+                                    borderRadius: '9999px',
+                                    position: 'relative',
+                                    fontWeight: 'bold',
+                                },
+                                day_present: {
+                                    color: 'hsl(var(--primary))',
+                                },
+                                day_absent: {
+                                    color: 'hsl(var(--destructive))',
+                                }
+                            }}
                         />
+                         <CardFooter className="bg-black/20 p-4 border-t border-white/10 flex justify-around text-center">
+                            <div>
+                                <p className="text-2xl font-bold text-green-400">{monthlyPresent}</p>
+                                <p className="text-xs text-muted-foreground">Présent</p>
+                            </div>
+                            <div>
+                                <p className="text-2xl font-bold text-red-400">{monthlyAbsent}</p>
+                                <p className="text-xs text-muted-foreground">Absent</p>
+                            </div>
+                        </CardFooter>
                     </Card>
                 </motion.div>
 

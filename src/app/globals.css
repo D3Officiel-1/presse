@@ -67,14 +67,14 @@ body {
     -moz-osx-font-smoothing: grayscale;
   }
   
-  .day-present:not(.day-outside) {
-    background-color: hsl(var(--primary) / 0.1);
-    border: 1px solid hsl(var(--primary) / 0.2);
+  .day-present:not(.day-outside) .rdp-day_button::after {
+    content: '';
+    @apply absolute bottom-1 left-1/2 -translate-x-1/2 h-1.5 w-1.5 rounded-full bg-green-500;
   }
 
-  .day-absent:not(.day-outside) {
-    background-color: hsl(var(--destructive) / 0.1);
-    border: 1px solid hsl(var(--destructive) / 0.2);
+  .day-absent:not(.day-outside) .rdp-day_button::after {
+    content: '';
+    @apply absolute bottom-1 left-1/2 -translate-x-1/2 h-1.5 w-1.5 rounded-full bg-red-500;
   }
 }
 
