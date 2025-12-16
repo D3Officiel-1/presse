@@ -11,7 +11,7 @@ import { useToast } from '@/hooks/use-toast';
 
 type PrivacyOption = 'everyone' | 'contacts' | 'nobody';
 
-interface Setting {
+interface PrivacySettingDefinition {
   id: keyof PrivacySettings;
   icon: React.ElementType;
   title: string;
@@ -27,7 +27,7 @@ interface PrivacySettings {
   readReceipts: boolean;
 }
 
-const settings: Setting[] = [
+const privacyOptions: PrivacySettingDefinition[] = [
   {
     id: 'lastSeen',
     icon: Eye,
@@ -78,8 +78,7 @@ const FADE_UP_ANIMATION_VARIANTS = {
   visible: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 100, damping: 20 } },
 };
 
-function SettingCard({ setting, value, onValueChange }: { setting: Setting, value: PrivacyOption, onValueChange: (value: PrivacyOption) => void }) {
-  const [hovered, setHovered] = useState(false);
+function SettingCard({ setting, value, onValueChange }: { setting: PrivacySettingDefinition, value: PrivacyOption, onValueChange: (value: PrivacyOption) => void }) {
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     const rect = e.currentTarget.getBoundingClientRect();
@@ -133,7 +132,7 @@ export default function PrivacyPolicyPage() {
     const router = useRouter();
     const { toast } = useToast();
     const [isClient, setIsClient] = useState(false);
-    const [settings, setPrivacySettings] = useState<PrivacySettings>({
+    const [privacySettings, setPrivacySettings] = useState<PrivacySettings>({
         lastSeen: 'everyone',
         profilePhoto: 'everyone',
         bio: 'everyone',
@@ -193,11 +192,11 @@ export default function PrivacyPolicyPage() {
                             },
                         }}
                     >
-                        {settings.map((setting) => (
+                        {privacyOptions.map((setting) => (
                             <div className="mb-6" key={setting.id}>
                                 <SettingCard
                                   setting={setting}
-                                  value={isClient ? (settings[setting.id] as PrivacyOption) : 'everyone'}
+                                  value={isClient ? (privacySettings[setting.id] as PrivacyOption) : 'everyone'}
                                   onValueChange={(value) => updateSetting(setting.id, value)}
                                 />
                             </div>
@@ -219,7 +218,7 @@ export default function PrivacyPolicyPage() {
                                   <label className="relative inline-flex items-center cursor-pointer">
                                     <input
                                       type="checkbox"
-                                      checked={isClient ? settings.readReceipts : true}
+                                      checked={isClient ? privacySettings.readReceipts : true}
                                       onChange={(e) => updateSetting('readReceipts', e.target.checked)}
                                       className="sr-only peer"
                                     />
@@ -235,5 +234,3 @@ export default function PrivacyPolicyPage() {
         </div>
     );
 }
-
-    
