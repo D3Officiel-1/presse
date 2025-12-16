@@ -147,6 +147,7 @@ const CustomKeyboard = ({ onKeyPress, onBackspace, onEnter, onSpace }: { onKeyPr
                 <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full"><Film /></Button>
                 <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full"><Settings /></Button>
                 <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full"><Palette /></Button>
+                <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full"><Voicemail /></Button>
             </div>
             {currentLayout.map((row, rowIndex) => (
                 <div key={rowIndex} className="flex justify-center gap-1">
@@ -165,11 +166,11 @@ const CustomKeyboard = ({ onKeyPress, onBackspace, onEnter, onSpace }: { onKeyPr
                         >
                             {longPressedKey === key && (
                                 <motion.div 
-                                    className="absolute -top-14 left-1/2 -translate-x-1/2 z-20"
+                                    className="absolute -top-24 left-1/2 -translate-x-1/2 z-20"
                                     initial={{ opacity: 0, y: 10 }}
                                     animate={{ opacity: 1, y: 0 }}
                                 >
-                                    <div className="relative bg-popover text-popover-foreground rounded-xl p-1 shadow-lg flex gap-1 flex-wrap w-auto max-w-xs justify-center">
+                                    <div className="relative bg-popover text-popover-foreground rounded-xl p-2 shadow-lg grid grid-cols-2 gap-1 w-auto max-w-xs justify-center">
                                       {(longPressChars[key] || []).map(char => (
                                           <Button key={char} variant="ghost" size="icon" className="w-8 h-8" onPointerUp={(e) => { e.stopPropagation(); handleSpecialKeyPress(char); }}>
                                               {char}
@@ -199,7 +200,7 @@ const CustomKeyboard = ({ onKeyPress, onBackspace, onEnter, onSpace }: { onKeyPr
                                     initial={{ opacity: 0, y: 10 }}
                                     animate={{ opacity: 1, y: 0 }}
                                 >
-                                    <div className="relative bg-popover text-popover-foreground rounded-xl p-1 shadow-lg flex gap-1">
+                                    <div className="relative bg-popover text-popover-foreground rounded-xl p-2 shadow-lg grid grid-cols-2 gap-1">
                                          {(longPressChars["'"] || []).map(char => (
                                             <Button key={char} variant="ghost" size="icon" className="w-8 h-8" onPointerUp={(e) => { e.stopPropagation(); handleSpecialKeyPress(char); }}>
                                                 {char}
@@ -245,7 +246,7 @@ const CustomKeyboard = ({ onKeyPress, onBackspace, onEnter, onSpace }: { onKeyPr
                             initial={{ opacity: 0, y: 10 }}
                             animate={{ opacity: 1, y: 0 }}
                         >
-                           <div className="relative bg-popover text-popover-foreground rounded-xl p-2 shadow-lg flex gap-1 flex-wrap w-64 justify-center">
+                           <div className="relative bg-popover text-popover-foreground rounded-xl p-2 shadow-lg grid grid-cols-2 gap-1 w-64 justify-center">
                              {(longPressChars['.'] || []).map(char => (
                                 <Button key={char} variant="ghost" size="icon" className="w-8 h-8" onPointerUp={(e) => { e.stopPropagation(); handleSpecialKeyPress(char); }}>
                                     {char}
