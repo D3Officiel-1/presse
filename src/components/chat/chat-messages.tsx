@@ -26,6 +26,7 @@ import {
   Send,
   CornerUpLeft,
   Loader2,
+  AlertTriangle,
 } from 'lucide-react';
 import { ChatMessageStatus } from './chat-message-status';
 import { useToast } from '@/hooks/use-toast';
@@ -479,15 +480,66 @@ const MessageFocusView = ({
     };
 
     const renderMainView = () => (
+      <motion.div
+        key="main"
+        initial={{ opacity: 0, y: 50 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -50 }}
+        className="relative flex flex-col items-center gap-6 w-full max-w-md"
+      >
+        <div className={cn("w-full flex", sender.id === chatContext.loggedInUser.uid ? 'justify-end' : 'justify-start')}>
+          <ChatMessage 
+            message={{...message, sender}} 
+            position={sender.id === chatContext.loggedInUser.uid ? 'right' : 'left'} 
+            onOpenContextMenu={() => {}} 
+            onReply={() => {}}
+            isFirstInGroup={true}
+            isLastInGroup={true}
+            isEditing={false}
+            onSaveEdit={() => {}}
+            onCancelEdit={() => {}}
+          />
+        </div>
         <motion.div
-          key="main"
-          initial={{ opacity: 0, y: 50 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -50 }}
-          className="relative flex flex-col items-center gap-6 w-full max-w-md"
+          className="mt-4 grid grid-cols-3 gap-4 w-full max-w-xs"
+          variants={{
+            hidden: { opacity: 0, y: 20 },
+            visible: { opacity: 1, y: 0, transition: { delayChildren: 0.1, staggerChildren: 0.05 } },
+          }}
+          initial="hidden"
+          animate="visible"
         >
-          <div className={cn("w-full flex", sender.id === chatContext.loggedInUser.uid ? 'justify-end' : 'justify-start')}>
-            <ChatMessage 
+          {mainActions.map((item, index) => (
+            <motion.div
+              key={item.label}
+              className="flex flex-col items-center justify-center gap-2 text-center text-xs cursor-pointer"
+              variants={itemVariants}
+              custom={index}
+              onClick={() => handleActionClick(item.action, item.label)}
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <div className={cn("flex items-center justify-center w-14 h-14 bg-background/80 backdrop-blur-lg rounded-full shadow-lg border", item.className)}>
+                <item.icon className="w-6 h-6" />
+              </div>
+              <span className="text-foreground font-medium">{item.label}</span>
+            </motion.div>
+          ))}
+        </motion.div>
+      </motion.div>
+    );
+
+    const renderDeleteView = () => (
+      <motion.div
+        key="delete"
+        initial={{ opacity: 0, scale: 0.9 }}
+        animate={{ opacity: 1, scale: 1 }}
+        exit={{ opacity: 0, scale: 0.9 }}
+        className="relative flex flex-col items-center gap-4 w-full max-w-md"
+      >
+        <div className="absolute -inset-16 bg-destructive/20 blur-3xl -z-10" />
+        <div className="w-full flex justify-center opacity-50 blur-sm">
+           <ChatMessage 
               message={{...message, sender}} 
               position={sender.id === chatContext.loggedInUser.uid ? 'right' : 'left'} 
               onOpenContextMenu={() => {}} 
@@ -498,141 +550,104 @@ const MessageFocusView = ({
               onSaveEdit={() => {}}
               onCancelEdit={() => {}}
             />
-          </div>
-          <motion.div
-            className="mt-4 grid grid-cols-3 gap-4 w-full max-w-xs"
-            variants={{
-              hidden: { opacity: 0, y: 20 },
-              visible: { opacity: 1, y: 0, transition: { delayChildren: 0.1, staggerChildren: 0.05 } },
-            }}
-            initial="hidden"
-            animate="visible"
-          >
-            {mainActions.map((item, index) => (
-              <motion.div
-                key={item.label}
-                className="flex flex-col items-center justify-center gap-2 text-center text-xs cursor-pointer"
-                variants={itemVariants}
-                custom={index}
-                onClick={() => handleActionClick(item.action, item.label)}
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                <div className={cn("flex items-center justify-center w-14 h-14 bg-background/80 backdrop-blur-lg rounded-full shadow-lg border", item.className)}>
-                  <item.icon className="w-6 h-6" />
-                </div>
-                <span className="text-foreground font-medium">{item.label}</span>
-              </motion.div>
-            ))}
-          </motion.div>
-        </motion.div>
-      );
-      
-      const renderDeleteView = () => (
-          <motion.div
-              key="delete"
-              initial={{ opacity: 0, y: 50 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -50 }}
-              className="w-full max-w-xs bg-background/80 backdrop-blur-lg rounded-2xl border shadow-2xl p-4 flex flex-col items-center gap-4"
-          >
-              <h3 className="font-semibold">Supprimer le message ?</h3>
-              <Separator />
-              <Button variant="ghost" className="w-full justify-start text-destructive" onClick={() => { onDeleteForMe(); onClose(); }}>
-                  Supprimer pour moi
-              </Button>
-              {isOwnMessage && (
-                  <>
-                      <Separator />
-                      <Button variant="ghost" className="w-full justify-start text-destructive" onClick={() => { onDeleteForEveryone(); onClose(); }}>
-                          Supprimer pour tout le monde
-                      </Button>
-                  </>
+        </div>
+        
+        <div className="w-full max-w-xs space-y-3 mt-6">
+            <h2 className="text-xl font-bold text-center text-white">Supprimer le message ?</h2>
+            {isOwnMessage && (
+                <Button variant="destructive" className="w-full h-14 text-base" onClick={() => { onDeleteForEveryone(); onClose(); }}>
+                    <AlertTriangle className="mr-2"/>
+                    Supprimer pour tous
+                </Button>
+            )}
+            <Button variant="secondary" className="w-full h-12" onClick={() => { onDeleteForMe(); onClose(); }}>
+                <Trash2 className="mr-2" />
+                Supprimer pour moi
+            </Button>
+            <Button variant="ghost" className="w-full h-12" onClick={() => setViewMode('main')}>
+                Annuler
+            </Button>
+        </div>
+      </motion.div>
+    );
+    
+    const renderShareView = () => (
+      <motion.div
+        key="share"
+        initial={{ opacity: 0, y: 50, scale: 0.95 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        exit={{ opacity: 0, y: -50, scale: 0.95 }}
+        className="w-full max-w-md bg-background/80 backdrop-blur-lg rounded-2xl border shadow-2xl flex flex-col h-[70vh]"
+      >
+        <div className="p-4 border-b flex justify-between items-center">
+            <Button variant="ghost" size="icon" onClick={() => setViewMode('main')}><ArrowLeft className="w-4 h-4"/></Button>
+            <h3 className="font-semibold text-center">Transférer à...</h3>
+            <div className="w-9"></div>
+        </div>
+        {loadingShare ? (
+            <div className="flex-1 flex items-center justify-center">
+                <Loader2 className="w-6 h-6 animate-spin"/>
+            </div>
+        ) : (
+            <div className="flex-1 overflow-y-auto p-2">
+              {recentChatUsers.length > 0 && (
+                  <div className="mb-4">
+                      <h4 className="px-2 text-sm font-semibold text-muted-foreground mb-2">Discussions récentes</h4>
+                      {recentChatUsers.map((user: User) => (
+                          <div key={user.id} className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50 cursor-pointer" onClick={() => handleToggleUserSelection(user.id)}>
+                              <div className="relative">
+                                  <Avatar>
+                                      <AvatarImage src={user.avatar} />
+                                      <AvatarFallback>{user.name.substring(0,1)}</AvatarFallback>
+                                  </Avatar>
+                                  {selectedUsers.includes(user.id) && (
+                                      <div className="absolute -bottom-1 -right-1 bg-primary text-primary-foreground rounded-full h-5 w-5 flex items-center justify-center border-2 border-background">
+                                          <Check className="w-3 h-3" />
+                                      </div>
+                                  )}
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="font-medium truncate">{user.name}</p>
+                                {user.class && <p className="text-xs text-muted-foreground truncate">{user.class}</p>}
+                              </div>
+                          </div>
+                      ))}
+                  </div>
               )}
-              <Separator />
-              <Button variant="ghost" className="w-full justify-start" onClick={() => setViewMode('main')}>
-                  Annuler
-              </Button>
-          </motion.div>
-      );
-
-      const renderShareView = () => (
-        <motion.div
-          key="share"
-          initial={{ opacity: 0, y: 50, scale: 0.95 }}
-          animate={{ opacity: 1, y: 0, scale: 1 }}
-          exit={{ opacity: 0, y: -50, scale: 0.95 }}
-          className="w-full max-w-md bg-background/80 backdrop-blur-lg rounded-2xl border shadow-2xl flex flex-col h-[70vh]"
-        >
-          <div className="p-4 border-b flex justify-between items-center">
-              <Button variant="ghost" size="icon" onClick={onClose}><X className="w-4 h-4"/></Button>
-              <h3 className="font-semibold text-center">Transférer à...</h3>
-              <div className="w-9"></div>
-          </div>
-          {loadingShare ? (
-              <div className="flex-1 flex items-center justify-center">
-                  <Loader2 className="w-6 h-6 animate-spin"/>
+              <div className="mb-4">
+                  <h4 className="px-2 text-sm font-semibold text-muted-foreground mb-2">Autres membres</h4>
+                  {otherUsers.map((user: User) => (
+                      <div key={user.id} className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50 cursor-pointer" onClick={() => handleToggleUserSelection(user.id)}>
+                          <div className="relative">
+                              <Avatar>
+                                  <AvatarImage src={user.avatar} />
+                                  <AvatarFallback>{user.name.substring(0,1)}</AvatarFallback>
+                              </Avatar>
+                              {selectedUsers.includes(user.id) && (
+                                  <div className="absolute -bottom-1 -right-1 bg-primary text-primary-foreground rounded-full h-5 w-5 flex items-center justify-center border-2 border-background">
+                                      <Check className="w-3 h-3" />
+                                  </div>
+                              )}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="font-medium truncate">{user.name}</p>
+                            {user.class && <p className="text-xs text-muted-foreground truncate">{user.class}</p>}
+                          </div>
+                      </div>
+                  ))}
               </div>
-          ) : (
-              <div className="flex-1 overflow-y-auto p-2">
-                {recentChatUsers.length > 0 && (
-                    <div className="mb-4">
-                        <h4 className="px-2 text-sm font-semibold text-muted-foreground mb-2">Discussions récentes</h4>
-                        {recentChatUsers.map((user: User) => (
-                            <div key={user.id} className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50 cursor-pointer" onClick={() => handleToggleUserSelection(user.id)}>
-                                <div className="relative">
-                                    <Avatar>
-                                        <AvatarImage src={user.avatar} />
-                                        <AvatarFallback>{user.name.substring(0,1)}</AvatarFallback>
-                                    </Avatar>
-                                    {selectedUsers.includes(user.id) && (
-                                        <div className="absolute -bottom-1 -right-1 bg-primary text-primary-foreground rounded-full h-5 w-5 flex items-center justify-center border-2 border-background">
-                                            <Check className="w-3 h-3" />
-                                        </div>
-                                    )}
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                  <p className="font-medium truncate">{user.name}</p>
-                                  {user.class && <p className="text-xs text-muted-foreground truncate">{user.class}</p>}
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                )}
-                <div className="mb-4">
-                    <h4 className="px-2 text-sm font-semibold text-muted-foreground mb-2">Autres membres</h4>
-                    {otherUsers.map((user: User) => (
-                        <div key={user.id} className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50 cursor-pointer" onClick={() => handleToggleUserSelection(user.id)}>
-                            <div className="relative">
-                                <Avatar>
-                                    <AvatarImage src={user.avatar} />
-                                    <AvatarFallback>{user.name.substring(0,1)}</AvatarFallback>
-                                </Avatar>
-                                {selectedUsers.includes(user.id) && (
-                                    <div className="absolute -bottom-1 -right-1 bg-primary text-primary-foreground rounded-full h-5 w-5 flex items-center justify-center border-2 border-background">
-                                        <Check className="w-3 h-3" />
-                                    </div>
-                                )}
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <p className="font-medium truncate">{user.name}</p>
-                              {user.class && <p className="text-xs text-muted-foreground truncate">{user.class}</p>}
-                            </div>
-                        </div>
-                    ))}
-                </div>
-              </div>
-          )}
-          {selectedUsers.length > 0 && (
-              <div className="p-3 border-t">
-                  <Button className="w-full" onClick={handleConfirmShare}>
-                      <Send className="w-4 h-4 mr-2"/>
-                      Envoyer à {selectedUsers.length} membre{selectedUsers.length > 1 ? 's' : ''}
-                  </Button>
-              </div>
-          )}
-        </motion.div>
-      );
+            </div>
+        )}
+        {selectedUsers.length > 0 && (
+            <div className="p-3 border-t">
+                <Button className="w-full" onClick={handleConfirmShare}>
+                    <Send className="w-4 h-4 mr-2"/>
+                    Envoyer à {selectedUsers.length} membre{selectedUsers.length > 1 ? 's' : ''}
+                </Button>
+            </div>
+        )}
+      </motion.div>
+    );
 
     return (
       <motion.div
@@ -905,5 +920,3 @@ export function ChatMessages({
     </ChatContext.Provider>
   );
 }
-
-    
