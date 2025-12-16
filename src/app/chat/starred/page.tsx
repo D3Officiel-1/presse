@@ -103,7 +103,7 @@ export default function StarredMessagesPage() {
         ) : (
           <div className="p-2 md:p-4 space-y-4">
             {starredMessages.map((message) => {
-               const sender = usersData[message.senderId] || message.sender;
+               const sender = usersData[message.senderId];
                if (!sender) return null;
                return (
                   <div key={message.id} className="bg-card border rounded-lg p-4 space-y-3">
