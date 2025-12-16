@@ -51,6 +51,13 @@ const emojiCategories = [
 
 const allEmojis = emojiCategories.flatMap(category => category.emojis);
 
+interface ChatInputProps {
+  chat: ChatType;
+  onSendMessage: (content: string, type?: 'text' | 'image' | 'audio', metadata?: any) => void;
+  replyInfo?: ReplyInfo;
+  onClearReply: () => void;
+}
+
 const azertyLayout = {
     letters: [
         ['a', 'z', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p'],
@@ -393,12 +400,14 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
                 </Button>
               )}
             </div>
-            <CustomKeyboard 
-              onKeyPress={(key) => handleInputChange(message + key)}
-              onBackspace={handleBackspace}
-              onEnter={handleSend}
-              onSpace={() => handleInputChange(message + ' ')}
-            />
+            <AnimatePresence>
+                {showCustomKeyboard && <CustomKeyboard 
+                  onKeyPress={(key) => handleInputChange(message + key)}
+                  onBackspace={handleBackspace}
+                  onEnter={handleSend}
+                  onSpace={() => handleInputChange(message + ' ')}
+                />}
+            </AnimatePresence>
           </>
         )}
       </motion.div>
