@@ -210,13 +210,28 @@ function EditorComponent() {
         router.back();
     };
 
-    const handleSend = () => {
-        sessionStorage.removeItem('media-to-edit');
-        sessionStorage.removeItem('media-type-to-edit');
-        toast({
-            title: "Fonctionnalité à venir",
-            description: "L'envoi de médias sera bientôt disponible."
-        });
+    const handleSend = async () => {
+        if (!imageContainerRef.current) return;
+        
+        try {
+            const dataUrl = await htmlToImage.toPng(imageContainerRef.current);
+            // In a real app, you would now send this dataUrl
+            console.log("Image prête à être envoyée:", dataUrl.substring(0, 100) + '...');
+            
+            toast({
+                title: "Fonctionnalité à venir",
+                description: "L'envoi de médias sera bientôt disponible."
+            });
+            // Example: onSendMessage(dataUrl, 'image');
+            
+            sessionStorage.removeItem('media-to-edit');
+            sessionStorage.removeItem('media-type-to-edit');
+            // router.back();
+
+        } catch (error) {
+            console.error('oops, something went wrong!', error);
+            toast({ variant: 'destructive', title: 'Erreur', description: 'Impossible de générer l\'image finale.'});
+        }
     };
     
     const handleRotate = () => {
@@ -229,8 +244,8 @@ function EditorComponent() {
         }
     }
     
-    const handleAddText = async () => {
-        if (textInputValue.trim() === '' || !imageContainerRef.current) {
+    const handleAddText = () => {
+        if (textInputValue.trim() === '') {
              setIsAddingText(false);
              setTextInputValue('');
              return;
@@ -238,22 +253,7 @@ function EditorComponent() {
         
         setOverlayText(textInputValue);
         setIsAddingText(false);
-        
-        // Wait for state to update and text to render
-        setTimeout(async () => {
-            if (imageContainerRef.current) {
-                try {
-                    const dataUrl = await htmlToImage.toPng(imageContainerRef.current);
-                    setMediaSrc(dataUrl);
-                } catch (error) {
-                    console.error('oops, something went wrong!', error);
-                    toast({ variant: 'destructive', title: 'Erreur', description: 'Impossible d\'ajouter le texte.'});
-                } finally {
-                    setOverlayText(null); // Clean up overlay text after capture
-                    setTextInputValue(''); // Clear input value
-                }
-            }
-        }, 100);
+        setTextInputValue('');
     };
 
     const toggleTextAlign = () => {
@@ -326,7 +326,7 @@ function EditorComponent() {
             </header>
 
             {/* Media Preview */}
-            <div ref={dragConstraintsRef} className="flex-1 flex items-center justify-center p-16">
+            <div ref={dragConstraintsRef} className="flex-1 flex items-center justify-center p-16 overflow-hidden">
                  <div ref={imageContainerRef} className="relative w-fit h-fit">
                     {mediaSrc && mediaType === 'image' && !isCropping && (
                         <Image
