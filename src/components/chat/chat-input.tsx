@@ -3,7 +3,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Paperclip, Mic, Send, X, Smile, Image as ImageIcon, Camera, MapPin, User, FileText, Music, Vote, Calendar, Keyboard, Sprout, Pizza, ToyBrick, Dumbbell, Film, FileImage, UserCircle, Clock, Search, Delete, ArrowUp, CornerDownLeft, Grip, StickyNote, Clipboard, Settings, Palette } from 'lucide-react';
+import { Paperclip, Mic, Send, X, Smile, Image as ImageIcon, Camera, MapPin, User, FileText, Music, Vote, Calendar, Keyboard, Sprout, Pizza, ToyBrick, Dumbbell, Film, FileImage, UserCircle, Clock, Search, Delete, ArrowUp, CornerDownLeft, Grip, StickyNote, Clipboard, Settings, Palette, Menu } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import type { ReplyInfo } from './chat-messages';
 import type { Chat as ChatType } from '@/lib/types';
@@ -90,10 +90,10 @@ const CustomKeyboard = ({ onKeyPress, onBackspace, onEnter, onSpace, onEmojiTogg
     return (
         <div className="w-full bg-black/50 backdrop-blur-sm p-2 space-y-1">
             <div className="flex justify-around items-center p-1 bg-black/30 rounded-full mb-2 text-muted-foreground">
-                <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full"><Grip /></Button>
-                <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full"><StickyNote /></Button>
+                <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full"><Menu /></Button>
+                <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full"><Smile /></Button>
                 <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full"><Clipboard /></Button>
-                <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full"><span className="font-bold text-lg">G</span></Button>
+                <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full"><Film /></Button>
                 <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full"><Settings /></Button>
                 <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full"><Palette /></Button>
                 <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full"><Mic /></Button>
@@ -388,51 +388,37 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
       </AnimatePresence>
 
       <AnimatePresence>
-        {view === 'keyboard' && (
-          <motion.div>
-            {mainInputSection}
+        {view === 'closed' ? (
             <motion.div
-                key="keyboard"
-                className="w-full"
-                initial={{ y: "100%", opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                exit={{ y: "100%", opacity: 0, transition: { duration: 0.3, ease: 'easeOut' } }}
-                transition={{ type: 'spring', stiffness: 400, damping: 40 }}
+                key="main-input-wrapper-closed"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 20 }}
+                transition={{ duration: 0.2 }}
             >
-                <CustomKeyboard 
-                  onKeyPress={(key) => handleInputChange(message + key)}
-                  onBackspace={handleBackspace}
-                  onEnter={handleSend}
-                  onSpace={() => handleInputChange(message + ' ')}
-                  onEmojiToggle={() => {
-                    setView('emoji');
-                  }}
-                />
+                <div
+                    className={cn(
+                        "relative bg-background/50 backdrop-blur-sm shadow-lg border flex flex-col m-4 rounded-3xl",
+                        replyInfo ? 'rounded-t-none' : ''
+                    )}
+                >
+                    {mainInputSection}
+                </div>
             </motion.div>
-          </motion.div>
+        ) : (
+             <motion.div
+                key="main-input-wrapper-open"
+             >
+                <div
+                    className={cn(
+                        "relative bg-background/50 backdrop-blur-sm shadow-lg border flex flex-col m-4 rounded-3xl",
+                        replyInfo ? 'rounded-t-none' : ''
+                    )}
+                >
+                    {mainInputSection}
+                </div>
+            </motion.div>
         )}
-      </AnimatePresence>
-
-      <AnimatePresence>
-          {view === 'closed' && (
-              <motion.div
-                  key="main-input-wrapper-closed"
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: 20 }}
-                  transition={{ duration: 0.2 }}
-                  className="p-4 pt-2"
-              >
-                  <div
-                      className={cn(
-                          "relative bg-background/50 backdrop-blur-sm rounded-3xl shadow-lg border flex flex-col",
-                          replyInfo ? 'rounded-t-none' : ''
-                      )}
-                  >
-                      {mainInputSection}
-                  </div>
-              </motion.div>
-          )}
       </AnimatePresence>
         
         <AnimatePresence>
