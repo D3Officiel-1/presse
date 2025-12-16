@@ -399,7 +399,8 @@ function EditorComponent() {
                                         <ChevronDown className="h-5 w-5 text-white" />
                                     </Button>
                                     </div>
-                                    <ScrollArea className="flex-1 px-2 pb-2">
+                                    <div className="bg-black/50 backdrop-blur-md rounded-xl p-2 border border-white/10">
+                                    <ScrollArea className="flex-1 px-2 pb-2 h-[180px]">
                                     {fontStyles.map((font) => (
                                         <Button
                                         key={`list-${font.class}`}
@@ -418,6 +419,7 @@ function EditorComponent() {
                                         </Button>
                                     ))}
                                     </ScrollArea>
+                                    </div>
                                 </motion.div>
                                 ) : (
                                 <motion.div
