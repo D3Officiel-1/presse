@@ -1,3 +1,4 @@
+
 'use client'
 
 import React, { useState, useEffect, useCallback } from 'react'
@@ -123,7 +124,7 @@ export default function SettingsPage() {
                              <h3 className="text-sm font-semibold text-muted-foreground px-2">Général</h3>
                              <div className="bg-card rounded-xl border divide-y divide-border">
                                 <SettingsItem icon={KeyRound} text="Compte" href={`/chat/settings/${userData?.id}`} />
-                                <SettingsItem icon={Bell} text="Notifications et sons" href="#" />
+                                <SettingsItem icon={Bell} text="Notifications et sons" href="/chat/settings/notifications" />
                                 <SettingsItem icon={Palette} text="Apparence" href="/chat/settings/appearance" />
                              </div>
                          </div>
