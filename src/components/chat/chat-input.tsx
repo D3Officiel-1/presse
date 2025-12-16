@@ -3,7 +3,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Paperclip, Mic, Send, X, Smile, Image as ImageIcon, Camera, MapPin, User, FileText, Music, Vote, Calendar, Keyboard, Sprout, Pizza, ToyBrick, Dumbbell, Film, FileImage, UserCircle, Clock, Search, Delete } from 'lucide-react';
+import { Paperclip, Mic, Send, X, Smile, Image as ImageIcon, Camera, MapPin, User, FileText, Music, Vote, Calendar, Keyboard, Sprout, Pizza, ToyBrick, Dumbbell, Film, FileImage, UserCircle, Clock, Search, Delete, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import type { ReplyInfo } from './chat-messages';
 import type { Chat as ChatType } from '@/lib/types';
@@ -11,6 +11,7 @@ import { useUser } from '@/firebase/auth/use-user';
 import { useFirestore } from '@/firebase/provider';
 import { doc, updateDoc } from 'firebase/firestore';
 import TextareaAutosize from 'react-textarea-autosize';
+import { Input } from '../ui/input';
 
 interface ChatInputProps {
   chat: ChatType;
@@ -62,6 +63,8 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
   const [view, setView] = useState<'closed' | 'attachments' | 'emoji'>('closed');
   const [activeMainTab, setActiveMainTab] = useState('emoji');
   const [activeEmojiCategory, setActiveEmojiCategory] = useState(emojiCategories[0].name);
+  const [searchMode, setSearchMode] = useState(false);
+  const [emojiSearchQuery, setEmojiSearchQuery] = useState('');
 
   // Voice recording state
   const [isRecording, setIsRecording] = useState(false);
@@ -228,9 +231,6 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
                   <Button variant="ghost" size="icon" className="h-10 w-10 shrink-0 text-muted-foreground" onClick={() => toggleView('attachments')}>
                     <Paperclip className="w-5 h-5" />
                   </Button>
-                  <Button variant="ghost" size="icon" className="h-10 w-10 shrink-0 text-muted-foreground" onClick={() => toggleView('emoji')}>
-                      <Smile className="w-5 h-5" />
-                  </Button>
                   <TextareaAutosize
                     ref={input => input && !replyInfo && input.focus()}
                     value={message}
@@ -240,6 +240,9 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
                     maxRows={5}
                     className="flex-1 resize-none bg-transparent border-0 focus:ring-0 focus:outline-none text-base placeholder:text-muted-foreground px-2"
                   />
+                  <Button variant="ghost" size="icon" className="h-10 w-10 shrink-0 text-muted-foreground" onClick={() => toggleView('emoji')}>
+                      <Smile className="w-5 h-5" />
+                  </Button>
                   <div className="relative h-10 w-10 shrink-0">
                     <AnimatePresence>
                       {message ? (
@@ -331,26 +334,63 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
                     </div>
                     
                     <div className="px-3 py-2 flex items-center justify-between border-y border-border/50">
-                         <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground">
-                            <Search className="w-5 h-5" />
-                        </Button>
-                        <div className="inline-flex items-center gap-2 bg-black/20 p-1 rounded-full border border-white/10">
-                            {mainTabs.map(tab => (
-                                <Button
-                                    key={tab.name}
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() => setActiveMainTab(tab.name)}
-                                    className={`h-8 px-4 rounded-full relative transition-colors duration-300 ${activeMainTab === tab.name ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
+                        <AnimatePresence mode="wait">
+                            {searchMode ? (
+                                <motion.div
+                                    key="search-view"
+                                    className="flex items-center gap-2 w-full"
+                                    initial={{ opacity: 0, x: -10 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    exit={{ opacity: 0, x: 10 }}
+                                    transition={{ duration: 0.2 }}
                                 >
-                                    <tab.icon className="w-5 h-5" />
-                                </Button>
-                            ))}
-                        </div>
-                        <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground" onClick={handleBackspace}>
-                            <Delete className="w-5 h-5" />
-                        </Button>
+                                    <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={() => setSearchMode(false)}>
+                                        <ArrowLeft className="w-5 h-5" />
+                                    </Button>
+                                    <div className="relative flex-1">
+                                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                        <Input
+                                            placeholder="Rechercher..."
+                                            value={emojiSearchQuery}
+                                            onChange={(e) => setEmojiSearchQuery(e.target.value)}
+                                            className="bg-transparent pl-9 h-9 border-0 focus-visible:ring-0"
+                                            autoFocus
+                                        />
+                                    </div>
+                                </motion.div>
+                            ) : (
+                                <motion.div
+                                    key="tabs-view"
+                                    className="flex items-center justify-between w-full"
+                                    initial={{ opacity: 0, x: 10 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    exit={{ opacity: 0, x: -10 }}
+                                    transition={{ duration: 0.2 }}
+                                >
+                                    <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground" onClick={() => setSearchMode(true)}>
+                                        <Search className="w-5 h-5" />
+                                    </Button>
+                                    <div className="inline-flex items-center gap-2 bg-black/20 p-1 rounded-full border border-white/10">
+                                        {mainTabs.map(tab => (
+                                            <Button
+                                                key={tab.name}
+                                                variant="ghost"
+                                                size="sm"
+                                                onClick={() => setActiveMainTab(tab.name)}
+                                                className={`h-8 px-3 rounded-full relative transition-colors duration-300 ${activeMainTab === tab.name ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
+                                            >
+                                                <tab.icon className="w-5 h-5" />
+                                            </Button>
+                                        ))}
+                                    </div>
+                                    <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground" onClick={handleBackspace}>
+                                        <Delete className="w-5 h-5" />
+                                    </Button>
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
                     </div>
+
 
                     <div className="flex-1 overflow-y-auto px-4 pb-4 pt-2">
                        {activeMainTab === 'emoji' && (
