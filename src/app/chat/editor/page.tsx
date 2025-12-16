@@ -4,7 +4,7 @@
 import React, { useState, useRef, useEffect, Suspense } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { Loader2, ArrowLeft, Crop, RotateCw, Send, Type, Brush, X, Check, Smile, AlignLeft, AlignCenter, AlignRight, ChevronDown } from 'lucide-react';
+import { Loader2, ArrowLeft, Crop, RotateCw, Send, Type, Brush, X, Check, Smile, AlignLeft, AlignCenter, AlignRight, ChevronUp, ChevronDown } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import Image from 'next/image';
 import ReactCrop, { type Crop as CropType, centerCrop, makeAspectCrop } from 'react-image-crop';
@@ -373,41 +373,39 @@ function EditorComponent() {
                                 autoFocus
                             />
                          </motion.div>
-                         <footer className="absolute bottom-4 left-4 right-4 flex justify-center">
-                            <div className="relative">
-                                <div className="flex items-center justify-center gap-2 bg-black/30 p-2 rounded-full w-max mx-auto">
-                                    {fontStyles.slice(0, 5).map((font) => (
-                                        <Button
-                                            key={font.class}
-                                            variant="ghost"
-                                            size="sm"
-                                            onClick={() => {
-                                                setFontFamily(font.class);
-                                                setFontListExpanded(false);
-                                            }}
-                                            className={cn("rounded-full text-white shrink-0", font.class, fontFamily === font.class && "bg-white text-black")}
-                                        >
-                                            {font.label}
-                                        </Button>
-                                    ))}
-                                    <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        className="rounded-full"
-                                        onClick={() => setFontListExpanded(!fontListExpanded)}
+                         <motion.footer 
+                            className="absolute bottom-4 left-4 right-4"
+                            variants={{
+                                collapsed: { height: "auto" },
+                                expanded: { height: 250 },
+                            }}
+                            initial="collapsed"
+                            animate={fontListExpanded ? "expanded" : "collapsed"}
+                            transition={{ type: "spring", stiffness: 400, damping: 40 }}
+                        >
+                            <div className={cn(
+                                "relative bg-black/30 backdrop-blur-md rounded-2xl border border-white/10 transition-all",
+                                fontListExpanded && "p-2"
+                            )}>
+                                <AnimatePresence mode="wait">
+                                {fontListExpanded ? (
+                                    <motion.div 
+                                        key="expanded-list"
+                                        initial={{ opacity: 0 }}
+                                        animate={{ opacity: 1 }}
+                                        exit={{ opacity: 0 }}
                                     >
-                                        <ChevronDown className={cn("h-5 w-5 text-white transition-transform", fontListExpanded && "rotate-180")} />
-                                    </Button>
-                                </div>
-                                <AnimatePresence>
-                                {fontListExpanded && (
-                                    <motion.div
-                                        initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                                        animate={{ opacity: 1, y: 0, scale: 1 }}
-                                        exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                                        className="absolute bottom-full mb-2 w-full max-w-sm"
-                                    >
-                                        <ScrollArea className="h-[200px] bg-black/50 backdrop-blur-md rounded-xl p-2 border border-white/10">
+                                        <div className="flex justify-end mb-2">
+                                             <Button
+                                                variant="ghost"
+                                                size="icon"
+                                                className="rounded-full"
+                                                onClick={() => setFontListExpanded(false)}
+                                            >
+                                                <ChevronDown className="h-5 w-5 text-white" />
+                                            </Button>
+                                        </div>
+                                        <ScrollArea className="h-[180px] pr-2">
                                             {fontStyles.map((font) => (
                                                 <Button
                                                     key={`list-${font.class}`}
@@ -423,10 +421,38 @@ function EditorComponent() {
                                             ))}
                                         </ScrollArea>
                                     </motion.div>
+                                ) : (
+                                    <motion.div 
+                                        key="collapsed-list"
+                                        className="flex items-center justify-center gap-2 p-2"
+                                        initial={{ opacity: 0 }}
+                                        animate={{ opacity: 1 }}
+                                        exit={{ opacity: 0 }}
+                                    >
+                                        {fontStyles.slice(0, 5).map((font) => (
+                                            <Button
+                                                key={font.class}
+                                                variant="ghost"
+                                                size="sm"
+                                                onClick={() => setFontFamily(font.class)}
+                                                className={cn("rounded-full text-white shrink-0", font.class, fontFamily === font.class && "bg-white text-black")}
+                                            >
+                                                {font.label}
+                                            </Button>
+                                        ))}
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            className="rounded-full"
+                                            onClick={() => setFontListExpanded(true)}
+                                        >
+                                            <ChevronUp className="h-5 w-5 text-white" />
+                                        </Button>
+                                    </motion.div>
                                 )}
                                 </AnimatePresence>
                             </div>
-                        </footer>
+                        </motion.footer>
                     </motion.div>
                 )}
             </AnimatePresence>
