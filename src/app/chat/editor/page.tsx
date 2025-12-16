@@ -1,7 +1,7 @@
 
 'use client';
 
-import React, { useState, useRef, useEffect, Suspense } from 'react';
+import React, { useState, useRef, useEffect, Suspense, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Loader2, ArrowLeft, Crop, RotateCw, Send, Type, Brush, X, Check, Smile, AlignLeft, AlignCenter, AlignRight, ChevronUp, ChevronDown } from 'lucide-react';
@@ -60,6 +60,44 @@ const fontStyles = [
 ];
 
 
+const ColorSlider = ({ onColorChange }: { onColorChange: (color: string) => void }) => {
+    const sliderRef = useRef<HTMLDivElement>(null);
+
+    const handleInteraction = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
+        if (!sliderRef.current) return;
+        const rect = sliderRef.current.getBoundingClientRect();
+        const y = e.clientY - rect.top;
+        const hue = (y / rect.height) * 360;
+        onColorChange(`hsl(${hue}, 100%, 50%)`);
+    }, [onColorChange]);
+
+    const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+        handleInteraction(e);
+        sliderRef.current?.setPointerCapture(e.pointerId);
+    };
+
+    const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+        if (e.buttons > 0) {
+            handleInteraction(e);
+        }
+    };
+
+    const handlePointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
+        sliderRef.current?.releasePointerCapture(e.pointerId);
+    };
+
+    return (
+        <div 
+            ref={sliderRef}
+            onPointerDown={handlePointerDown}
+            onPointerMove={handlePointerMove}
+            onPointerUp={handlePointerUp}
+            className="absolute right-4 top-1/2 -translate-y-1/2 h-48 w-6 rounded-full cursor-pointer border border-white/20"
+            style={{ background: 'linear-gradient(to bottom, red, yellow, lime, cyan, blue, magenta, red)' }}
+        />
+    );
+};
+
 
 function EditorComponent() {
     const router = useRouter();
@@ -85,6 +123,7 @@ function EditorComponent() {
     const [textStyle, setTextStyle] = useState<'none' | 'solid' | 'outline'>('none');
     const [fontFamily, setFontFamily] = useState('font-sans');
     const [fontListExpanded, setFontListExpanded] = useState(false);
+    const [textColor, setTextColor] = useState('#FFFFFF');
 
 
     useEffect(() => {
@@ -203,7 +242,11 @@ function EditorComponent() {
         setTimeout(async () => {
             if (imageContainerRef.current) {
                 try {
-                    const dataUrl = await htmlToImage.toPng(imageContainerRef.current);
+                    const dataUrl = await htmlToImage.toPng(imageContainerRef.current, {
+                        style: {
+                           fontFamily: getComputedStyle(document.body).getPropertyValue('--font-family-sans'),
+                        }
+                    });
                     setMediaSrc(dataUrl);
                 } catch (error) {
                     console.error('oops, something went wrong!', error);
@@ -331,7 +374,7 @@ function EditorComponent() {
                         )}>
                             <span 
                                 className={cn(
-                                    "text-white text-4xl font-bold whitespace-pre-wrap",
+                                    "text-4xl font-bold whitespace-pre-wrap",
                                     fontFamily,
                                     textStyle === 'solid' && 'bg-black/70 px-2 py-1 rounded-md',
                                     textStyle === 'outline' && 'text-stroke-2 text-stroke-black',
@@ -339,7 +382,10 @@ function EditorComponent() {
                                     textAlign === 'left' && 'text-left',
                                     textAlign === 'right' && 'text-right',
                                 )}
-                                style={{textShadow: textStyle === 'none' ? '2px 2px 4px rgba(0,0,0,0.7)' : 'none' }}
+                                style={{
+                                    color: textColor,
+                                    textShadow: textStyle === 'none' ? '2px 2px 4px rgba(0,0,0,0.7)' : 'none' 
+                                }}
                             >
                                 {overlayText}
                             </span>
@@ -385,16 +431,18 @@ function EditorComponent() {
                                 onChange={(e) => setTextInputValue(e.target.value)}
                                 placeholder="Votre texte..."
                                 className={cn(
-                                    "w-full bg-transparent border-none text-3xl md:text-5xl font-bold text-white placeholder:text-white/50 focus-visible:ring-0 resize-none",
+                                    "w-full bg-transparent border-none text-3xl md:text-5xl font-bold placeholder:text-white/50 focus-visible:ring-0 resize-none",
                                     fontFamily,
                                     textStyle === 'outline' && 'text-stroke-2 text-stroke-black',
                                     textAlign === 'center' && 'text-center',
                                     textAlign === 'left' && 'text-left',
                                     textAlign === 'right' && 'text-right'
                                 )}
+                                style={{ color: textColor }}
                                 autoFocus
                             />
                          </motion.div>
+                         <ColorSlider onColorChange={setTextColor} />
                         <motion.footer
                             layout
                             className="absolute bottom-4 left-4 right-4 bg-black/30 backdrop-blur-md rounded-2xl border border-white/10"
