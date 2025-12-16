@@ -449,7 +449,7 @@ function EditorComponent() {
                                 <Button variant="ghost" size="icon" onClick={() => setIsCropping(false)} className="h-10 w-10 rounded-full bg-black/30 hover:bg-black/50">
                                     <X />
                                 </Button>
-                                <Button onClick={handleConfirmCrop} disabled={isProcessingCrop}>
+                                <Button size="sm" onClick={handleConfirmCrop} disabled={isProcessingCrop}>
                                     {isProcessingCrop ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Check className="w-4 h-4 mr-2" />}
                                     Confirmer
                                 </Button>
@@ -492,7 +492,7 @@ function EditorComponent() {
                         </header>
                          <ColorSlider onColorChange={(color) => { setDrawMode('draw'); setDrawColor(color); }} />
                           <motion.div 
-                            className="absolute bottom-4 left-1/2 -translate-x-1/2 w-fit bg-black/30 backdrop-blur-md rounded-full border border-white/10 p-2 flex items-center gap-2"
+                            className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/30 backdrop-blur-md rounded-full border border-white/10 p-2 flex items-center gap-2"
                             initial={{ y: 50, opacity: 0 }}
                             animate={{ y: 0, opacity: 1 }}
                             exit={{ y: 50, opacity: 0 }}
