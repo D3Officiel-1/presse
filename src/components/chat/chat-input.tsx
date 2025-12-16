@@ -76,7 +76,7 @@ const superscriptMap: { [key: string]: string } = {
     'y': '6', 'u': '7', 'i': '8', 'o': '9', 'p': '0'
 };
 
-const CustomKeyboard = ({ message, onMessageChange, onKeyPress, onBackspace, onEnter, onSpace, onEmojiToggle }: { message: string, onMessageChange: (value: string) => void, onKeyPress: (key: string) => void, onBackspace: () => void, onEnter: () => void, onSpace: () => void, onEmojiToggle: () => void }) => {
+const CustomKeyboard = ({ onKeyPress, onBackspace, onEnter, onSpace, onEmojiToggle }: { onKeyPress: (key: string) => void, onBackspace: () => void, onEnter: () => void, onSpace: () => void, onEmojiToggle: () => void }) => {
     const [layout, setLayout] = useState<'letters' | 'numbers'>('letters');
     const [isShift, setIsShift] = useState(false);
 
@@ -89,16 +89,6 @@ const CustomKeyboard = ({ message, onMessageChange, onKeyPress, onBackspace, onE
 
     return (
         <div className="w-full bg-black/50 backdrop-blur-sm p-2 space-y-1">
-            <div className="p-2 border-b border-border/50">
-                <TextareaAutosize
-                    value={message}
-                    onChange={(e) => onMessageChange(e.target.value)}
-                    placeholder="Écrivez votre message..."
-                    maxRows={3}
-                    className="w-full resize-none bg-transparent border-0 focus:ring-0 focus:outline-none text-base placeholder:text-muted-foreground px-2 py-2"
-                    autoFocus
-                />
-            </div>
              <div className="flex justify-around items-center p-1 bg-black/30 rounded-full mb-2 text-muted-foreground">
                 <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full"><Grip /></Button>
                 <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full"><StickyNote /></Button>
@@ -318,81 +308,63 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
     : [];
 
   const mainInputSection = (
-    <AnimatePresence>
-        {view === 'closed' && (
-            <motion.div
-                key="input"
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0, transition: { duration: 0.2, delay: 0.2 } }}
-                exit={{ opacity: 0, y: 10, transition: { duration: 0.2 } }}
-            >
-                <div className="flex items-end gap-1 p-2">
-                    <Button variant="ghost" size="icon" className="h-10 w-10 shrink-0 text-muted-foreground" onClick={() => toggleView('attachments')}>
-                    <Paperclip className="w-5 h-5" />
-                    </Button>
-                    <div className="flex-1 relative">
-                        <TextareaAutosize
-                        value={message}
-                        onChange={(e) => handleInputChange(e.target.value)}
-                        placeholder="Message"
-                        maxRows={5}
-                        className="w-full resize-none bg-transparent border-0 focus:ring-0 focus:outline-none text-base placeholder:text-muted-foreground px-2 py-2"
-                        />
-                    </div>
-                    <Button variant="ghost" size="icon" className="h-10 w-10 shrink-0 text-muted-foreground" onClick={() => toggleView('emoji')}>
-                    <Smile className="w-5 h-5" />
-                    </Button>
-                    <Button variant="ghost" size="icon" className="h-10 w-10 shrink-0 text-muted-foreground" onClick={() => toggleView('keyboard')}>
-                        <Keyboard className="w-5 h-5" />
-                    </Button>
-                    <div className="relative h-10 w-10 shrink-0">
-                    <AnimatePresence>
-                        {message ? (
-                        <motion.div
-                            key="send"
-                            initial={{ scale: 0, rotate: -90 }}
-                            animate={{ scale: 1, rotate: 0 }}
-                            exit={{ scale: 0, rotate: 90 }}
-                            className="absolute inset-0"
-                        >
-                            <Button size="icon" className="h-10 w-10 rounded-full bg-primary text-primary-foreground" onClick={handleSend}>
-                            <Send className="w-5 h-5" />
-                            </Button>
-                        </motion.div>
-                        ) : (
-                        <motion.div
-                            key="mic"
-                            initial={{ scale: 0, rotate: 90 }}
-                            animate={{ scale: 1, rotate: 0 }}
-                            exit={{ scale: 0, rotate: -90 }}
-                            className="absolute inset-0"
-                        >
-                            <Button
-                                size="icon"
-                                variant="ghost"
-                                className="h-10 w-10 rounded-full text-muted-foreground"
-                            >
-                            <Mic className="w-5 h-5" />
-                            </Button>
-                        </motion.div>
-                        )}
-                    </AnimatePresence>
-                    </div>
-                </div>
-            </motion.div>
-        )}
-    </AnimatePresence>
+      <div className="flex items-end gap-1 p-2">
+        <Button variant="ghost" size="icon" className="h-10 w-10 shrink-0 text-muted-foreground" onClick={() => toggleView('attachments')}>
+          <Paperclip className="w-5 h-5" />
+        </Button>
+        <div className="flex-1 relative">
+          <TextareaAutosize
+            value={message}
+            onChange={(e) => handleInputChange(e.target.value)}
+            placeholder="Message"
+            maxRows={5}
+            className="w-full resize-none bg-transparent border-0 focus:ring-0 focus:outline-none text-base placeholder:text-muted-foreground px-2 py-2"
+          />
+        </div>
+        <Button variant="ghost" size="icon" className="h-10 w-10 shrink-0 text-muted-foreground" onClick={() => toggleView('emoji')}>
+          <Smile className="w-5 h-5" />
+        </Button>
+        <Button variant="ghost" size="icon" className="h-10 w-10 shrink-0 text-muted-foreground" onClick={() => toggleView('keyboard')}>
+          <Keyboard className="w-5 h-5" />
+        </Button>
+        <div className="relative h-10 w-10 shrink-0">
+          <AnimatePresence>
+            {message ? (
+              <motion.div
+                key="send"
+                initial={{ scale: 0, rotate: -90 }}
+                animate={{ scale: 1, rotate: 0 }}
+                exit={{ scale: 0, rotate: 90 }}
+                className="absolute inset-0"
+              >
+                <Button size="icon" className="h-10 w-10 rounded-full bg-primary text-primary-foreground" onClick={handleSend}>
+                  <Send className="w-5 h-5" />
+                </Button>
+              </motion.div>
+            ) : (
+              <motion.div
+                key="mic"
+                initial={{ scale: 0, rotate: 90 }}
+                animate={{ scale: 1, rotate: 0 }}
+                exit={{ scale: 0, rotate: -90 }}
+                className="absolute inset-0"
+              >
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  className="h-10 w-10 rounded-full text-muted-foreground"
+                >
+                  <Mic className="w-5 h-5" />
+                </Button>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+      </div>
   );
 
   return (
-    <div className="relative p-4 pt-2">
-      <input 
-        type="file" 
-        ref={fileInputRef}
-        className="hidden"
-        accept="image/*,video/*"
-        onChange={onFileSelect}
-      />
+    <div className={cn("p-4 pt-2", view !== 'closed' ? 'pb-0' : '')}>
       <AnimatePresence>
         {replyInfo && (
           <motion.div
@@ -415,15 +387,27 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
         )}
       </AnimatePresence>
 
-      <motion.div
-        layout
-        transition={{ type: 'spring', stiffness: 500, damping: 40 }}
+      <div
         className={cn(
             "relative bg-background/50 backdrop-blur-sm rounded-3xl shadow-lg border flex flex-col",
-            replyInfo ? 'rounded-t-none' : ''
+            replyInfo ? 'rounded-t-none' : '',
+            view === 'closed' ? 'overflow-hidden' : ''
         )}
       >
-        {mainInputSection}
+        {view !== 'closed' && (
+            <div className='p-4'>
+                <div
+                    className={cn(
+                        "relative bg-background/50 backdrop-blur-sm rounded-3xl shadow-lg border flex flex-col",
+                        replyInfo ? 'rounded-t-none' : ''
+                    )}
+                >
+                    {mainInputSection}
+                </div>
+            </div>
+        )}
+
+        {view === 'closed' && mainInputSection}
         
         <AnimatePresence>
             {view === 'keyboard' && (
@@ -436,8 +420,6 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
                     transition={{ type: 'spring', stiffness: 400, damping: 40 }}
                 >
                     <CustomKeyboard 
-                      message={message}
-                      onMessageChange={handleInputChange}
                       onKeyPress={(key) => handleInputChange(message + key)}
                       onBackspace={handleBackspace}
                       onEnter={handleSend}
@@ -450,7 +432,7 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
             )}
         </AnimatePresence>
 
-      </motion.div>
+      </div>
     </div>
   );
 }
