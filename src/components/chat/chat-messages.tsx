@@ -559,7 +559,7 @@ const MessageFocusView = ({
         
         <div className="w-full max-w-xs space-y-3 mt-6">
             <h2 className="text-xl font-bold text-center text-white">Supprimer le message ?</h2>
-            {isOwnMessage && timeSinceSent < 10 && (
+            {(isOwnMessage || (chatContext.isAdmin && isCommunity)) && (
                 <Button variant="destructive" className="w-full h-14 text-base" onClick={() => { onDeleteForEveryone(); onClose(); }}>
                     <AlertTriangle className="mr-2"/>
                     Supprimer pour tous
@@ -705,6 +705,7 @@ export function ChatMessages({
 
   const handleOpenContextMenu = (e: React.MouseEvent | React.TouchEvent, message: Message) => {
     e.preventDefault();
+    if (message.content === 'Ce message a été supprimé') return;
     setSelectedMessage(message);
   };
   
@@ -927,3 +928,5 @@ export function ChatMessages({
     </ChatContext.Provider>
   );
 }
+
+    
