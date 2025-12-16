@@ -250,14 +250,19 @@ function EditorComponent() {
     
     const handleAddText = () => {
         if (textInputValue.trim() === '') {
-             setIsAddingText(false);
-             setTextInputValue('');
-             return;
-        };
-        
-        setOverlayText(textInputValue);
+             setOverlayText(null);
+        } else {
+             setOverlayText(textInputValue);
+        }
         setIsAddingText(false);
         setTextInputValue('');
+    };
+
+    const handleTextDoubleClick = () => {
+        if (overlayText) {
+            setTextInputValue(overlayText);
+            setIsAddingText(true);
+        }
     };
 
     const toggleTextAlign = () => {
@@ -292,7 +297,7 @@ function EditorComponent() {
             setOverlayText(null);
             toast({ description: "Texte supprimé." });
         } else {
-            setTextPosition({ x: info.point.x, y: info.point.y });
+            // No need to update textPosition state here as framer-motion handles it
         }
     };
 
@@ -318,7 +323,7 @@ function EditorComponent() {
         <div className="relative flex flex-col h-screen w-full bg-black text-white overflow-hidden">
             {/* Header */}
             <AnimatePresence>
-                {!isDraggingText && (
+                {!isDraggingText && !isAddingText && (
                     <motion.header 
                         initial={{ opacity: 0, y: -20 }}
                         animate={{ opacity: 1, y: 0 }}
@@ -355,20 +360,20 @@ function EditorComponent() {
             </AnimatePresence>
             
             {/* Delete Zone */}
-             <div ref={deleteZoneRef} className="absolute top-4 left-4 z-20">
-                <AnimatePresence>
-                {isDraggingText && (
-                    <motion.div
-                        initial={{ opacity: 0, scale: 0.8 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        exit={{ opacity: 0, scale: 0.8 }}
-                        className="h-14 w-14 rounded-full bg-destructive/50 flex items-center justify-center border-2 border-destructive"
-                    >
-                        <Trash2 className="w-6 h-6 text-white" />
-                    </motion.div>
-                )}
-                </AnimatePresence>
-            </div>
+            <AnimatePresence>
+            {isDraggingText && (
+                <motion.div
+                    ref={deleteZoneRef}
+                    initial={{ opacity: 0, scale: 0.8, y: 50 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.8, y: 50 }}
+                    className="absolute bottom-6 left-1/2 -translate-x-1/2 z-20 h-16 w-16 rounded-full bg-destructive/80 flex items-center justify-center border-2 border-destructive"
+                >
+                    <Trash2 className="w-7 h-7 text-white" />
+                </motion.div>
+            )}
+            </AnimatePresence>
+            
 
             {/* Media Preview */}
             <div ref={dragConstraintsRef} className="flex-1 flex items-center justify-center p-16 overflow-hidden">
@@ -411,27 +416,24 @@ function EditorComponent() {
                         <motion.div
                             className="absolute cursor-move p-4"
                             style={{
-                                top: `${textPosition.y}px`,
-                                left: `${textPosition.x}px`,
+                                color: textColor,
+                                textShadow: textStyle === 'none' ? '2px 2px 4px rgba(0,0,0,0.7)' : 'none' 
                             }}
                             drag
                             dragConstraints={dragConstraintsRef}
                             dragMomentum={false}
                             onDragStart={() => setIsDraggingText(true)}
                             onDragEnd={onTextDragEnd}
+                            onDoubleClick={handleTextDoubleClick}
                         >
                             <span 
                                 className={cn(
-                                    "text-4xl font-bold whitespace-pre-wrap pointer-events-none",
+                                    "text-4xl font-bold whitespace-pre-wrap pointer-events-none select-none",
                                     fontFamily,
                                     textStyle === 'solid' && 'bg-black/70 px-2 py-1 rounded-md',
                                     textStyle === 'outline' && 'text-stroke-2 text-stroke-black',
                                     `text-${textAlign}`,
                                 )}
-                                style={{
-                                    color: textColor,
-                                    textShadow: textStyle === 'none' ? '2px 2px 4px rgba(0,0,0,0.7)' : 'none' 
-                                }}
                             >
                                 {overlayText}
                             </span>
@@ -479,10 +481,12 @@ function EditorComponent() {
                                 className={cn(
                                     "w-full bg-transparent border-none text-3xl md:text-5xl font-bold placeholder:text-white/50 focus-visible:ring-0 resize-none",
                                     fontFamily,
-                                    textStyle === 'outline' && 'text-stroke-2 text-stroke-black',
                                     `text-${textAlign}`,
                                 )}
-                                style={{ color: textColor }}
+                                style={{
+                                    color: textColor,
+                                    textShadow: textStyle === 'none' ? '2px 2px 4px rgba(0,0,0,0.7)' : 'none' ,
+                                }}
                                 autoFocus
                             />
                          </motion.div>
@@ -578,7 +582,7 @@ function EditorComponent() {
 
             {/* Footer */}
             <AnimatePresence>
-                {!isDraggingText && (
+                {!isDraggingText && !isAddingText && (
                     <motion.footer
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
