@@ -3,7 +3,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Paperclip, Mic, Send, X, Smile, Image as ImageIcon, Camera, MapPin, User, FileText, Music, Vote, Calendar, Keyboard, Sprout, Pizza, ToyBrick, Dumbbell, Film, FileImage, UserCircle, Clock, Search, Delete, ArrowUp, CornerDownLeft } from 'lucide-react';
+import { Paperclip, Mic, Send, X, Smile, Image as ImageIcon, Camera, MapPin, User, FileText, Music, Vote, Calendar, Keyboard, Sprout, Pizza, ToyBrick, Dumbbell, Film, FileImage, UserCircle, Clock, Search, Delete, ArrowUp, CornerDownLeft, Grip, StickyNote, Clipboard, Settings, Palette } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import type { ReplyInfo } from './chat-messages';
 import type { Chat as ChatType } from '@/lib/types';
@@ -67,7 +67,7 @@ const azertyLayout = {
     numbers: [
         ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0'],
         ['@', '#', '€', '_', '&', '-', '+', '(', ')', '/'],
-        ['*', '"', ':', ';', '!', '?']
+        ['*', '"', "'", ':', ';', '!', '?']
     ]
 };
 
@@ -76,7 +76,7 @@ const superscriptMap: { [key: string]: string } = {
     'y': '6', 'u': '7', 'i': '8', 'o': '9', 'p': '0'
 };
 
-const CustomKeyboard = ({ onKeyPress, onBackspace, onEnter, onSpace, onEmojiToggle }: { onKeyPress: (key: string) => void, onBackspace: () => void, onEnter: () => void, onSpace: () => void, onEmojiToggle: () => void }) => {
+const CustomKeyboard = ({ message, onMessageChange, onKeyPress, onBackspace, onEnter, onSpace, onEmojiToggle }: { message: string, onMessageChange: (value: string) => void, onKeyPress: (key: string) => void, onBackspace: () => void, onEnter: () => void, onSpace: () => void, onEmojiToggle: () => void }) => {
     const [layout, setLayout] = useState<'letters' | 'numbers'>('letters');
     const [isShift, setIsShift] = useState(false);
 
@@ -89,6 +89,25 @@ const CustomKeyboard = ({ onKeyPress, onBackspace, onEnter, onSpace, onEmojiTogg
 
     return (
         <div className="w-full bg-black/50 backdrop-blur-sm p-2 space-y-1">
+             <div className="flex justify-around items-center p-1 bg-black/30 rounded-full mb-2 text-muted-foreground">
+                <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full"><Grip /></Button>
+                <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full"><StickyNote /></Button>
+                <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full"><Clipboard /></Button>
+                <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full"><span className="font-bold text-lg">G</span></Button>
+                <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full"><Settings /></Button>
+                <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full"><Palette /></Button>
+                <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full"><Mic /></Button>
+            </div>
+            <div className="p-2 border-b border-border/50">
+                <TextareaAutosize
+                    value={message}
+                    onChange={(e) => onMessageChange(e.target.value)}
+                    placeholder="Écrivez votre message..."
+                    maxRows={3}
+                    className="w-full resize-none bg-transparent border-0 focus:ring-0 focus:outline-none text-base placeholder:text-muted-foreground px-2 py-2"
+                    autoFocus
+                />
+            </div>
             {currentLayout.map((row, rowIndex) => (
                 <div key={rowIndex} className="flex justify-center gap-1">
                     {rowIndex === 2 && layout === 'letters' && (
@@ -104,6 +123,9 @@ const CustomKeyboard = ({ onKeyPress, onBackspace, onEnter, onSpace, onEmojiTogg
                             )}
                         </Button>
                     ))}
+                     {rowIndex === 2 && layout === 'letters' && (
+                        <Button onClick={() => handleKeyPress("'")} className="h-10 w-12">'</Button>
+                    )}
                     {rowIndex === 2 && layout === 'letters' && (
                         <Button onClick={onBackspace} className="h-10 w-12">
                             <Delete />
@@ -120,7 +142,7 @@ const CustomKeyboard = ({ onKeyPress, onBackspace, onEnter, onSpace, onEmojiTogg
                 <Button onClick={() => setLayout(layout === 'letters' ? 'numbers' : 'letters')} className="h-10 w-16">
                     {layout === 'letters' ? '?123' : 'ABC'}
                 </Button>
-                <Button onClick={() => handleKeyPress(',')} className="h-10 w-12">,</Button>
+                 <Button onClick={() => handleKeyPress(',')} className="h-10 w-12">,</Button>
                 <Button onClick={onEmojiToggle} className="h-10 w-16">😊</Button>
                 <Button onClick={onSpace} className="h-10 flex-1">
                     Espace
@@ -297,9 +319,11 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
 
   const mainInputSection = (
     <AnimatePresence>
-        {view !== 'keyboard' && (
+        {view === 'closed' && (
             <motion.div
                 key="input"
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0, transition: { duration: 0.2, delay: 0.2 } }}
                 exit={{ opacity: 0, y: 10, transition: { duration: 0.2 } }}
             >
                 <div className="flex items-end gap-1 p-2">
@@ -411,17 +435,9 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
                     exit={{ y: "100%", opacity: 0, transition: { duration: 0.3, ease: 'easeOut' } }}
                     transition={{ type: 'spring', stiffness: 400, damping: 40 }}
                 >
-                     <div className="p-2 border-b border-border/50">
-                        <TextareaAutosize
-                            value={message}
-                            onChange={(e) => handleInputChange(e.target.value)}
-                            placeholder="Écrivez votre message..."
-                            maxRows={3}
-                            className="w-full resize-none bg-transparent border-0 focus:ring-0 focus:outline-none text-base placeholder:text-muted-foreground px-2 py-2"
-                            autoFocus
-                        />
-                    </div>
                     <CustomKeyboard 
+                      message={message}
+                      onMessageChange={handleInputChange}
                       onKeyPress={(key) => handleInputChange(message + key)}
                       onBackspace={handleBackspace}
                       onEnter={handleSend}
@@ -438,5 +454,3 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
     </div>
   );
 }
-
-    
