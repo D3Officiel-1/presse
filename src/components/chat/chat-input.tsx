@@ -389,41 +389,51 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
 
       <AnimatePresence>
         {view === 'keyboard' && (
-          <motion.div
-            className='p-4 pt-2'
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 20 }}
-            transition={{ duration: 0.2 }}
-          >
-              {mainInputSection}
+          <motion.div>
+            {mainInputSection}
+            <motion.div
+                key="keyboard"
+                className="w-full"
+                initial={{ y: "100%", opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                exit={{ y: "100%", opacity: 0, transition: { duration: 0.3, ease: 'easeOut' } }}
+                transition={{ type: 'spring', stiffness: 400, damping: 40 }}
+            >
+                <CustomKeyboard 
+                  onKeyPress={(key) => handleInputChange(message + key)}
+                  onBackspace={handleBackspace}
+                  onEnter={handleSend}
+                  onSpace={() => handleInputChange(message + ' ')}
+                  onEmojiToggle={() => {
+                    setView('emoji');
+                  }}
+                />
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
 
-      <div className={cn(view === 'closed' && 'p-4 pt-2')}>
-        <AnimatePresence>
-            {view === 'closed' && (
-                <motion.div
-                    key="main-input-wrapper-closed"
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: 20 }}
-                    transition={{ duration: 0.2 }}
-                >
-                    <div
-                        className={cn(
-                            "relative bg-background/50 backdrop-blur-sm rounded-3xl shadow-lg border flex flex-col",
-                            replyInfo ? 'rounded-t-none' : ''
-                        )}
-                    >
-                        {mainInputSection}
-                    </div>
-                </motion.div>
-            )}
-        </AnimatePresence>
-      </div>
-
+      <AnimatePresence>
+          {view === 'closed' && (
+              <motion.div
+                  key="main-input-wrapper-closed"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 20 }}
+                  transition={{ duration: 0.2 }}
+                  className="p-4 pt-2"
+              >
+                  <div
+                      className={cn(
+                          "relative bg-background/50 backdrop-blur-sm rounded-3xl shadow-lg border flex flex-col",
+                          replyInfo ? 'rounded-t-none' : ''
+                      )}
+                  >
+                      {mainInputSection}
+                  </div>
+              </motion.div>
+          )}
+      </AnimatePresence>
         
         <AnimatePresence>
             {view === 'keyboard' && (
