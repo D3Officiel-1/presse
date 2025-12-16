@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState, useEffect, useRef, useMemo, Suspense } from 'react';
@@ -205,7 +206,6 @@ function ChatPageContent() {
         if (!firestore || !currentUser) return;
 
         const sender = usersData[message.senderId] || { name: 'Quelqu\'un' };
-        const forwardedContent = `Message transféré de ${sender.name}:\n${message.content}`;
 
         userIds.forEach(async (userId) => {
             // Find existing private chat
@@ -217,6 +217,7 @@ function ChatPageContent() {
             const chatSnap = await getDocs(chatQuery);
 
             let targetChatId: string;
+            let targetChatData: ChatType | null = null;
 
             if (chatSnap.empty) {
                 // Create new chat if it doesn't exist
@@ -230,6 +231,7 @@ function ChatPageContent() {
                 targetChatId = newChatDoc.id;
             } else {
                 targetChatId = chatSnap.docs[0].id;
+                targetChatData = chatSnap.docs[0].data() as ChatType;
             }
 
             // Send the message
@@ -241,7 +243,7 @@ function ChatPageContent() {
                 type: message.type,
                 timestamp: serverTimestamp(),
                 readBy: [currentUser.uid],
-                // Optional: add a marker that this is a forwarded message
+                // Add a marker that this is a forwarded message
                 forwardedFrom: {
                     senderName: sender.name,
                     chatId: message.chatId
@@ -253,7 +255,7 @@ function ChatPageContent() {
             await updateDoc(chatRef, {
                 lastMessage: { content: message.content, type: message.type, senderId: currentUser.uid },
                 lastMessageTimestamp: serverTimestamp(),
-                [`unreadCounts.${userId}`]: (chatSnap.docs[0]?.data().unreadCounts?.[userId] || 0) + 1,
+                [`unreadCounts.${userId}`]: (targetChatData?.unreadCounts?.[userId] || 0) + 1,
             });
         });
 

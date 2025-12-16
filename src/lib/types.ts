@@ -45,6 +45,10 @@ export type Message = {
     description?: string;
   };
   editedAt?: Timestamp;
+  forwardedFrom?: {
+    senderName: string;
+    chatId: string;
+  };
 };
 
 export type Chat = {

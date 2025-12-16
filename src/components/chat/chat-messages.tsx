@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
@@ -23,6 +24,7 @@ import {
   Edit,
   X,
   Send,
+  CornerUpLeft,
 } from 'lucide-react';
 import { ChatMessageStatus } from './chat-message-status';
 import { useToast } from '@/hooks/use-toast';
@@ -307,6 +309,12 @@ const ChatMessage = ({
             </div>
         ) : (
             <>
+                {message.forwardedFrom && (
+                    <div className="flex items-center gap-1.5 text-xs opacity-70 mb-1.5">
+                        <CornerUpLeft className="w-3 h-3" />
+                        <span>Transféré de {message.forwardedFrom.senderName}</span>
+                    </div>
+                )}
                 {message.replyTo?.messageId && (
                     <div 
                       className="border-l-2 border-primary/50 pl-2 text-xs opacity-80 mb-1.5 cursor-pointer"
