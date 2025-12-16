@@ -652,7 +652,15 @@ function EditorComponent() {
                                 )}
                                 style={{
                                     color: textColor,
-                                    textShadow: textStyle === 'none' ? '2px 2px 4px rgba(0,0,0,0.7)' : 'none' ,
+                                    textShadow: textStyle === 'none' ? '2px 2px 4px rgba(0,0,0,0.7)' : (textStyle === 'outline' ? `
+                                        -2px -2px 0 #000,  
+                                         2px -2px 0 #000,
+                                        -2px  2px 0 #000,
+                                         2px  2px 0 #000
+                                    ` : 'none'),
+                                    backgroundColor: textStyle === 'solid' ? 'rgba(0,0,0,0.7)' : 'transparent',
+                                    padding: textStyle === 'solid' ? '0.5rem' : '0',
+                                    borderRadius: textStyle === 'solid' ? '0.5rem' : '0',
                                 }}
                                 autoFocus
                             />
