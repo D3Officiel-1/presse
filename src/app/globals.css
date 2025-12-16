@@ -68,19 +68,13 @@ body {
   }
   
   .day-present:not(.day-outside) {
-    @apply relative;
+    background-color: hsl(var(--primary) / 0.1);
+    border: 1px solid hsl(var(--primary) / 0.2);
   }
-  .day-present:not(.day-outside)::after {
-    content: '';
-    @apply absolute bottom-1.5 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-green-500;
-  }
-  
+
   .day-absent:not(.day-outside) {
-    @apply relative;
-  }
-  .day-absent:not(.day-outside)::after {
-    content: '';
-    @apply absolute bottom-1.5 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-red-500;
+    background-color: hsl(var(--destructive) / 0.1);
+    border: 1px solid hsl(var(--destructive) / 0.2);
   }
 }
 

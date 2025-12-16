@@ -6,12 +6,13 @@ import { useParams, useRouter } from 'next/navigation';
 import { useFirestore } from '@/firebase/provider';
 import { collection, doc, getDoc, onSnapshot, query, orderBy } from 'firebase/firestore';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Calendar, CheckCircle, XCircle, Loader2 } from 'lucide-react';
+import { ArrowLeft, Calendar, CheckCircle, XCircle, Loader2, User, Activity, BarChart3, TrendingUp, TrendingDown } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import { format } from 'date-fns';
+import { format, startOfMonth, endOfMonth, eachDayOfInterval } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface PresenceRecord {
     id: string;
@@ -24,6 +25,7 @@ interface PresenceRecord {
 interface UserData {
     name: string;
     avatar: string;
+    class: string;
 }
 
 export default function HistoryPage() {
@@ -35,33 +37,30 @@ export default function HistoryPage() {
     const [user, setUser] = useState<UserData | null>(null);
     const [presenceRecords, setPresenceRecords] = useState<PresenceRecord[]>([]);
     const [loading, setLoading] = useState(true);
-    const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
+    const [currentMonth, setCurrentMonth] = useState(new Date());
+
+    const presentDays = presenceRecords.filter(r => r.status === 'present').map(r => r.timestamp.toDate());
+    const absentDays = presenceRecords.filter(r => r.status === 'absent').map(r => r.timestamp.toDate());
     
-    const presentDays = presenceRecords
-        .filter(r => r.status === 'present')
-        .map(r => r.timestamp.toDate());
-        
-    const absentDays = presenceRecords
-        .filter(r => r.status === 'absent')
-        .map(r => r.timestamp.toDate());
+    const totalPresent = presentDays.length;
+    const totalAbsent = absentDays.length;
 
     useEffect(() => {
         if (!userId || !firestore) return;
 
-        // Fetch user data
         const userRef = doc(firestore, 'users', userId);
-        getDoc(userRef).then(docSnap => {
+        const unsubscribeUser = onSnapshot(userRef, (docSnap) => {
             if (docSnap.exists()) {
                 setUser(docSnap.data() as UserData);
             } else {
                 console.error("No such user!");
+                setLoading(false);
             }
         });
 
-        // Listen for presence records
         const presenceCol = collection(firestore, 'users', userId, 'presences');
         const q = query(presenceCol, orderBy('timestamp', 'desc'));
-        const unsubscribe = onSnapshot(q, (snapshot) => {
+        const unsubscribePresence = onSnapshot(q, (snapshot) => {
             const records = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as PresenceRecord));
             setPresenceRecords(records);
             setLoading(false);
@@ -70,107 +69,175 @@ export default function HistoryPage() {
             setLoading(false);
         });
 
-        return () => unsubscribe();
+        return () => {
+            unsubscribeUser();
+            unsubscribePresence();
+        };
 
     }, [userId, firestore]);
 
     if (loading) {
         return (
-            <div className="flex h-screen w-full items-center justify-center bg-muted/40">
-                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            <div className="flex h-screen w-full items-center justify-center bg-background">
+                <Loader2 className="h-10 w-10 animate-spin text-primary" />
             </div>
         );
     }
 
+    const itemVariants = {
+        hidden: { opacity: 0, y: 20 },
+        visible: (i: number) => ({
+            opacity: 1,
+            y: 0,
+            transition: {
+                delay: i * 0.05,
+                duration: 0.3,
+                ease: "easeOut"
+            }
+        })
+    };
+
     return (
-        <div className="flex flex-col h-full bg-muted/40">
-            <header className="p-4 border-b flex items-center justify-between bg-background sticky top-0 z-10 shrink-0">
+        <div className="flex flex-col h-full bg-gradient-to-br from-background via-background to-muted/20 text-foreground">
+            <header className="p-4 border-b border-white/5 flex items-center justify-between bg-transparent sticky top-0 z-20 backdrop-blur-sm">
                 <div className="flex items-center gap-4">
-                    <Button variant="ghost" size="icon" onClick={() => router.back()} className="size-8">
+                    <Button variant="ghost" size="icon" onClick={() => router.back()} className="size-9 bg-white/5 hover:bg-white/10">
                         <ArrowLeft size={20} />
                     </Button>
                     <div className="flex items-center gap-3">
-                         <Avatar className="w-9 h-9 border">
+                         <Avatar className="w-11 h-11 border-2 border-background/50">
                             <AvatarImage src={user?.avatar} alt={user?.name} />
                             <AvatarFallback>{user?.name?.substring(0,1)}</AvatarFallback>
                         </Avatar>
                         <div className="flex flex-col">
-                            <h1 className="font-semibold text-lg tracking-tight">Historique de présence</h1>
+                            <h1 className="font-bold text-2xl tracking-tight">{user?.name}</h1>
                             <p className="text-sm text-muted-foreground">
-                               {user?.name}
+                                Historique de présence
                             </p>
                         </div>
                     </div>
                 </div>
+                 <div className="hidden md:flex items-center gap-4">
+                    <div className="text-right">
+                        <div className="font-bold text-lg text-green-400">{totalPresent}</div>
+                        <div className="text-xs text-muted-foreground">Présences</div>
+                    </div>
+                    <div className="text-right">
+                        <div className="font-bold text-lg text-red-400">{totalAbsent}</div>
+                        <div className="text-xs text-muted-foreground">Absences</div>
+                    </div>
+                </div>
             </header>
 
-            <main className="flex-1 overflow-auto p-4 md:p-6 grid md:grid-cols-2 gap-6 items-start">
-                <Card className='shadow-sm'>
-                    <CardHeader>
-                        <CardTitle className="flex items-center gap-2 text-xl"><Calendar className="w-5 h-5 text-muted-foreground"/> Calendrier</CardTitle>
-                        <CardDescription>Vue mensuelle des présences et absences.</CardDescription>
-                    </CardHeader>
-                    <CardContent className="flex justify-center">
-                       <CalendarComponent
-                            mode="single"
-                            selected={selectedDate}
-                            onSelect={setSelectedDate}
-                            locale={fr}
-                            modifiers={{
-                                present: presentDays,
-                                absent: absentDays,
-                            }}
-                            modifiersStyles={{
-                                present: { color: 'hsl(var(--primary))', fontWeight: 'bold' },
-                                absent: { color: 'hsl(var(--destructive))', fontWeight: 'bold' },
-                            }}
-                            modifiersClassNames={{
-                                present: 'day-present',
-                                absent: 'day-absent',
-                            }}
-                            className="p-0"
-                        />
-                    </CardContent>
-                </Card>
-                 <Card className='shadow-sm'>
-                    <CardHeader>
-                        <CardTitle className="text-xl">Liste des enregistrements</CardTitle>
-                        <CardDescription>Détail de chaque pointage, du plus récent au plus ancien.</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        {presenceRecords.length === 0 ? (
-                            <div className="flex flex-col items-center justify-center h-full text-center text-muted-foreground py-10">
-                                <Calendar className="w-12 h-12 mb-4" />
-                                <h3 className="text-lg font-semibold">Aucun enregistrement</h3>
-                                <p className="text-sm">L'historique de présence de ce membre est vide.</p>
-                            </div>
-                        ) : (
-                            <div className="max-h-[60vh] overflow-y-auto pr-2 -mr-4 space-y-4">
-                                {presenceRecords.map(record => (
-                                    <div key={record.id} className="flex items-center justify-between p-3 rounded-lg bg-background border">
-                                        <div>
-                                            <div className="font-medium text-sm capitalize">{format(record.timestamp.toDate(), 'eeee dd MMMM yyyy', { locale: fr })}</div>
-                                            <div className="text-xs text-muted-foreground">{format(record.timestamp.toDate(), 'à HH:mm', { locale: fr })}</div>
+            <main className="flex-1 overflow-auto p-4 md:p-6 grid lg:grid-cols-2 gap-8 items-start">
+                 <motion.div 
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.5, ease: "easeOut" }}
+                    className='lg:sticky lg:top-24'
+                 >
+                    <Card className='bg-card/30 backdrop-blur-md border-white/10 shadow-lg'>
+                        <CardHeader>
+                            <CardTitle className="flex items-center gap-2 text-xl"><Calendar className="w-5 h-5 text-muted-foreground"/> Calendrier</CardTitle>
+                        </CardHeader>
+                        <CardContent className="flex justify-center">
+                           <CalendarComponent
+                                mode="single"
+                                selected={new Date()}
+                                onMonthChange={setCurrentMonth}
+                                locale={fr}
+                                modifiers={{
+                                    present: presentDays,
+                                    absent: absentDays,
+                                }}
+                                modifiersClassNames={{
+                                    present: 'day-present',
+                                    absent: 'day-absent',
+                                }}
+                                className="p-0"
+                            />
+                        </CardContent>
+                    </Card>
+                </motion.div>
+
+                <div className="space-y-6">
+                    <h2 className="text-xl font-semibold flex items-center gap-2"><BarChart3 className="w-5 h-5 text-muted-foreground"/> Chronologie des pointages</h2>
+                    {presenceRecords.length === 0 ? (
+                        <div className="flex flex-col items-center justify-center text-center text-muted-foreground py-16 bg-card/20 rounded-xl border border-dashed">
+                            <Calendar className="w-12 h-12 mb-4" />
+                            <h3 className="text-lg font-semibold">Aucun enregistrement</h3>
+                            <p className="text-sm">Cet historique est vide pour le moment.</p>
+                        </div>
+                    ) : (
+                        <div className="relative pl-6">
+                             <div className="absolute left-[30px] top-4 bottom-4 w-0.5 bg-border -translate-x-1/2"></div>
+                             <AnimatePresence>
+                                {presenceRecords.map((record, index) => (
+                                    <motion.div 
+                                        key={record.id} 
+                                        className="relative flex items-start gap-6 mb-8"
+                                        custom={index}
+                                        variants={itemVariants}
+                                        initial="hidden"
+                                        animate="visible"
+                                    >
+                                        <div className="absolute left-[30px] top-5 h-px w-6 bg-border -translate-x-full"></div>
+                                        <div className="z-10 flex items-center justify-center h-12 w-12 rounded-full bg-background border-2">
+                                            {record.status === 'present' ? (
+                                                <CheckCircle className="w-6 h-6 text-green-500" />
+                                            ) : (
+                                                <XCircle className="w-6 h-6 text-red-500" />
+                                            )}
                                         </div>
-                                        {record.status === 'present' ? (
-                                            <div className="flex items-center gap-2 text-green-600 dark:text-green-500 font-semibold text-sm py-1 px-3 rounded-full bg-green-500/10 border border-green-500/20">
-                                                <CheckCircle className="w-4 h-4" />
-                                                <span>Présent</span>
-                                            </div>
-                                        ) : (
-                                            <div className="flex items-center gap-2 text-red-600 dark:text-red-500 font-semibold text-sm py-1 px-3 rounded-full bg-red-500/10 border border-red-500/20">
-                                                <XCircle className="w-4 h-4" />
-                                                <span>Absent</span>
-                                            </div>
-                                        )}
-                                    </div>
+                                        <div className="flex-1 pt-2">
+                                            <p className="font-semibold text-foreground">
+                                                {format(record.timestamp.toDate(), "eeee dd MMMM yyyy", { locale: fr })}
+                                            </p>
+                                            <p className="text-sm text-muted-foreground">
+                                                Pointé {record.status === 'present' ? 'présent(e)' : 'absent(e)'} à {format(record.timestamp.toDate(), "HH:mm", { locale: fr })}
+                                            </p>
+                                        </div>
+                                    </motion.div>
                                 ))}
-                            </div>
-                        )}
-                    </CardContent>
-                </Card>
+                            </AnimatePresence>
+                        </div>
+                    )}
+                </div>
             </main>
         </div>
     );
+}
+
+// Custom styles for calendar days
+const calendarDayStyles = `
+  .day-present:not(.day-outside) {
+    background-color: hsl(var(--primary) / 0.1);
+    color: hsl(var(--primary));
+    font-weight: 700;
+  }
+  .day-present:not(.day-outside)::after {
+    display: none;
+  }
+  .day-present.rdp-day_selected {
+    background-color: hsl(var(--primary));
+    color: hsl(var(--primary-foreground));
+  }
+  .day-absent:not(.day-outside) {
+    background-color: hsl(var(--destructive) / 0.1);
+    color: hsl(var(--destructive));
+    font-weight: 700;
+  }
+  .day-absent:not(.day-outside)::after {
+    display: none;
+  }
+  .day-absent.rdp-day_selected {
+    background-color: hsl(var(--destructive));
+    color: hsl(var(--destructive-foreground));
+  }
+`;
+const styleSheet = typeof window !== 'undefined' ? document.createElement("style") : null;
+if (styleSheet) {
+    styleSheet.innerText = calendarDayStyles;
+    document.head.appendChild(styleSheet);
 }
 
