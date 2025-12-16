@@ -54,6 +54,9 @@ const emojiCategories = [
     { name: 'Objets', icon: ToyBrick, emojis: ['🚗', '🚕', '🚙', '🚌', '🚎', '🏎️', '🚓', '🚑', '🚒', '🚐', '🚚', '🚛', '🚜', '🛴', '🚲', '🛵', '🏍️', '🛺', '🚨', '🚔', '🚍', '🚘', '🚖', '✈️', '🛫', '🛬', '🛩️', '🚁', '🛶', '⛵', '🚤', '🛥️', '🛳️', '⛴️', '🚀', '🛰️', '🛸', '🛎️', '🧳', '⌛', '⏳', '⌚', '⏰', '⏱️', '⏲️', '🕰️', '🌡️', '🎈', '🎉', '🎊', '🎀', '🎁', '🎂', '🎄', '🎃', '✨', '🎇', '🎆', '🧨', '🧧', '🎐', '🎏', '🎎', '🎑', '🏺', '🔮', '🧿', '📿', '💎', '💍', '💄', '💋', '💌', '❤️', '💔', '❣️', '💕', '💞', '💓', '💗', '💖', '💘', '💝', '💟', '☮️', '✝️', '☪️', '🕉️', '☸️', '✡️', '🔯', '🕎', '☯️', '☦️', '🛐', '⛎', '♈', '♉', '♊', '♋', '♌', '♍', '♎', '♏', '♐', '♑', '♒', '♓', '🆔', '⚛️', '☢️', '☣️', '📴', '📳', '🈶', '🈚', '🈸', '🈺', '🈷️', '✴️', '🆚', '🉑', '💮', '🉐', '㊙️', '㊗️', '🈴', '🈵', '🈹', '🈲', '🅰️', '🅱️', '🆎', '🆑', '🅾️', '🆘', '⛔', '📛', '🚫', '❌', '⭕', '💢', '♨️', '🚷', '🚯', '🚳', '🚱', '🔞', '📵', '🚭'] },
 ];
 
+const allEmojis = emojiCategories.flatMap(category => category.emojis);
+
+
 export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: ChatInputProps) {
   const [message, setMessage] = useState('');
   const { user: currentUser } = useUser();
@@ -175,6 +178,8 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
           setView('closed');
       } else {
           setView(newView);
+          setSearchMode(false);
+          setEmojiSearchQuery('');
       }
   }
 
@@ -184,6 +189,10 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
   };
 
   const currentVariant = view === 'closed' ? 'closed' : 'open';
+
+  const searchResults = emojiSearchQuery 
+    ? allEmojis.filter(emoji => emoji.includes(emojiSearchQuery))
+    : [];
 
   return (
     <div className="relative p-4 pt-2">
@@ -292,7 +301,7 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
                  <div className="flex flex-col flex-1 h-full">
                     <div className="flex items-end gap-1 p-2">
                         <AnimatePresence>
-                            {!message && !searchMode && (
+                            {(!message && !searchMode) && (
                                 <motion.div
                                     key="keyboard-button"
                                     initial={{ scale: 0, opacity: 0 }}
@@ -309,9 +318,10 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
                             value={message}
                             onChange={handleInputChange}
                             onKeyDown={handleKeyDown}
-                            placeholder={searchMode ? "Rechercher un message..." : "Message"}
+                            placeholder="Message"
                             maxRows={2}
                             className="flex-1 resize-none bg-transparent border-0 focus:ring-0 focus:outline-none text-base placeholder:text-muted-foreground px-2"
+                            autoFocus
                         />
                         <div className="relative h-10 w-10 shrink-0">
                             <AnimatePresence>
@@ -336,14 +346,14 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
                     {searchMode ? (
                         <motion.div
                             key="search-interface"
-                            className="flex-1 flex flex-col"
+                            className="flex-1 flex flex-col overflow-hidden"
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
                             exit={{ opacity: 0 }}
                             transition={{ duration: 0.2 }}
                         >
                             <div className="px-3 py-2 flex items-center gap-2 border-y border-border/50">
-                                <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={() => setSearchMode(false)}>
+                                <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={() => {setSearchMode(false); setEmojiSearchQuery('');}}>
                                     <ArrowLeft className="w-5 h-5" />
                                 </Button>
                                 <div className="relative flex-1">
@@ -358,10 +368,25 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
                                 </div>
                             </div>
                             <div className="p-4 flex-1 overflow-y-auto">
-                                {/* Placeholder for search results */}
-                                <div className="text-center text-muted-foreground text-sm">
-                                    Résultats de la recherche...
-                                </div>
+                               {searchResults.length > 0 ? (
+                                   <div className="grid grid-cols-[repeat(auto-fill,minmax(2.5rem,1fr))] gap-1">
+                                        {searchResults.map((emoji) => (
+                                            <Button
+                                                key={emoji}
+                                                variant="ghost"
+                                                size="icon"
+                                                className="w-full h-10 text-2xl"
+                                                onClick={() => handleEmojiClick(emoji)}
+                                            >
+                                                {emoji}
+                                            </Button>
+                                        ))}
+                                   </div>
+                               ) : (
+                                    <div className="text-center text-muted-foreground text-sm pt-4">
+                                        {emojiSearchQuery ? `Aucun emoji trouvé pour "${emojiSearchQuery}"` : "Recherchez n'importe quel emoji."}
+                                    </div>
+                               )}
                             </div>
                         </motion.div>
                     ) : (
@@ -373,7 +398,7 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
                             exit={{ opacity: 0 }}
                             transition={{ duration: 0.2 }}
                         >
-                            <div className="px-3 py-2 flex items-center justify-between border-y border-border/50">
+                             <div className="px-3 py-2 flex items-center justify-between border-y border-border/50">
                                 <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground" onClick={() => setSearchMode(true)}>
                                     <Search className="w-5 h-5" />
                                 </Button>
@@ -437,7 +462,7 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
         </AnimatePresence>
         
         <AnimatePresence>
-            {(view !== 'closed') && (
+            {(view !== 'closed' && !searchMode) && (
                 <motion.div
                     className="absolute top-2 right-2 z-10"
                     initial={{ opacity: 0, scale: 0.5, rotate: -90 }}
