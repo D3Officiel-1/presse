@@ -124,7 +124,8 @@ function EditorComponent() {
     const [fontFamily, setFontFamily] = useState('font-sans');
     const [fontListExpanded, setFontListExpanded] = useState(false);
     const [textColor, setTextColor] = useState('#FFFFFF');
-
+    const [textPosition, setTextPosition] = useState({ x: 0, y: 0 });
+    const dragConstraintsRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         const mediaData = sessionStorage.getItem('media-to-edit');
@@ -329,7 +330,7 @@ function EditorComponent() {
             </header>
 
             {/* Media Preview */}
-            <div className="flex-1 flex items-center justify-center p-16">
+            <div ref={dragConstraintsRef} className="flex-1 flex items-center justify-center p-16">
                  <div ref={imageContainerRef} className="relative w-fit h-fit">
                     {mediaSrc && mediaType === 'image' && !isCropping && (
                         <Image
@@ -366,15 +367,18 @@ function EditorComponent() {
                         />
                     )}
                     {overlayText && (
-                        <div className={cn(
-                            "absolute inset-0 flex items-center p-4 pointer-events-none",
-                            textAlign === 'center' && 'justify-center',
-                            textAlign === 'left' && 'justify-start',
-                            textAlign === 'right' && 'justify-end',
-                        )}>
+                        <motion.div
+                            className="absolute top-0 left-0 cursor-move p-4"
+                            drag
+                            dragConstraints={dragConstraintsRef}
+                            dragMomentum={false}
+                            onDragEnd={(event, info) => {
+                                setTextPosition({ x: info.point.x, y: info.point.y });
+                            }}
+                        >
                             <span 
                                 className={cn(
-                                    "text-4xl font-bold whitespace-pre-wrap",
+                                    "text-4xl font-bold whitespace-pre-wrap pointer-events-none",
                                     fontFamily,
                                     textStyle === 'solid' && 'bg-black/70 px-2 py-1 rounded-md',
                                     textStyle === 'outline' && 'text-stroke-2 text-stroke-black',
@@ -389,7 +393,7 @@ function EditorComponent() {
                             >
                                 {overlayText}
                             </span>
-                        </div>
+                        </motion.div>
                     )}
                 </div>
             </div>
