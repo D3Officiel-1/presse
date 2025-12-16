@@ -1,11 +1,12 @@
 
-import { Phone, MoreVertical, Video, ArrowLeft, Pin, X } from 'lucide-react';
+import { Phone, MoreVertical, Video, ArrowLeft, Pin, X, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { cn } from '@/lib/utils';
 import type { User, Chat } from '@/lib/types';
 import Link from 'next/link';
 import { AnimatePresence, motion } from 'framer-motion';
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
 
 interface ChatTopbarProps {
   info: User | { name?: string; users: User[] };
@@ -17,9 +18,7 @@ interface ChatTopbarProps {
 export function ChatTopbar({ info, isGroup, chat, allUsers }: ChatTopbarProps) {
   const user = !isGroup ? (info as User) : undefined;
   const group = isGroup ? (info as { name?: string; users: User[] }) : undefined;
-  const pinnedMessage = chat.pinnedMessages?.[0];
-  const senderOfPinned = pinnedMessage ? allUsers.find(u => u.id === pinnedMessage.senderId) : null;
-
+  
   const TopbarContent = () => (
     <>
       {isGroup ? (
@@ -79,22 +78,41 @@ export function ChatTopbar({ info, isGroup, chat, allUsers }: ChatTopbarProps) {
         </div>
       </div>
       <AnimatePresence>
-        {pinnedMessage && (
+        {chat.pinnedMessages && chat.pinnedMessages.length > 0 && (
           <motion.div
-            className="bg-muted/50 px-4 py-2 flex items-center justify-between gap-4"
+            className="bg-muted/50 px-4 py-2"
             initial={{ opacity: 0, y: -20, height: 0 }}
             animate={{ opacity: 1, y: 0, height: 'auto' }}
             exit={{ opacity: 0, y: -20, height: 0 }}
           >
-            <div className="flex items-center gap-2 overflow-hidden">
-              <Pin className="w-4 h-4 text-primary shrink-0" />
-              <div className="flex flex-col overflow-hidden">
-                 <span className="text-xs font-bold text-primary">
-                  {senderOfPinned?.name || 'Message Épinglé'}
-                </span>
-                <span className="text-sm text-foreground truncate">{pinnedMessage.content}</span>
-              </div>
-            </div>
+            <Carousel opts={{ loop: chat.pinnedMessages.length > 1 }} className="w-full">
+                <CarouselContent>
+                    {chat.pinnedMessages.map((pinnedMessage, index) => {
+                        const senderOfPinned = pinnedMessage ? allUsers.find(u => u.id === pinnedMessage.senderId) : null;
+                        return (
+                            <CarouselItem key={index}>
+                                <div className="flex items-center justify-between gap-4">
+                                    <div className="flex items-center gap-2 overflow-hidden">
+                                        <Pin className="w-4 h-4 text-primary shrink-0" />
+                                        <div className="flex flex-col overflow-hidden">
+                                            <span className="text-xs font-bold text-primary">
+                                                {senderOfPinned?.name || 'Message Épinglé'}
+                                            </span>
+                                            <span className="text-sm text-foreground truncate">{pinnedMessage.content}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </CarouselItem>
+                        );
+                    })}
+                </CarouselContent>
+                {chat.pinnedMessages.length > 1 && (
+                    <div className="flex items-center justify-center gap-2 mt-1">
+                        <CarouselPrevious className="static -translate-y-0 w-6 h-6" />
+                        <CarouselNext className="static -translate-y-0 w-6 h-6" />
+                    </div>
+                )}
+            </Carousel>
           </motion.div>
         )}
       </AnimatePresence>
