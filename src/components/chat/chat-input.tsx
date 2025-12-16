@@ -219,6 +219,12 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
             }
         }
     };
+    
+    const handlePointerLeave = () => {
+        if (isRecording) {
+            stopRecording();
+        }
+    }
 
 
   const handleEmojiClick = (emoji: string) => {
@@ -398,7 +404,7 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
                 onPointerDown={handlePointerDown}
                 onPointerUp={handlePointerUp}
                 onPointerMove={handlePointerMove}
-                onPointerLeave={handlePointerUp}
+                onPointerLeave={handlePointerLeave}
               >
                 <Button
                   size="icon"
@@ -556,3 +562,5 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
     </div>
   );
 }
+
+    
