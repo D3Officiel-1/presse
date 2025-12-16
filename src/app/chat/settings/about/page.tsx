@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft, Info, FileText, GitBranch, Copyright, Shield } from 'lucide-react';
 import { motion } from 'framer-motion';
 import Image from 'next/image';
+import Link from 'next/link';
 
 const FADE_UP_ANIMATION_VARIANTS = {
   hidden: { opacity: 0, y: 10 },
@@ -69,14 +70,14 @@ export default function AboutPage() {
                     <div
                         className="mt-8 space-y-3 text-sm"
                     >
-                         <a href="#" className="flex items-center justify-center gap-2 text-muted-foreground hover:text-primary transition-colors">
+                         <Link href="/chat/settings/privacy" className="flex items-center justify-center gap-2 text-muted-foreground hover:text-primary transition-colors">
                             <Shield className="w-4 h-4" />
                             <span>Politique de confidentialité</span>
-                        </a>
-                         <a href="#" className="flex items-center justify-center gap-2 text-muted-foreground hover:text-primary transition-colors">
+                        </Link>
+                         <Link href="/chat/settings/terms" className="flex items-center justify-center gap-2 text-muted-foreground hover:text-primary transition-colors">
                             <FileText className="w-4 h-4" />
                             <span>Conditions d'utilisation</span>
-                        </a>
+                        </Link>
                     </div>
                 </motion.div>
             </main>
