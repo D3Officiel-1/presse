@@ -234,35 +234,16 @@ export default function HistoryPage() {
     );
 }
 
-// Custom styles for calendar days
-const calendarDayStyles = `
-  .day-present > div::after, .day-absent > div::after {
-    content: '';
-    position: absolute;
-    bottom: 4px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 6px;
-    height: 6px;
-    border-radius: 9999px;
+// Custom styles for calendar days are now in globals.css for better management.
+// The styles in globals.css should look like this:
+/*
+  .day-present:not(.rdp-day_outside) {
+    background-color: hsl(var(--primary) / 0.1);
+    border-color: hsl(var(--primary) / 0.2);
   }
-  .day-present > div::after {
-    background-color: hsl(var(--primary));
-  }
-  .day-absent > div::after {
-    background-color: hsl(var(--destructive));
-  }
-  .rdp-day {
-      position: relative;
-  }
-`;
-const styleSheet = typeof window !== 'undefined' ? document.createElement("style") : null;
-if (styleSheet) {
-    if (!document.getElementById('calendar-styles')) {
-        styleSheet.id = 'calendar-styles';
-        styleSheet.innerText = calendarDayStyles;
-        document.head.appendChild(styleSheet);
-    }
-}
 
-
+  .day-absent:not(.rdp-day_outside) {
+    background-color: hsl(var(--destructive) / 0.1);
+    border-color: hsl(var(--destructive) / 0.2);
+  }
+*/
