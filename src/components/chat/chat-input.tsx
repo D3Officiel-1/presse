@@ -42,7 +42,7 @@ const mainTabs = [
 const emojiCategories = [
     { name: 'Récents', icon: Clock, emojis: ['👍', '❤️', '😂', '😮', '😢', '🙏', '🔥', '🎉', '😊', '🤔', '🤣', '😎'] },
     { name: 'Smileys & Émotion', icon: Smile, emojis: ['😀', '😃', '😄', '😁', '😆', '😅', '😂', '🤣', '😊', '😇', '🙂', '🙃', '😉', '😌', '😍', '🥰', '😘', '😗', '😙', '😚', '😋', '😛', '😝', '😜', '🤪', '🤨', '🧐', '🤓', '😎', '🤩', '🥳', '😏', '😒', '😞', '😔', '😟', '😕', '🙁', '☹️', '😣', '😖', '😫', '😩', '🥺', '😢', '😭', '😤', '😠', '😡', '🤬', '🤯', '😳', '🥵', '🥶', '😱', '😨', '😰', '😥', '😓', '🤗', '🤔', '🤭', '🤫', '🤥', '😶', '😐', '😑', '😬', '🙄', '😯', '😦', '😧', '😮', '😲', '🥱', '😴', '🤤', '😪', '😵', '🤐', '🥴', '🤢', '🤮', '🤧', '😷', '🤒', '🤕', '🤑', '🤠'] },
-    { name: 'Personnes & Corps', icon: User, emojis: ['👋', '🤚', '🖐️', '✋', '🖖', '👌', '🤌', '🤏', '✌️', '🤞', '🤟', '🤘', '🤙', '👈', '👉', '👆', '🖕', '👇', '☝️', '👍', '👎', '✊', '👊', '🤛', '🤜', '👏', '🙌', '👐', '🤲', '🤝', '🙏', '✍️', '💅', '🤳', '💪', '🦾', '🦵', '🦿', '🦶', '👣', '👂', '🦻', '👃', '🧠', '🫀', '🫁', '🦷', '🦴', '👀', '👁️', '👅', '👄', '💋', '👶', '🧒', '👦', '👧', '🧑', '👱', '👨', '🧔', '👨‍🦰', '👨‍', '👨‍🦳', '👨‍🦲', '👩', '👩‍🦰', '🧑‍🦰', '👩‍🦱', '🧑‍🦱', '👩‍🦳', '🧑‍🦳', '👩‍🦲', '🧑‍🦲', '👱‍♀️', '👱‍♂️', '🧓', '👴', '👵'] },
+    { name: 'Personnes & Corps', icon: User, emojis: ['👋', '🤚', '🖐️', '✋', '🖖', '👌', '🤌', '🤏', '✌️', '🤞', '🤟', '🤘', '🤙', '👈', '👉', '👆', '🖕', '👇', '☝️', '👍', '👎', '✊', '👊', '🤛', '🤜', '👏', '🙌', '👐', '🤲', '🤝', '🙏', '✍️', '💅', '🤳', '💪', '🦾', '🦵', '🦿', '🦶', '👣', '👂', '🦻', '👃', '🧠', '🫀', '𫁁', '🦷', '🦴', '👀', '👁️', '👅', '👄', '💋', '👶', '🧒', '👦', '👧', '🧑', '👱', '👨', '🧔', '👨‍🦰', '👨‍', '👨‍🦳', '👨‍🦲', '👩', '👩‍🦰', '🧑‍🦰', '👩‍🦱', '🧑‍🦱', '👩‍🦳', '🧑‍🦳', '👩‍🦲', '🧑‍🦲', '👱‍♀️', '👱‍♂️', '🧓', '👴', '👵'] },
     { name: 'Animaux & Nature', icon: Sprout, emojis: ['🙈', '🙉', '🙊', '🐵', '🐒', '🦍', '🦧', '🐶', '🐕', '🦮', '🐕‍🦺', '🐩', '🐺', '🦊', '🦝', '🐱', '🐈', '🐈‍⬛', '🦁', '🐯', '🐅', '🐆', '🐴', '🐎', '🦄', '🦓', '🦌', '🦬', '🐮', '🐂', '🐃', '🐄', '🐷', '🐖', '🐗', '🐽', '🐏', '🐑', '🐐', '🐪', '🐫', '🦙', '🦒', '🐘', '🦣', '🦏', '🦛', '🐭', '🐁', '🐀', '🐹', '🐰', '🐇', '🐿️', '🦫', '🦔', '🦇', '🐻', '🐻‍❄️', '🐨', '🐼', '🦥', '🦦', '🦨', '🦘', '🦡', '🐾', '🦃', '🐔', '🐓', '🐣', '🐤', '🐥', '🐦', '🐧', '🕊️', '🦅', '🦆', '🦢', '🦉', '🦤', '🪶', '🐸', '🐊', '🐢', '🦎', '🐍', '🐲', '🐉', '🦕', '🦖', '🐳', '🐋', '🐬', '🦭', '🐟', '🐠', '🐡', '🦈', '🐙', '🐚', '🐌', '🦋', '🐛', '🐜', '🐝', '🪲', '🐞', '🦗', '🪳', '🕷️', '🕸️', '🦂', '🦟', '🪰', '🪱', '🦠', '💐', '🌸', '💮', '🏵️', '🌹', '🥀', '🌺', '🌻', '🌼', '🌷', '🌱', '🪴', '🌲', '🌳', '🌴', '🌵', '🌾', '🌿', '☘️', '🍀', '🍁', '🍂', '🍃'] },
     { name: 'Nourriture & Boisson', icon: Pizza, emojis: ['🍇', '🍈', '🍉', '🍊', '🍋', '🍌', '🍍', '🥭', '🍎', '🍏', '🍐', '🍑', '🍒', '🍓', '🥝', '🍅', '🥥', '🥑', '🍆', '🥔', '🥕', '🌽', '🌶️', '🥒', '🥬', '🥦', '🧄', '🧅', '🍄', '🥜', '🌰', '🍞', '🥐', '🥖', '🥨', '🥯', '🥞', '🧇', '🧀', '🍖', '🍗', '🥩', '🥓', '🍔', '🍟', '🍕', '🌭', '🥪', '🌮', '🌯', '🥙', '🧆', '🥚', '🍳', '🥘', '🍲', '🥣', '🥗', '🍿', '🧈', '🧂', '🥫', '🍱', '🍘', '🍙', '🍚', '🍛', '🍜', '🍝', '🍠', '🍢', '🍣', '🍤', '🍥', '🥮', '🍡', '🥟', '🥠', '🥡', '🦀', '🦞', '🦐', '🦑', '🦪', '🍦', '🍧', '🍨', '🍩', '🍪', '🎂', '🍰', '🧁', '🥧', '🍫', '🍬', '🍭', '🍮', '🍯', '🍼', '🥛', '☕', '🍵', '🍶', '🍾', '🍷', '🍸', '🍹', '🍺', '🍻', '🥂', '🥃', '🥤', '🧃', '🧉', '🧊', '🥢', '🍽️', '🍴', '🥄', '🔪', '🏺'] },
     { name: 'Activités', icon: Dumbbell, emojis: ['🤺', '🤸', '⛹️', '𤾾', '🧘', '🧗', '🏌️', '🏄', '🚣', '🏊', '🤽', '🚴', '🚵', '🤹', '🎭', '🎨', '🎬', '🎤', '🎧', '🎼', '🎹', '🥁', '🎷', '🎺', '🎸', '🪕', '🎻', '🎲', '♟️', '🎯', '🎳', '🎮', '🎰', '🧩'] },
@@ -83,13 +83,7 @@ const CustomKeyboard = ({ onKeyPress, onBackspace, onEnter, onSpace }: { onKeyPr
     const currentLayout = azertyLayout[layout];
 
     return (
-        <motion.div 
-            className="w-full bg-black/50 backdrop-blur-sm p-2 space-y-1"
-            initial={{ y: "100%" }}
-            animate={{ y: 0 }}
-            exit={{ y: "100%" }}
-            transition={{ type: 'spring', stiffness: 400, damping: 40 }}
-        >
+        <div className="w-full bg-black/50 backdrop-blur-sm p-2 space-y-1">
             {currentLayout.map((row, rowIndex) => (
                 <div key={rowIndex} className="flex justify-center gap-1">
                     {rowIndex === 2 && layout === 'letters' && (
@@ -125,7 +119,7 @@ const CustomKeyboard = ({ onKeyPress, onBackspace, onEnter, onSpace }: { onKeyPr
                     <CornerDownLeft />
                 </Button>
             </div>
-        </motion.div>
+        </div>
     );
 };
 
@@ -138,12 +132,11 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
-  const [view, setView] = useState<'closed' | 'attachments' | 'emoji'>('closed');
+  const [view, setView] = useState<'closed' | 'attachments' | 'emoji' | 'keyboard'>('closed');
   const [activeMainTab, setActiveMainTab] = useState('emoji');
   const [activeEmojiCategory, setActiveEmojiCategory] = useState(emojiCategories[0].name);
   const [searchMode, setSearchMode] = useState(false);
   const [emojiSearchQuery, setEmojiSearchQuery] = useState('');
-  const [showCustomKeyboard, setShowCustomKeyboard] = useState(false);
 
   // Voice recording state
   const [isRecording, setIsRecording] = useState(false);
@@ -241,15 +234,13 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
     handleInputChange(Array.from(message).slice(0, -1).join(''));
   };
   
-  const toggleView = (newView: 'attachments' | 'emoji') => {
+  const toggleView = (newView: 'attachments' | 'emoji' | 'keyboard') => {
       if (view === newView) {
           setView('closed');
-          setShowCustomKeyboard(false);
       } else {
           setView(newView);
           setSearchMode(false);
           setEmojiSearchQuery('');
-          setShowCustomKeyboard(true);
       }
   }
 
@@ -287,27 +278,31 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
       open: { height: 350 },
   };
 
-  const currentVariant = view === 'closed' && !showCustomKeyboard ? 'closed' : 'open';
+  const currentVariant = view === 'closed' ? 'closed' : 'open';
 
   const searchResults = emojiSearchQuery 
     ? allEmojis.filter(emoji => emoji.includes(emojiSearchQuery))
     : [];
 
   const mainInputSection = (
-     <div className="flex items-center gap-1 p-2">
+     <div className="flex items-end gap-1 p-2">
         <Button variant="ghost" size="icon" className="h-10 w-10 shrink-0 text-muted-foreground" onClick={() => toggleView('attachments')}>
           <Paperclip className="w-5 h-5" />
         </Button>
-        <TextareaAutosize
-          onFocus={() => setShowCustomKeyboard(true)}
-          readOnly
-          value={message}
-          placeholder="Message"
-          maxRows={5}
-          className="flex-1 resize-none bg-transparent border-0 focus:ring-0 focus:outline-none text-base placeholder:text-muted-foreground px-2"
-        />
+        <div className="flex-1 relative">
+            <TextareaAutosize
+              value={message}
+              onChange={(e) => handleInputChange(e.target.value)}
+              placeholder="Message"
+              maxRows={5}
+              className="w-full resize-none bg-transparent border-0 focus:ring-0 focus:outline-none text-base placeholder:text-muted-foreground px-2 py-2"
+            />
+        </div>
         <Button variant="ghost" size="icon" className="h-10 w-10 shrink-0 text-muted-foreground" onClick={() => toggleView('emoji')}>
           <Smile className="w-5 h-5" />
+        </Button>
+        <Button variant="ghost" size="icon" className="h-10 w-10 shrink-0 text-muted-foreground" onClick={() => toggleView('keyboard')}>
+            <Keyboard className="w-5 h-5" />
         </Button>
         <div className="relative h-10 w-10 shrink-0">
           <AnimatePresence>
@@ -379,37 +374,42 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
       <motion.div
         layout
         transition={{ type: 'spring', stiffness: 500, damping: 40 }}
-        className="relative bg-background/50 backdrop-blur-sm rounded-3xl shadow-lg border flex flex-col"
-      >
-        {!showCustomKeyboard ? mainInputSection : (
-          <>
-            <div className='flex items-center gap-1 p-2'>
-              <TextareaAutosize
-                readOnly
-                value={message}
-                placeholder="Message"
-                maxRows={2}
-                className="flex-1 resize-none bg-transparent border-0 focus:ring-0 focus:outline-none text-base placeholder:text-muted-foreground px-2"
-              />
-              <Button variant="ghost" size="icon" className="h-10 w-10 shrink-0 text-muted-foreground" onClick={() => setShowCustomKeyboard(false)}>
-                <Keyboard className="w-5 h-5" />
-              </Button>
-              {message && (
-                <Button size="icon" className="h-10 w-10 rounded-full bg-primary text-primary-foreground" onClick={handleSend}>
-                  <Send className="w-5 h-5" />
-                </Button>
-              )}
-            </div>
-            <AnimatePresence>
-                {showCustomKeyboard && <CustomKeyboard 
-                  onKeyPress={(key) => handleInputChange(message + key)}
-                  onBackspace={handleBackspace}
-                  onEnter={handleSend}
-                  onSpace={() => handleInputChange(message + ' ')}
-                />}
-            </AnimatePresence>
-          </>
+        className={cn(
+            "relative bg-background/50 backdrop-blur-sm rounded-3xl shadow-lg border flex flex-col",
+            replyInfo ? 'rounded-t-none' : ''
         )}
+      >
+        {mainInputSection}
+        
+        <AnimatePresence>
+            {view === 'keyboard' && (
+                <motion.div
+                    className="w-full"
+                    initial={{ y: "100%" }}
+                    animate={{ y: 0 }}
+                    exit={{ y: "100%" }}
+                    transition={{ type: 'spring', stiffness: 400, damping: 40 }}
+                >
+                    <div className="w-full h-px bg-border"/>
+                    <div className={cn("relative", message ? 'h-auto' : 'h-0')}>
+                        <TextareaAutosize
+                            readOnly
+                            value={message}
+                            placeholder="Message"
+                            maxRows={2}
+                            className="w-full resize-none bg-transparent border-0 focus:ring-0 focus:outline-none text-base placeholder:text-muted-foreground px-4 py-2"
+                        />
+                    </div>
+                    <CustomKeyboard 
+                      onKeyPress={(key) => handleInputChange(message + key)}
+                      onBackspace={handleBackspace}
+                      onEnter={handleSend}
+                      onSpace={() => handleInputChange(message + ' ')}
+                    />
+                </motion.div>
+            )}
+        </AnimatePresence>
+
       </motion.div>
     </div>
   );
