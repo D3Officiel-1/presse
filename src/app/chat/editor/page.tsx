@@ -9,7 +9,6 @@ import { useToast } from '@/hooks/use-toast';
 import Image from 'next/image';
 import ReactCrop, { type Crop as CropType, centerCrop, makeAspectCrop } from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import * as htmlToImage from 'html-to-image';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -37,6 +36,12 @@ function centerAspectCrop(
   )
 }
 
+const fontStyles = [
+    { label: 'Normal', class: 'font-sans' },
+    { label: 'Manuscrit', class: 'font-serif' },
+    { label: 'Machine', class: 'font-mono' },
+];
+
 
 function EditorComponent() {
     const router = useRouter();
@@ -60,6 +65,8 @@ function EditorComponent() {
     const [overlayText, setOverlayText] = useState<string | null>(null);
     const [textAlign, setTextAlign] = useState<'center' | 'left' | 'right'>('center');
     const [textStyle, setTextStyle] = useState<'none' | 'solid' | 'outline'>('none');
+    const [fontFamily, setFontFamily] = useState('font-sans');
+
 
     useEffect(() => {
         const mediaData = sessionStorage.getItem('media-to-edit');
@@ -284,6 +291,7 @@ function EditorComponent() {
                             <span 
                                 className={cn(
                                     "text-white text-4xl font-bold whitespace-pre-wrap",
+                                    fontFamily,
                                     textStyle === 'solid' && 'bg-black/70 px-2 py-1 rounded-md',
                                     textStyle === 'outline' && 'text-stroke-2 text-stroke-black',
                                     textAlign === 'center' && 'text-center',
@@ -337,6 +345,7 @@ function EditorComponent() {
                                 placeholder="Votre texte..."
                                 className={cn(
                                     "w-full bg-transparent border-0 text-3xl md:text-5xl font-bold text-white placeholder:text-white/50 focus-visible:ring-0 resize-none",
+                                    fontFamily,
                                     textAlign === 'center' && 'text-center',
                                     textAlign === 'left' && 'text-left',
                                     textAlign === 'right' && 'text-right'
@@ -344,6 +353,25 @@ function EditorComponent() {
                                 autoFocus
                             />
                          </motion.div>
+                         <footer className="absolute bottom-4 left-4 right-4 flex items-center justify-center">
+                            <div className="flex items-center gap-2 bg-black/30 p-2 rounded-full">
+                                {fontStyles.map((font) => (
+                                    <Button
+                                        key={font.class}
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() => setFontFamily(font.class)}
+                                        className={cn(
+                                            "rounded-full text-white",
+                                            font.class,
+                                            fontFamily === font.class && "bg-white text-black"
+                                        )}
+                                    >
+                                        {font.label}
+                                    </Button>
+                                ))}
+                            </div>
+                        </footer>
                     </motion.div>
                 )}
             </AnimatePresence>
