@@ -243,11 +243,7 @@ function EditorComponent() {
         setTimeout(async () => {
             if (imageContainerRef.current) {
                 try {
-                    const dataUrl = await htmlToImage.toPng(imageContainerRef.current, {
-                        style: {
-                           fontFamily: getComputedStyle(document.body).getPropertyValue('--font-family-sans'),
-                        }
-                    });
+                    const dataUrl = await htmlToImage.toPng(imageContainerRef.current);
                     setMediaSrc(dataUrl);
                 } catch (error) {
                     console.error('oops, something went wrong!', error);
@@ -368,7 +364,11 @@ function EditorComponent() {
                     )}
                     {overlayText && (
                         <motion.div
-                            className="absolute top-0 left-0 cursor-move p-4"
+                            className="absolute cursor-move p-4"
+                            style={{
+                                top: `${textPosition.y}px`,
+                                left: `${textPosition.x}px`,
+                            }}
                             drag
                             dragConstraints={dragConstraintsRef}
                             dragMomentum={false}
