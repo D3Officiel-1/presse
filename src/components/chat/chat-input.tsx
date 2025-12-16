@@ -3,7 +3,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Paperclip, Mic, Send, X, Smile, Image as ImageIcon, Camera, MapPin, User, FileText, Music, Vote, Calendar, Keyboard, Sprout, Pizza, ToyBrick, Dumbbell, Film, FileImage, UserCircle, Clock } from 'lucide-react';
+import { Paperclip, Mic, Send, X, Smile, Image as ImageIcon, Camera, MapPin, User, FileText, Music, Vote, Calendar, Keyboard, Sprout, Pizza, ToyBrick, Dumbbell, Film, FileImage, UserCircle, Clock, Search, Delete } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import type { ReplyInfo } from './chat-messages';
 import type { Chat as ChatType } from '@/lib/types';
@@ -224,6 +224,9 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
                   <Button variant="ghost" size="icon" className="h-10 w-10 shrink-0 text-muted-foreground" onClick={() => toggleView('attachments')}>
                     <Paperclip className="w-5 h-5" />
                   </Button>
+                  <Button variant="ghost" size="icon" className="h-10 w-10 shrink-0 text-muted-foreground" onClick={() => toggleView('emoji')}>
+                      <Smile className="w-5 h-5" />
+                  </Button>
                   <TextareaAutosize
                     ref={input => input && !replyInfo && input.focus()}
                     value={message}
@@ -233,9 +236,6 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
                     maxRows={5}
                     className="flex-1 resize-none bg-transparent border-0 focus:ring-0 focus:outline-none text-base placeholder:text-muted-foreground px-2"
                   />
-                   <Button variant="ghost" size="icon" className="h-10 w-10 shrink-0 text-muted-foreground" onClick={() => toggleView('emoji')}>
-                      <Smile className="w-5 h-5" />
-                  </Button>
                   <div className="relative h-10 w-10 shrink-0">
                     <AnimatePresence>
                       {message ? (
@@ -326,19 +326,27 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
                         </div>
                     </div>
                     
-                    <div className="px-3 py-2 flex justify-center">
-                        <div className="inline-flex items-center gap-2 bg-black/20 p-1 rounded-full border border-white/10">
-                            {mainTabs.map(tab => (
-                                <Button
-                                    key={tab.name}
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() => setActiveMainTab(tab.name)}
-                                    className={`h-8 px-4 rounded-full relative transition-colors duration-300 ${activeMainTab === tab.name ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
-                                >
-                                    <tab.icon className="w-5 h-5" />
-                                </Button>
-                            ))}
+                    <div className="px-3 py-2 flex justify-center border-y border-border/50">
+                        <div className="inline-flex items-center justify-between w-full bg-black/20 p-1 rounded-full border border-white/10">
+                            <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground">
+                                <Search className="w-5 h-5" />
+                            </Button>
+                            <div className="flex items-center gap-2">
+                                {mainTabs.map(tab => (
+                                    <Button
+                                        key={tab.name}
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() => setActiveMainTab(tab.name)}
+                                        className={`h-8 px-4 rounded-full relative transition-colors duration-300 ${activeMainTab === tab.name ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
+                                    >
+                                        <tab.icon className="w-5 h-5" />
+                                    </Button>
+                                ))}
+                            </div>
+                             <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground">
+                                <Delete className="w-5 h-5" />
+                            </Button>
                         </div>
                     </div>
 
