@@ -176,6 +176,7 @@ const ChatMessage = ({
   isFirstInGroup,
   isLastInGroup,
   onOpenContextMenu,
+  onReply,
   otherUser
 }: {
   message: Message;
@@ -183,6 +184,7 @@ const ChatMessage = ({
   isFirstInGroup: boolean;
   isLastInGroup: boolean;
   onOpenContextMenu: (e: React.MouseEvent | React.TouchEvent, message: Message) => void;
+  onReply: () => void;
   otherUser: User | undefined;
 }) => {
   const isOwn = position === 'right';
@@ -199,6 +201,15 @@ const ChatMessage = ({
   const handlePointerUp = (e: React.PointerEvent) => {
     if (e.pointerType === 'touch') {
       clearTimeout(longPressTimer.current);
+    }
+  };
+  
+  const onDragEnd = (event: any, info: any) => {
+    const dragThreshold = 60;
+    const dragDistance = info.offset.x;
+    
+    if ( (isOwn && dragDistance < -dragThreshold) || (!isOwn && dragDistance > dragThreshold) ) {
+      onReply();
     }
   };
 
@@ -230,7 +241,11 @@ const ChatMessage = ({
         onPointerLeave={handlePointerUp}
         className={cn('group flex items-end gap-2 w-full', isOwn ? 'justify-end' : 'justify-start')}
     >
-      <div
+      <motion.div
+        drag="x"
+        dragConstraints={{ left: 0, right: 0 }}
+        dragElastic={0.2}
+        onDragEnd={onDragEnd}
         className={bubbleClasses}
       >
         {message.replyTo?.messageId && (
@@ -255,7 +270,7 @@ const ChatMessage = ({
             <span className="text-xs opacity-70">{formatTimestamp(message.timestamp)}</span>
             {isOwn && <ChatMessageStatus message={message} otherUser={otherUser} />}
         </div>
-      </div>
+      </motion.div>
     </motion.div>
   );
 };
@@ -345,6 +360,7 @@ const MessageFocusView = ({
                             message={{...message, sender}} 
                             position={sender.id === chatContext.loggedInUser.uid ? 'right' : 'left'} 
                             onOpenContextMenu={() => {}} 
+                            onReply={() => {}}
                             isFirstInGroup={true}
                             isLastInGroup={true}
                             otherUser={chatContext.otherUser}
@@ -519,6 +535,7 @@ export function ChatMessages({
                         isFirstInGroup={msgIndex === 0}
                         isLastInGroup={msgIndex === senderGroup.messages.length - 1}
                         onOpenContextMenu={handleOpenContextMenu}
+                        onReply={() => onReply(message)}
                         otherUser={otherUser}
                       />
                     ))}
