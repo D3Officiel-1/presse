@@ -243,7 +243,7 @@ function ChatPageContent() {
 
 
   return (
-    <div className="relative flex flex-col h-full w-full bg-background overflow-hidden">
+    <div className="relative flex flex-col h-full w-full bg-background">
       <video
         src="https://cdn.pixabay.com/video/2024/05/20/212953-944519999_large.mp4"
         autoPlay
@@ -254,29 +254,35 @@ function ChatPageContent() {
       />
        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/80 to-transparent -z-10"/>
 
-      <ChatTopbar info={otherUser || { name: chatData.name, users: chatMembers }} isGroup={chatData.type !== 'private'} />
+      <div className="sticky top-0 z-20 backdrop-blur-sm">
+        <ChatTopbar info={otherUser || { name: chatData.name, users: chatMembers }} isGroup={chatData.type !== 'private'} />
+      </div>
       
-      <ChatMessages
-        messages={messages}
-        chatType={chatData.type}
-        loggedInUser={currentUser}
-        otherUser={otherUser!}
-        isTyping={isTyping}
-        chatMembers={chatMembers}
-        onReply={handleReply}
-        onDeleteForMe={handleDeleteForMe}
-        onDeleteForEveryone={handleDeleteForEveryone}
-        onToggleStar={handleToggleStar}
-        onShare={()=>{}}
-        allUsersInApp={allUsersInApp}
-      />
+      <div className="flex-1 overflow-y-auto">
+        <ChatMessages
+          messages={messages}
+          chatType={chatData.type}
+          loggedInUser={currentUser}
+          otherUser={otherUser!}
+          isTyping={isTyping}
+          chatMembers={chatMembers}
+          onReply={handleReply}
+          onDeleteForMe={handleDeleteForMe}
+          onDeleteForEveryone={handleDeleteForEveryone}
+          onToggleStar={handleToggleStar}
+          onShare={()=>{}}
+          allUsersInApp={allUsersInApp}
+        />
+      </div>
       
-      <ChatInput
-        chat={chatData}
-        onSendMessage={handleSendMessage}
-        replyInfo={replyInfo}
-        onClearReply={() => setReplyInfo(undefined)}
-      />
+      <div className="mt-auto">
+        <ChatInput
+          chat={chatData}
+          onSendMessage={handleSendMessage}
+          replyInfo={replyInfo}
+          onClearReply={() => setReplyInfo(undefined)}
+        />
+      </div>
     </div>
   );
 }
