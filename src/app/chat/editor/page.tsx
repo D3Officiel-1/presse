@@ -44,8 +44,22 @@ const fontStyles = [
     { label: 'Cursive', class: 'font-serif italic' },
     { label: 'Machine', class: 'font-mono' },
     { label: 'Code', class: 'font-code' },
-    { label: 'Impact', class: 'font-headline' },
+    { label: 'Arial', class: 'font-arial' },
+    { label: 'Comic', class: 'font-comic' },
+    { label: 'Garamond', class: 'font-garamond' },
+    { label: 'Lobster', class: 'font-lobster' },
+    { label: 'Pacifico', class: 'font-pacifico' },
+    { label: 'Poppins', class: 'font-poppins' },
+    { label: 'Roboto', class: 'font-roboto' },
+    { label: 'Times New Roman', class: 'font-times' },
+    { label: 'Futura', class: 'font-futura' },
+    { label: 'Bodoni', class: 'font-bodoni' },
+    { label: 'Playfair Display', class: 'font-playfair' },
+    { label: 'Montserrat', class: 'font-montserrat' },
+    { label: 'Oswald', class: 'font-oswald' },
+    { label: 'Raleway', class: 'font-raleway' },
 ];
+
 
 
 function EditorComponent() {
