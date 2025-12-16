@@ -14,7 +14,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { CustomKeyboard } from '@/components/chat/custom-keyboard';
 
 
 function centerAspectCrop(
@@ -209,8 +208,8 @@ function EditorComponent() {
         const offsetX = pos.clientX - rect.left;
         const offsetY = pos.clientY - rect.top;
 
+        contextRef.current.beginPath();
         if (drawMode === 'draw') {
-            contextRef.current.beginPath();
             contextRef.current.moveTo(offsetX, offsetY);
         } else if (drawMode === 'pixelate') {
             pixelate(contextRef.current, offsetX, offsetY, lineWidth);
@@ -218,7 +217,7 @@ function EditorComponent() {
     };
 
     const finishDrawing = () => {
-        if (contextRef.current && drawMode === 'draw') {
+        if (contextRef.current) {
             contextRef.current.closePath();
         }
         isDrawingRef.current = false;
@@ -336,7 +335,15 @@ function EditorComponent() {
         if (!imageContainerRef.current) return;
         
         try {
-            const dataUrl = await htmlToImage.toPng(imageContainerRef.current);
+            const dataUrl = await htmlToImage.toPng(imageContainerRef.current, {
+              filter: (node: HTMLElement) => {
+                // Exclude the canvas from the initial render if it's empty
+                if (node.tagName === 'CANVAS' && !node.getContext('2d')?.getImageData(0,0,node.width,node.height).data.some(channel => channel !== 0)) {
+                  return false;
+                }
+                return true;
+              }
+            });
             
             console.log("Image prête à être envoyée:", dataUrl.substring(0, 100) + '...');
             
@@ -645,11 +652,11 @@ function EditorComponent() {
                          >
                             <Textarea
                                 value={textInputValue}
-                                readOnly
-                                onFocus={(e) => e.target.blur()}
+                                onChange={(e) => setTextInputValue(e.target.value)}
+                                autoFocus
                                 placeholder="Votre texte..."
                                 className={cn(
-                                    "w-full bg-transparent border-none text-3xl md:text-5xl font-bold placeholder:text-white/50 focus-visible:ring-0 resize-none cursor-default",
+                                    "w-full bg-transparent border-none text-3xl md:text-5xl font-bold placeholder:text-white/50 focus-visible:ring-0 resize-none",
                                     fontFamily,
                                     `text-${textAlign}`,
                                 )}
@@ -668,14 +675,6 @@ function EditorComponent() {
                             />
                          </motion.div>
                          <ColorSlider onColorChange={setTextColor} />
-                        <div className="w-full">
-                           <CustomKeyboard 
-                                onKeyPress={(key) => setTextInputValue(prev => prev + key)}
-                                onBackspace={() => setTextInputValue(prev => prev.slice(0, -1))}
-                                onSpace={() => setTextInputValue(prev => prev + ' ')}
-                                onEnter={() => setTextInputValue(prev => prev + '\n')}
-                           />
-                        </div>
                     </motion.div>
                 )}
             </AnimatePresence>

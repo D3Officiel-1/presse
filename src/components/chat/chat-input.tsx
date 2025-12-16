@@ -3,7 +3,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Paperclip, Mic, Send, X, Smile, Image as ImageIcon, Camera, MapPin, User, FileText, Music, Vote, Calendar, Keyboard, Sprout, Pizza, ToyBrick, Dumbbell, Film, FileImage, UserCircle, Clock, Search, Delete, ArrowLeft } from 'lucide-react';
+import { Paperclip, Mic, Send, X, Smile, Image as ImageIcon, Camera, MapPin, User, FileText, Music, Vote, Calendar, Keyboard, Sprout, Pizza, ToyBrick, Dumbbell, Film, FileImage, UserCircle, Clock, Search, Delete, ArrowUp, CornerDownLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import type { ReplyInfo } from './chat-messages';
 import type { Chat as ChatType } from '@/lib/types';
@@ -13,14 +13,7 @@ import { doc, updateDoc } from 'firebase/firestore';
 import TextareaAutosize from 'react-textarea-autosize';
 import { Input } from '../ui/input';
 import { useRouter } from 'next/navigation';
-import { CustomKeyboard } from './custom-keyboard';
-
-interface ChatInputProps {
-  chat: ChatType;
-  onSendMessage: (content: string, type?: 'text' | 'image' | 'audio', metadata?: any) => void;
-  replyInfo: ReplyInfo | undefined;
-  onClearReply: () => void;
-}
+import { cn } from '@/lib/utils';
 
 const formatTime = (seconds: number) => {
     const minutes = Math.floor(seconds / 60);
@@ -57,6 +50,77 @@ const emojiCategories = [
 ];
 
 const allEmojis = emojiCategories.flatMap(category => category.emojis);
+
+const azertyLayout = {
+    letters: [
+        ['a', 'z', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p'],
+        ['q', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', 'm'],
+        ['w', 'x', 'c', 'v', 'b', 'n']
+    ],
+    numbers: [
+        ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0'],
+        ['@', '#', '€', '_', '&', '-', '+', '(', ')', '/'],
+        ['*', '"', "'", ':', ';', '!', '?', '.']
+    ]
+};
+
+const CustomKeyboard = ({ onKeyPress, onBackspace, onEnter, onSpace }: { onKeyPress: (key: string) => void, onBackspace: () => void, onEnter: () => void, onSpace: () => void }) => {
+    const [layout, setLayout] = useState<'letters' | 'numbers'>('letters');
+    const [isShift, setIsShift] = useState(false);
+
+    const handleKeyPress = (key: string) => {
+        onKeyPress(isShift ? key.toUpperCase() : key);
+        if (isShift) setIsShift(false);
+    };
+
+    const currentLayout = azertyLayout[layout];
+
+    return (
+        <motion.div 
+            className="w-full bg-black/50 backdrop-blur-sm p-2 space-y-1"
+            initial={{ y: "100%" }}
+            animate={{ y: 0 }}
+            exit={{ y: "100%" }}
+            transition={{ type: 'spring', stiffness: 400, damping: 40 }}
+        >
+            {currentLayout.map((row, rowIndex) => (
+                <div key={rowIndex} className="flex justify-center gap-1">
+                    {rowIndex === 2 && layout === 'letters' && (
+                        <Button onClick={() => setIsShift(!isShift)} className={cn("h-10 w-12", isShift && 'bg-white text-black')}>
+                            <ArrowUp />
+                        </Button>
+                    )}
+                    {row.map(key => (
+                        <Button key={key} onClick={() => handleKeyPress(key)} className="h-10 flex-1">
+                            {isShift ? key.toUpperCase() : key}
+                        </Button>
+                    ))}
+                    {rowIndex === 2 && layout === 'letters' && (
+                         <Button onClick={onBackspace} className="h-10 w-12">
+                            <Delete />
+                        </Button>
+                    )}
+                     {rowIndex !== 2 && layout === 'numbers' && (
+                         <Button onClick={onBackspace} className="h-10 w-12">
+                            <Delete />
+                        </Button>
+                    )}
+                </div>
+            ))}
+            <div className="flex justify-center gap-1">
+                <Button onClick={() => setLayout(layout === 'letters' ? 'numbers' : 'letters')} className="h-10 w-24">
+                    {layout === 'letters' ? '?123' : 'ABC'}
+                </Button>
+                <Button onClick={onSpace} className="h-10 flex-1">
+                    Espace
+                </Button>
+                <Button onClick={onEnter} className="h-10 w-24">
+                    <CornerDownLeft />
+                </Button>
+            </div>
+        </motion.div>
+    );
+};
 
 
 export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: ChatInputProps) {
@@ -222,6 +286,58 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
     ? allEmojis.filter(emoji => emoji.includes(emojiSearchQuery))
     : [];
 
+  const mainInputSection = (
+     <div className="flex items-center gap-1 p-2">
+        <Button variant="ghost" size="icon" className="h-10 w-10 shrink-0 text-muted-foreground" onClick={() => toggleView('attachments')}>
+          <Paperclip className="w-5 h-5" />
+        </Button>
+        <TextareaAutosize
+          onFocus={() => setShowCustomKeyboard(true)}
+          readOnly
+          value={message}
+          placeholder="Message"
+          maxRows={5}
+          className="flex-1 resize-none bg-transparent border-0 focus:ring-0 focus:outline-none text-base placeholder:text-muted-foreground px-2"
+        />
+        <Button variant="ghost" size="icon" className="h-10 w-10 shrink-0 text-muted-foreground" onClick={() => toggleView('emoji')}>
+          <Smile className="w-5 h-5" />
+        </Button>
+        <div className="relative h-10 w-10 shrink-0">
+          <AnimatePresence>
+            {message ? (
+              <motion.div
+                key="send"
+                initial={{ scale: 0, rotate: -90 }}
+                animate={{ scale: 1, rotate: 0 }}
+                exit={{ scale: 0, rotate: 90 }}
+                className="absolute inset-0"
+              >
+                <Button size="icon" className="h-10 w-10 rounded-full bg-primary text-primary-foreground" onClick={handleSend}>
+                  <Send className="w-5 h-5" />
+                </Button>
+              </motion.div>
+            ) : (
+              <motion.div
+                key="mic"
+                initial={{ scale: 0, rotate: 90 }}
+                animate={{ scale: 1, rotate: 0 }}
+                exit={{ scale: 0, rotate: -90 }}
+                className="absolute inset-0"
+              >
+                <Button
+                    size="icon"
+                    variant="ghost"
+                    className="h-10 w-10 rounded-full text-muted-foreground"
+                >
+                  <Mic className="w-5 h-5" />
+                </Button>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+      </div>
+  );
+
   return (
     <div className="relative p-4 pt-2">
       <input 
@@ -255,262 +371,36 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
 
       <motion.div
         layout
-        variants={containerVariants}
-        initial="closed"
-        animate={currentVariant}
         transition={{ type: 'spring', stiffness: 500, damping: 40 }}
         className="relative bg-background/50 backdrop-blur-sm rounded-3xl shadow-lg border flex flex-col"
       >
-        <AnimatePresence mode="wait">
-            <motion.div
-              key={view}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.2 }}
-              className="flex flex-col flex-1 h-full"
-            >
-              {view === 'closed' && !showCustomKeyboard ? (
-                <div className="flex items-center gap-1 p-2">
-                  <Button variant="ghost" size="icon" className="h-10 w-10 shrink-0 text-muted-foreground" onClick={() => toggleView('attachments')}>
-                    <Paperclip className="w-5 h-5" />
-                  </Button>
-                  <Button variant="ghost" size="icon" className="h-10 w-10 shrink-0 text-muted-foreground" onClick={() => toggleView('emoji')}>
-                      <Smile className="w-5 h-5" />
-                  </Button>
-                  <TextareaAutosize
-                    ref={input => input && !replyInfo && !showCustomKeyboard && input.focus()}
-                    value={message}
-                    onChange={(e) => handleInputChange(e.target.value)}
-                    onFocus={(e) => {
-                        setShowCustomKeyboard(true);
-                        e.target.blur();
-                    }}
-                    placeholder="Message"
-                    maxRows={5}
-                    className="flex-1 resize-none bg-transparent border-0 focus:ring-0 focus:outline-none text-base placeholder:text-muted-foreground px-2"
-                  />
-                  <div className="relative h-10 w-10 shrink-0">
-                    <AnimatePresence>
-                      {message ? (
-                        <motion.div
-                          key="send"
-                          initial={{ scale: 0, rotate: -90 }}
-                          animate={{ scale: 1, rotate: 0 }}
-                          exit={{ scale: 0, rotate: 90 }}
-                          className="absolute inset-0"
-                        >
-                          <Button size="icon" className="h-10 w-10 rounded-full bg-primary text-primary-foreground" onClick={handleSend}>
-                            <Send className="w-5 h-5" />
-                          </Button>
-                        </motion.div>
-                      ) : (
-                        <motion.div
-                          key="mic"
-                          initial={{ scale: 0, rotate: 90 }}
-                          animate={{ scale: 1, rotate: 0 }}
-                          exit={{ scale: 0, rotate: -90 }}
-                          className="absolute inset-0"
-                        >
-                          <Button
-                              size="icon"
-                              variant="ghost"
-                              className="h-10 w-10 rounded-full text-muted-foreground"
-                          >
-                            <Mic className="w-5 h-5" />
-                          </Button>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                  </div>
-                </div>
-              ) : view === 'attachments' ? (
-                 <div className="flex-1 p-4 grid grid-cols-4 gap-4 items-center justify-center">
-                    {attachmentActions.map(action => (
-                      <div key={action.label} className="flex flex-col items-center gap-2 text-center cursor-pointer" onClick={() => handleAttachmentAction(action.label)}>
-                          <div className={`w-14 h-14 rounded-full flex items-center justify-center bg-background`}>
-                              <action.icon className={`w-6 h-6 ${action.color}`} />
-                          </div>
-                          <span className="text-xs text-muted-foreground">{action.label}</span>
-                      </div>
-                    ))}
-                 </div>
-              ) : ( // emoji or custom keyboard view
-                 <div className="flex-1 flex flex-col overflow-hidden">
-                    <AnimatePresence mode="wait">
-                    {searchMode ? (
-                        <motion.div
-                            key="search-interface"
-                            className="flex-1 flex flex-col overflow-hidden"
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
-                            transition={{ duration: 0.2 }}
-                        >
-                            <TextareaAutosize
-                                value={message}
-                                readOnly
-                                onFocus={(e) => e.target.blur()}
-                                placeholder="Message"
-                                maxRows={2}
-                                className="w-full resize-none bg-transparent border-0 focus:ring-0 focus:outline-none text-base placeholder:text-muted-foreground px-4 py-2"
-                            />
-                            <div className="px-3 py-2 flex items-center gap-2 border-t border-b border-border/50">
-                                <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={() => {setSearchMode(false); setEmojiSearchQuery('');}}>
-                                    <ArrowLeft className="w-5 h-5" />
-                                </Button>
-                                <div className="relative flex-1">
-                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                                    <Input
-                                        placeholder="Rechercher des emojis..."
-                                        value={emojiSearchQuery}
-                                        onChange={(e) => setEmojiSearchQuery(e.target.value)}
-                                        className="bg-transparent pl-9 h-9 border-0 focus-visible:ring-0"
-                                        autoFocus
-                                    />
-                                </div>
-                            </div>
-                            <div className="flex-1 overflow-y-auto px-4 pb-4 pt-2">
-                               {searchResults.length > 0 ? (
-                                   <div className="grid grid-cols-[repeat(auto-fill,minmax(2.5rem,1fr))] gap-1">
-                                        {searchResults.map((emoji, index) => (
-                                            <Button
-                                                key={`${emoji}-${index}`}
-                                                variant="ghost"
-                                                size="icon"
-                                                className="w-full h-10 text-2xl"
-                                                onClick={() => handleEmojiClick(emoji)}
-                                            >
-                                                {emoji}
-                                            </Button>
-                                        ))}
-                                   </div>
-                               ) : (
-                                    <div className="text-center text-muted-foreground text-sm pt-4">
-                                        {emojiSearchQuery ? `Aucun emoji trouvé pour "${emojiSearchQuery}"` : "Recherchez n'importe quel emoji."}
-                                    </div>
-                               )}
-                            </div>
-                        </motion.div>
-                    ) : (
-                        <motion.div
-                            key="default-interface"
-                            className="flex-1 flex flex-col overflow-hidden"
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
-                            transition={{ duration: 0.2 }}
-                        >
-                            <TextareaAutosize
-                                value={message}
-                                readOnly
-                                onFocus={(e) => e.target.blur()}
-                                placeholder="Message"
-                                maxRows={2}
-                                className="w-full resize-none bg-transparent border-0 focus:ring-0 focus:outline-none text-base placeholder:text-muted-foreground px-4 py-2"
-                            />
-                            <div className="px-3 py-2 flex items-center justify-between border-t border-b border-border/50">
-                                <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground" onClick={() => setSearchMode(true)}>
-                                    <Search className="w-5 h-5" />
-                                </Button>
-                                <div className="inline-flex items-center gap-2 bg-black/20 p-1 rounded-full border border-white/10">
-                                    {mainTabs.map(tab => (
-                                        <Button
-                                            key={tab.name}
-                                            variant="ghost"
-                                            size="sm"
-                                            onClick={() => setActiveMainTab(tab.name)}
-                                            className={`h-8 px-3 rounded-full relative transition-colors duration-300 ${activeMainTab === tab.name ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
-                                        >
-                                            <tab.icon className="w-5 h-5" />
-                                        </Button>
-                                    ))}
-                                </div>
-                                <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground" onClick={handleBackspace}>
-                                    <Delete className="w-5 h-5" />
-                                </Button>
-                            </div>
-                            <div className="flex-1 overflow-y-auto px-4 pb-4 pt-2">
-                               {activeMainTab === 'emoji' && (
-                                   <div className="grid grid-cols-[repeat(auto-fill,minmax(2.5rem,1fr))] gap-1">
-                                        {emojiCategories.find(c => c.name === activeEmojiCategory)?.emojis.map((emoji, index) => (
-                                            <Button
-                                                key={`${emoji}-${index}`}
-                                                variant="ghost"
-                                                size="icon"
-                                                className="w-full h-10 text-2xl"
-                                                onClick={() => handleEmojiClick(emoji)}
-                                            >
-                                                {emoji}
-                                            </Button>
-                                        ))}
-                                    </div>
-                                )}
-                            </div>
-                            {activeMainTab === 'emoji' && (
-                                <div className="px-3 py-1 border-t border-border/50">
-                                    <div className="flex items-center justify-around gap-2">
-                                        {emojiCategories.map(category => (
-                                            <Button
-                                                key={category.name}
-                                                variant="ghost"
-                                                size="icon"
-                                                onClick={() => setActiveEmojiCategory(category.name)}
-                                                className={`h-10 w-10 rounded-full ${activeEmojiCategory === category.name ? 'bg-muted' : ''}`}
-                                            >
-                                                <category.icon className="w-5 h-5 text-muted-foreground" />
-                                            </Button>
-                                        ))}
-                                    </div>
-                                </div>
-                            )}
-                        </motion.div>
-                    )}
-                    </AnimatePresence>
-                 </div>
+        {!showCustomKeyboard ? mainInputSection : (
+          <>
+            <div className='flex items-center gap-1 p-2'>
+              <TextareaAutosize
+                readOnly
+                value={message}
+                placeholder="Message"
+                maxRows={2}
+                className="flex-1 resize-none bg-transparent border-0 focus:ring-0 focus:outline-none text-base placeholder:text-muted-foreground px-2"
+              />
+              <Button variant="ghost" size="icon" className="h-10 w-10 shrink-0 text-muted-foreground" onClick={() => setShowCustomKeyboard(false)}>
+                <Keyboard className="w-5 h-5" />
+              </Button>
+              {message && (
+                <Button size="icon" className="h-10 w-10 rounded-full bg-primary text-primary-foreground" onClick={handleSend}>
+                  <Send className="w-5 h-5" />
+                </Button>
               )}
-            </motion.div>
-        </AnimatePresence>
-        
-        <AnimatePresence>
-            {(view !== 'closed' || showCustomKeyboard) && (
-                <motion.div
-                    className="absolute top-2 right-2 z-10"
-                    initial={{ opacity: 0, scale: 0.5, rotate: -90 }}
-                    animate={{ opacity: 1, scale: 1, rotate: 0 }}
-                    exit={{ opacity: 0, scale: 0.5, rotate: 90 }}
-                >
-                    <Button
-                        variant="ghost" size="icon"
-                        className="h-10 w-10 shrink-0 text-muted-foreground rounded-full"
-                        onClick={() => {
-                            if (view !== 'closed') {
-                                setView('closed');
-                            }
-                            setShowCustomKeyboard(false);
-                        }}
-                    >
-                         <Keyboard className="w-5 h-5" />
-                    </Button>
-                </motion.div>
-            )}
-        </AnimatePresence>
-         <AnimatePresence>
-            {message && showCustomKeyboard && (
-                <motion.div
-                    key="send"
-                    initial={{ scale: 0, rotate: -90 }}
-                    animate={{ scale: 1, rotate: 0 }}
-                    exit={{ scale: 0, rotate: 90 }}
-                    className="absolute top-2 left-2 z-10"
-                >
-                    <Button size="icon" className="h-10 w-10 rounded-full bg-primary text-primary-foreground" onClick={handleSend}>
-                    <Send className="w-5 h-5" />
-                    </Button>
-                </motion.div>
-            )}
-        </AnimatePresence>
-
+            </div>
+            <CustomKeyboard 
+              onKeyPress={(key) => handleInputChange(message + key)}
+              onBackspace={handleBackspace}
+              onEnter={handleSend}
+              onSpace={() => handleInputChange(message + ' ')}
+            />
+          </>
+        )}
       </motion.div>
     </div>
   );
