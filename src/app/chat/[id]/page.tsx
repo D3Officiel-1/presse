@@ -212,14 +212,23 @@ function ChatPageContent() {
             const chatsRef = collection(firestore, 'chats');
             const chatQuery = query(chatsRef, 
                 where('type', '==', 'private'),
-                where('members', '==', [currentUser.uid, userId].sort())
+                where('members', 'array-contains', currentUser.uid)
             );
             const chatSnap = await getDocs(chatQuery);
-
-            let targetChatId: string;
+            
+            let targetChatId: string | null = null;
             let targetChatData: ChatType | null = null;
 
-            if (chatSnap.empty) {
+            chatSnap.forEach(doc => {
+              const chat = doc.data();
+              if (chat.members.includes(userId)) {
+                targetChatId = doc.id;
+                targetChatData = chat as ChatType;
+              }
+            });
+
+
+            if (!targetChatId) {
                 // Create new chat if it doesn't exist
                 const newChatDoc = await addDoc(chatsRef, {
                     type: 'private',
@@ -229,13 +238,10 @@ function ChatPageContent() {
                     typing: { [currentUser.uid]: false, [userId]: false },
                 });
                 targetChatId = newChatDoc.id;
-            } else {
-                targetChatId = chatSnap.docs[0].id;
-                targetChatData = chatSnap.docs[0].data() as ChatType;
             }
 
             // Send the message
-            const messagesRef = collection(firestore, 'chats', targetChatId, 'messages');
+            const messagesRef = collection(firestore, 'chats', targetChatId);
             await addDoc(messagesRef, {
                 chatId: targetChatId,
                 senderId: currentUser.uid,

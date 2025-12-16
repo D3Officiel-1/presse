@@ -361,7 +361,8 @@ const MessageFocusView = ({
     onToggleStar,
     onTogglePin,
     onEdit,
-    onShare
+    onShare,
+    allUsersInApp
 }: {
     message: Message | null;
     onClose: () => void;
@@ -372,6 +373,7 @@ const MessageFocusView = ({
     onTogglePin: () => void;
     onEdit: () => void;
     onShare: (message: Message, userIds: string[]) => void;
+    allUsersInApp: User[];
 }) => {
     const chatContext = React.useContext(ChatContext);
     const [viewMode, setViewMode] = React.useState<'main' | 'delete' | 'share'>('main');
@@ -399,7 +401,7 @@ const MessageFocusView = ({
                 }
             });
 
-            const allUsers: User[] = chatContext.allUsersInApp.filter((u: User) => u.id !== chatContext.loggedInUser.uid);
+            const allUsers: User[] = allUsersInApp.filter((u: User) => u.id !== chatContext.loggedInUser.uid);
             
             const recent = allUsers.filter(u => recentChatUserIds.has(u.id));
             const all = allUsers.filter(u => !recentChatUserIds.has(u.id));
@@ -410,12 +412,12 @@ const MessageFocusView = ({
 
         fetchShareList();
 
-    }, [viewMode, chatContext.firestore, chatContext.loggedInUser, chatContext.allUsersInApp]);
+    }, [viewMode, chatContext.firestore, chatContext.loggedInUser, allUsersInApp]);
 
 
     if (!message) return null;
     
-    const sender = chatContext.allUsersInApp.find((u: User) => u.id === message.senderId) || message.sender;
+    const sender = allUsersInApp.find((u: User) => u.id === message.senderId) || message.sender;
     const isOwnMessage = sender.id === chatContext.loggedInUser.uid;
     const isStarred = message.starredBy?.includes(chatContext.loggedInUser.uid) ?? false;
     const isCommunity = chatContext.chat.type === 'community';
@@ -450,8 +452,7 @@ const MessageFocusView = ({
 
 
     const mainActions: ActionItem[] = [
-        { label: 'Répondre', icon: MessageSquare, action: onReply },
-        ...(canEdit ? [{ label: 'Modifier', icon: Edit, action: onEdit }] : []),
+        ...(canEdit ? [{ label: 'Modifier', icon: Edit, action: onEdit }] : [{ label: 'Répondre', icon: MessageSquare, action: onReply }]),
         { label: 'Copier', icon: Copy, action: () => navigator.clipboard.writeText(message.content) },
         { label: 'Transférer', icon: Share2, action: () => {} },
         { label: isStarred ? 'Retirer' : 'Important', icon: Star, action: onToggleStar },
@@ -868,6 +869,7 @@ export function ChatMessages({
                     onTogglePin={() => onTogglePin(selectedMessage, chat.pinnedMessages?.some(m => m.id === selectedMessage.id) ?? false)}
                     onEdit={handleEdit}
                     onShare={onShare}
+                    allUsersInApp={allUsersInApp}
                 />
             )}
         </AnimatePresence>
