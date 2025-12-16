@@ -310,7 +310,7 @@ export default function UserProfilePage() {
                 <div className="flex items-center gap-4">
                     <Clock className="w-5 h-5 text-muted-foreground flex-shrink-0" />
                     <div>
-                        <h3 className="font-semibold text-sm">Dernière connexion</h3>
+                        <h3 className="font-semibold text-sm">Activité</h3>
                         <p className="text-muted-foreground text-sm mt-0.5">
                             Vu {formatLastSeen(user.lastSeen)}
                         </p>

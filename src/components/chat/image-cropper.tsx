@@ -106,14 +106,14 @@ export function ImageCropper({ imageSrc, open, onOpenChange, onCropped }: ImageC
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Recadrer l'image</DialogTitle>
           <DialogDescription>
             Ajustez votre photo de profil pour qu'elle soit parfaite.
           </DialogDescription>
         </DialogHeader>
-        <div className="my-4 flex justify-center bg-muted overflow-hidden">
+        <div className="my-4 flex justify-center bg-transparent overflow-hidden">
           <ReactCrop
             crop={crop}
             onChange={(_, percentCrop) => setCrop(percentCrop)}
