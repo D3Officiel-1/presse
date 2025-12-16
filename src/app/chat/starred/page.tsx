@@ -5,7 +5,7 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useUser } from '@/firebase/auth/use-user';
 import { useFirestore } from '@/firebase/provider';
-import { collectionGroup, query, where, onSnapshot, orderBy } from 'firebase/firestore';
+import { collectionGroup, query, where, onSnapshot, orderBy, getDocs, collection } from 'firebase/firestore';
 import type { Message as MessageType, User as UserType } from '@/lib/types';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -19,6 +19,7 @@ export default function StarredMessagesPage() {
   const firestore = useFirestore();
 
   const [starredMessages, setStarredMessages] = useState<MessageType[]>([]);
+  const [usersData, setUsersData] = useState<{ [key: string]: UserType }>({});
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -36,11 +37,28 @@ export default function StarredMessagesPage() {
     );
 
     const unsubscribe = onSnapshot(q, async (querySnapshot) => {
-      const messages: MessageType[] = [];
-      for (const doc of querySnapshot.docs) {
-        messages.push({ id: doc.id, ...doc.data() } as MessageType);
+      const messagesData: MessageType[] = [];
+      const userIdsToFetch = new Set<string>();
+
+      querySnapshot.forEach(doc => {
+        const message = { id: doc.id, ...doc.data() } as MessageType;
+        messagesData.push(message);
+        if (message.senderId && !usersData[message.senderId]) {
+            userIdsToFetch.add(message.senderId);
+        }
+      });
+      
+      if (userIdsToFetch.size > 0) {
+        const usersQuery = query(collection(firestore, 'users'), where('__name__', 'in', Array.from(userIdsToFetch)));
+        const usersSnap = await getDocs(usersQuery);
+        const fetchedUsersData: { [key: string]: UserType } = {};
+        usersSnap.forEach(userDoc => {
+            fetchedUsersData[userDoc.id] = { id: userDoc.id, ...userDoc.data() } as UserType;
+        });
+        setUsersData(prev => ({...prev, ...fetchedUsersData}));
       }
-      setStarredMessages(messages);
+
+      setStarredMessages(messagesData);
       setLoading(false);
     }, (error) => {
         console.error("Error fetching starred messages: ", error);
@@ -84,25 +102,29 @@ export default function StarredMessagesPage() {
           </div>
         ) : (
           <div className="p-2 md:p-4 space-y-4">
-            {starredMessages.map((message) => (
-              <div key={message.id} className="bg-card border rounded-lg p-4 space-y-3">
-                <div className="flex items-center justify-between text-xs text-muted-foreground">
-                    <div className='flex items-center gap-2'>
-                        <Avatar className='w-5 h-5'>
-                            <AvatarImage src={message.sender.avatar} />
-                            <AvatarFallback>{message.sender.name.substring(0,1)}</AvatarFallback>
-                        </Avatar>
-                        <span>{message.sender.name}</span>
+            {starredMessages.map((message) => {
+               const sender = usersData[message.senderId] || message.sender;
+               if (!sender) return null;
+               return (
+                  <div key={message.id} className="bg-card border rounded-lg p-4 space-y-3">
+                    <div className="flex items-center justify-between text-xs text-muted-foreground">
+                        <div className='flex items-center gap-2'>
+                            <Avatar className='w-5 h-5'>
+                                <AvatarImage src={sender.avatar} />
+                                <AvatarFallback>{sender.name.substring(0,1)}</AvatarFallback>
+                            </Avatar>
+                            <span>{sender.name}</span>
+                        </div>
+                        <span>{formatTimestamp(message.timestamp)}</span>
                     </div>
-                    <span>{formatTimestamp(message.timestamp)}</span>
-                </div>
-                <p className="text-sm">{message.content}</p>
-                 <Button variant="outline" size="sm" className="gap-2" onClick={() => router.push(`/chat/${message.chatId}`)}>
-                    <MessageSquare className="w-4 h-4" />
-                    Aller au message
-                </Button>
-              </div>
-            ))}
+                    <p className="text-sm">{message.content}</p>
+                     <Button variant="outline" size="sm" className="gap-2" onClick={() => router.push(`/chat/${message.chatId}`)}>
+                        <MessageSquare className="w-4 h-4" />
+                        Aller au message
+                    </Button>
+                  </div>
+              )
+            })}
           </div>
         )}
       </main>
