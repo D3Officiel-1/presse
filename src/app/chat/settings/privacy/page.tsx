@@ -30,7 +30,11 @@ export default function PrivacyPolicyPage() {
                         variants={FADE_UP_ANIMATION_VARIANTS}
                         initial="hidden"
                         animate="visible"
-                        className="prose prose-invert prose-p:text-muted-foreground prose-headings:text-foreground"
+                        className="prose prose-invert max-w-none
+                                   prose-headings:text-foreground prose-headings:font-semibold
+                                   prose-p:text-muted-foreground
+                                   prose-h3:mt-8 prose-h3:mb-2 prose-h3:text-lg
+                                   prose-p:leading-relaxed"
                     >
                         <h2>Politique de Confidentialité</h2>
                         <p>Dernière mise à jour : 27 Juillet 2024</p>
