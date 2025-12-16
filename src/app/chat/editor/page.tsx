@@ -356,23 +356,25 @@ function EditorComponent() {
                                 autoFocus
                             />
                          </motion.div>
-                         <footer className="absolute bottom-4 left-4 right-4 flex items-center justify-center">
-                            <div className="flex items-center gap-2 bg-black/30 p-2 rounded-full">
-                                {fontStyles.map((font) => (
-                                    <Button
-                                        key={font.class}
-                                        variant="ghost"
-                                        size="sm"
-                                        onClick={() => setFontFamily(font.class)}
-                                        className={cn(
-                                            "rounded-full text-white",
-                                            font.class,
-                                            fontFamily === font.class && "bg-white text-black"
-                                        )}
-                                    >
-                                        {font.label}
-                                    </Button>
-                                ))}
+                         <footer className="absolute bottom-4 left-0 right-0 flex justify-center">
+                            <div className="w-full max-w-sm overflow-x-auto no-scrollbar">
+                                <div className="flex items-center justify-center gap-2 bg-black/30 p-2 rounded-full w-max mx-auto">
+                                    {fontStyles.map((font) => (
+                                        <Button
+                                            key={font.class}
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={() => setFontFamily(font.class)}
+                                            className={cn(
+                                                "rounded-full text-white shrink-0",
+                                                font.class,
+                                                fontFamily === font.class && "bg-white text-black"
+                                            )}
+                                        >
+                                            {font.label}
+                                        </Button>
+                                    ))}
+                                </div>
                             </div>
                         </footer>
                     </motion.div>
