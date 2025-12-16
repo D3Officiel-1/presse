@@ -12,9 +12,9 @@ import { ArrowLeft, Loader2, Archive, ArchiveRestore } from 'lucide-react';
 import { ChatAvatar } from '@/components/chat/chat-avatar';
 import { format, isToday, isYesterday } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
-import Link from 'next/link';
-import { cn } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
+import { motion, AnimatePresence } from 'framer-motion';
+import { cn } from '@/lib/utils';
 
 export default function ArchivedChatsPage() {
   const router = useRouter();
@@ -75,7 +75,8 @@ export default function ArchivedChatsPage() {
     return () => unsubscribe();
   }, [firestore, user, userLoading]);
 
-  const handleUnarchive = async (chatId: string) => {
+  const handleUnarchive = async (chatId: string, event: React.MouseEvent) => {
+    event.stopPropagation();
     if (!firestore || !user) return;
     const chatRef = doc(firestore, 'chats', chatId);
     try {
@@ -96,24 +97,33 @@ export default function ArchivedChatsPage() {
     return format(date, 'dd/MM/yyyy');
   };
 
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1,
+      },
+    },
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 50, rotateX: -30 },
+    visible: { opacity: 1, y: 0, rotateX: 0, transition: { type: 'spring', stiffness: 100, damping: 15 } },
+  };
+
   if (loading || userLoading) {
     return (
-      <div className="flex flex-col h-full bg-background">
+      <div className="flex flex-col h-screen bg-background">
         <header className="p-4 border-b flex items-center gap-4 bg-background/80 backdrop-blur-sm sticky top-0 z-10 shrink-0">
             <Button variant="ghost" size="icon" onClick={() => router.back()} className="size-9 rounded-full">
               <ArrowLeft size={20} />
             </Button>
             <h1 className="font-semibold text-xl tracking-tight">Discussions archivées</h1>
         </header>
-        <div className="flex-1 overflow-auto p-2">
+        <div className="flex-1 overflow-auto p-4 md:p-6 space-y-4">
             {[...Array(3)].map((_, i) => (
-                <div key={i} className="flex items-center gap-4 p-3 rounded-lg">
-                    <Skeleton className="h-12 w-12 rounded-full" />
-                    <div className="flex-1 space-y-2">
-                    <Skeleton className="h-4 w-3/4" />
-                    <Skeleton className="h-3 w-1/2" />
-                    </div>
-                </div>
+                <Skeleton key={i} className="h-20 w-full rounded-xl" />
             ))}
         </div>
       </div>
@@ -121,64 +131,89 @@ export default function ArchivedChatsPage() {
   }
 
   return (
-    <div className="flex flex-col h-full bg-background">
-       <video
-          src="https://cdn.pixabay.com/video/2024/05/20/212953-944519999_large.mp4"
-          autoPlay
-          loop
-          muted
-          playsInline
-          className="absolute top-0 left-0 w-full h-full object-cover -z-10 opacity-20"
-        />
-        <div className="absolute inset-0 bg-background/70 -z-10"/>
+    <div className="flex flex-col h-screen bg-background text-foreground">
+        <div className="absolute inset-0 bg-gradient-to-br from-background via-black to-background -z-10 animate-gradient-xy"/>
 
-       <header className="p-4 border-b flex items-center gap-4 bg-background/80 backdrop-blur-sm sticky top-0 z-10 shrink-0">
-        <Button variant="ghost" size="icon" onClick={() => router.back()} className="size-9 rounded-full">
-          <ArrowLeft size={20} />
-        </Button>
-        <h1 className="font-semibold text-xl tracking-tight">Discussions archivées</h1>
-      </header>
+        <header className="p-4 flex items-center gap-4 bg-background/30 backdrop-blur-xl sticky top-0 z-10 shrink-0 border-b border-white/5">
+            <Button variant="ghost" size="icon" onClick={() => router.back()} className="size-9 rounded-full bg-white/5 hover:bg-white/10">
+                <ArrowLeft size={20} />
+            </Button>
+            <h1 className="font-bold text-xl tracking-tight">Discussions Archivées</h1>
+        </header>
 
-      <main className="flex-1 overflow-auto">
-        {archivedChats.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-full text-center text-muted-foreground p-4">
-            <Archive className="w-16 h-16 mb-4" />
-            <h2 className="text-xl font-semibold">Aucune discussion archivée</h2>
-            <p className="max-w-xs mx-auto mt-2">Vos discussions archivées apparaîtront ici.</p>
-          </div>
-        ) : (
-          <div className="p-2 md:p-4 space-y-1">
-            {archivedChats.map((chat) => {
-              const otherUserId = chat.type === 'private' ? chat.members.find((uid) => uid !== user?.uid) : undefined;
-              const otherUser = otherUserId ? usersData[otherUserId] : undefined;
-              const chatName = chat.name || (otherUser ? otherUser.name : 'Chargement...');
-              const chatAvatarUser = chat.type === 'private' ? otherUser : { name: chat.name!, avatar: `https://avatar.vercel.sh/${chat.name}.png` };
-
-              return (
-                <div key={chat.id} className="group flex items-center p-3 rounded-lg hover:bg-black/10 backdrop-blur-sm">
-                    <Link href={`/chat/${chat.id}`} className="flex-1 flex items-center gap-3 min-w-0">
-                        {chatAvatarUser ? (
-                            <ChatAvatar user={chatAvatarUser} isGroup={chat.type !== 'private'} />
-                        ) : <Skeleton className="h-12 w-12 rounded-full" />}
-                        <div className="flex-1 min-w-0">
-                            <p className="font-semibold truncate">{chatName}</p>
-                            <p className="text-sm text-muted-foreground truncate">{chat.lastMessage?.content || 'Aucun message'}</p>
-                        </div>
-                    </Link>
-                    <div className="flex items-center gap-4">
-                        <span className="text-xs text-muted-foreground ml-auto whitespace-nowrap">
-                            {formatTimestamp(chat.lastMessageTimestamp)}
-                        </span>
-                        <Button variant="ghost" size="icon" className="opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => handleUnarchive(chat.id)}>
-                            <ArchiveRestore className="w-5 h-5 text-primary"/>
-                        </Button>
-                    </div>
+        <main className="flex-1 overflow-y-auto">
+            {archivedChats.length === 0 ? (
+                <div className="flex flex-col items-center justify-center h-full text-center text-muted-foreground p-4">
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.8 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ type: 'spring', delay: 0.2 }}
+                    >
+                        <Archive className="w-20 h-20 mb-6 opacity-30" strokeWidth={1} />
+                        <h2 className="text-xl font-semibold text-foreground">Vos archives sont vides</h2>
+                        <p className="max-w-xs mx-auto mt-2">Les discussions que vous archivez apparaissent ici.</p>
+                    </motion.div>
                 </div>
-              );
-            })}
-          </div>
-        )}
-      </main>
+            ) : (
+                <motion.div 
+                    variants={containerVariants}
+                    initial="hidden"
+                    animate="visible"
+                    className="p-4 md:p-8 space-y-[-40px]" 
+                    style={{ perspective: '1000px' }}
+                >
+                    <AnimatePresence>
+                        {archivedChats.map((chat, index) => {
+                            const otherUserId = chat.type === 'private' ? chat.members.find((uid) => uid !== user?.uid) : undefined;
+                            const otherUser = otherUserId ? usersData[otherUserId] : undefined;
+                            const chatName = chat.name || (otherUser ? otherUser.name : 'Chargement...');
+                            const chatAvatarUser = chat.type === 'private' ? otherUser : { name: chat.name!, avatar: `https://avatar.vercel.sh/${chat.name}.png` };
+
+                            return (
+                                <motion.div
+                                    key={chat.id}
+                                    layout
+                                    variants={itemVariants}
+                                    initial="hidden"
+                                    animate="visible"
+                                    exit={{ opacity: 0, y: -50 }}
+                                    transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+                                    className="group relative h-28"
+                                    style={{ zIndex: archivedChats.length - index }}
+                                >
+                                    <div 
+                                        className="absolute inset-0 bg-card/40 border border-white/10 rounded-2xl shadow-2xl backdrop-blur-lg transition-all duration-300 ease-out group-hover:!rotate-x-0 group-hover:scale-105"
+                                        style={{ transform: `rotateX(50deg) scale(0.9) translateY(-${index * 50}px)`}}
+                                        onClick={() => router.push(`/chat/${chat.id}`)}
+                                    >
+                                        <div className="p-4 h-full flex items-center gap-4">
+                                             {chatAvatarUser ? (
+                                                <ChatAvatar user={chatAvatarUser} isGroup={chat.type !== 'private'} className="w-12 h-12" />
+                                            ) : <Skeleton className="h-12 w-12 rounded-full" />}
+                                            <div className="flex-1 min-w-0">
+                                                <p className="font-semibold text-lg truncate">{chatName}</p>
+                                                <p className="text-sm text-muted-foreground truncate">{chat.lastMessage?.content || 'Aucun message'}</p>
+                                            </div>
+                                            <div className="flex flex-col items-end opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                                                <span className="text-xs text-muted-foreground whitespace-nowrap">
+                                                    {formatTimestamp(chat.lastMessageTimestamp)}
+                                                </span>
+                                                <Button variant="ghost" size="icon" className="mt-1" onClick={(e) => handleUnarchive(chat.id, e)}>
+                                                    <ArchiveRestore className="w-5 h-5 text-primary"/>
+                                                </Button>
+                                            </div>
+                                        </div>
+                                        <div className="absolute top-2 right-3 text-xs text-muted-foreground transition-opacity duration-300 group-hover:opacity-0">
+                                            {formatTimestamp(chat.lastMessageTimestamp)}
+                                        </div>
+                                    </div>
+                                </motion.div>
+                            );
+                        })}
+                    </AnimatePresence>
+                </motion.div>
+            )}
+        </main>
     </div>
   );
 }
