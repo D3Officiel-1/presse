@@ -362,7 +362,6 @@ const MessageFocusView = ({
     onTogglePin,
     onEdit,
     onShare,
-    allUsersInApp
 }: {
     message: Message | null;
     onClose: () => void;
@@ -373,7 +372,6 @@ const MessageFocusView = ({
     onTogglePin: () => void;
     onEdit: () => void;
     onShare: (message: Message, userIds: string[]) => void;
-    allUsersInApp: User[];
 }) => {
     const chatContext = React.useContext(ChatContext);
     const [viewMode, setViewMode] = React.useState<'main' | 'delete' | 'share'>('main');
@@ -386,38 +384,50 @@ const MessageFocusView = ({
         
         const fetchShareList = async () => {
             setLoadingShare(true);
-            const userChatsQuery = query(
-                collection(chatContext.firestore, 'chats'),
-                where('type', '==', 'private'),
-                where('members', 'array-contains', chatContext.loggedInUser.uid)
-            );
-            
-            const chatSnap = await getDocs(userChatsQuery);
-            const recentChatUserIds = new Set<string>();
-            chatSnap.forEach(doc => {
-                const otherMember = doc.data().members.find((m: string) => m !== chatContext.loggedInUser.uid);
-                if (otherMember) {
-                    recentChatUserIds.add(otherMember);
-                }
-            });
+            try {
+                // 1. Fetch all users except the current one
+                const usersRef = collection(chatContext.firestore, 'users');
+                const usersSnap = await getDocs(usersRef);
+                const allUsersFromDb = usersSnap.docs
+                    .map(doc => ({ id: doc.id, ...doc.data() } as User))
+                    .filter(u => u.id !== chatContext.loggedInUser.uid);
 
-            const allUsers: User[] = allUsersInApp.filter((u: User) => u.id !== chatContext.loggedInUser.uid);
-            
-            const recent = allUsers.filter(u => recentChatUserIds.has(u.id));
-            const all = allUsers.filter(u => !recentChatUserIds.has(u.id));
+                // 2. Fetch all private chats for the current user
+                const userChatsQuery = query(
+                    collection(chatContext.firestore, 'chats'),
+                    where('type', '==', 'private'),
+                    where('members', 'array-contains', chatContext.loggedInUser.uid)
+                );
+                
+                const chatSnap = await getDocs(userChatsQuery);
+                const recentChatUserIds = new Set<string>();
+                chatSnap.forEach(doc => {
+                    const otherMember = doc.data().members.find((m: string) => m !== chatContext.loggedInUser.uid);
+                    if (otherMember) {
+                        recentChatUserIds.add(otherMember);
+                    }
+                });
 
-            setShareList({ recent, all });
-            setLoadingShare(false);
+                // 3. Categorize users
+                const recent = allUsersFromDb.filter(u => recentChatUserIds.has(u.id));
+                const all = allUsersFromDb.filter(u => !recentChatUserIds.has(u.id));
+
+                setShareList({ recent, all });
+            } catch (error) {
+                console.error("Error building share list:", error);
+            } finally {
+                setLoadingShare(false);
+            }
         };
 
         fetchShareList();
 
-    }, [viewMode, chatContext.firestore, chatContext.loggedInUser, allUsersInApp]);
+    }, [viewMode, chatContext.firestore, chatContext.loggedInUser]);
 
 
     if (!message) return null;
     
-    const sender = allUsersInApp.find((u: User) => u.id === message.senderId) || message.sender;
+    const sender = chatContext.allUsersInApp.find((u: User) => u.id === message.senderId) || message.sender;
     const isOwnMessage = sender.id === chatContext.loggedInUser.uid;
     const isStarred = message.starredBy?.includes(chatContext.loggedInUser.uid) ?? false;
     const isCommunity = chatContext.chat.type === 'community';
@@ -867,7 +877,6 @@ export function ChatMessages({
                     onTogglePin={() => onTogglePin(selectedMessage, chat.pinnedMessages?.some(m => m.id === selectedMessage.id) ?? false)}
                     onEdit={handleEdit}
                     onShare={onShare}
-                    allUsersInApp={allUsersInApp}
                 />
             )}
         </AnimatePresence>

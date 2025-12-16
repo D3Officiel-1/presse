@@ -601,6 +601,7 @@ export default function ChatsPage() {
                             avatarFallback={currentUserData?.name?.substring(0, 1) || 'U'}
                             mainActions={navActions}
                             onClose={() => setSelectedChatId(null)}
+                            onLogout={handleLogout}
                             toast={toast}
                          />
                     )}
