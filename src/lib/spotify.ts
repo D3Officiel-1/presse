@@ -1,7 +1,7 @@
 
 'use server'
 
-import { searchSpotify, getArtistTopTracksFromSpotify } from './spotify-actions';
+import { searchSpotify, getArtistTopTracksFromSpotify } from './spotify-action';
 
 export const searchTracks = async (query: string) => {
     if (!query) {
