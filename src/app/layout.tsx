@@ -5,6 +5,7 @@ import { FirebaseClientProvider } from '@/firebase/client-provider';
 import React from 'react';
 import { ThemeUpdater } from '@/lib/theme';
 import { GlobalContextMenuBlocker } from '@/components/global-context-menu-blocker';
+import { GlobalKeyboardDisabler } from '@/components/global-keyboard-disabler';
 
 const APP_NAME = "Club de Presse - Leader's Club";
 const APP_DESCRIPTION = "L'application de chat dédiée aux membres du Club de Presse du Leader's Club.";
@@ -71,6 +72,7 @@ export default function RootLayout({
         <FirebaseClientProvider>
           <ThemeUpdater />
           <GlobalContextMenuBlocker />
+          <GlobalKeyboardDisabler />
           {children}
         </FirebaseClientProvider>
         <Toaster />
