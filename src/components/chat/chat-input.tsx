@@ -1,7 +1,7 @@
 
 'use client';
 
-import React, 'useState', useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Paperclip, Mic, Send, X, Smile, Image as ImageIcon, Camera, MapPin, User, FileText, Music, Vote, Calendar, Keyboard, Sprout, Pizza, ToyBrick, Dumbbell, Film, FileImage, UserCircle, Clock, Search, Delete, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -451,9 +451,15 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
                     <Button
                         variant="ghost" size="icon"
                         className="h-10 w-10 shrink-0 text-muted-foreground rounded-full"
-                        onClick={() => setView('closed')}
+                        onClick={() => {
+                            if (view === 'emoji' && searchMode) {
+                                setSearchMode(false);
+                            } else {
+                                setView('closed');
+                            }
+                        }}
                     >
-                         <X className="w-5 h-5" />
+                         {view === 'emoji' && searchMode ? <ArrowLeft className="w-5 h-5" /> : <Keyboard className="w-5 h-5" />}
                     </Button>
                 </motion.div>
             )}
@@ -463,3 +469,5 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
     </div>
   );
 }
+
+    
