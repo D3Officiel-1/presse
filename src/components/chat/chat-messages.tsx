@@ -378,7 +378,10 @@ const MessageFocusView = ({
     const firestore = useFirestore();
     const [viewMode, setViewMode] = React.useState<'main' | 'delete' | 'share'>('main');
     const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
-    const [shareList, setShareList] = useState<User[]>([]);
+    
+    const [recentChatUsers, setRecentChatUsers] = useState<User[]>([]);
+    const [otherUsers, setOtherUsers] = useState<User[]>([]);
+
     const [loadingShare, setLoadingShare] = useState(false);
 
     useEffect(() => {
@@ -388,13 +391,36 @@ const MessageFocusView = ({
             if (!firestore || !chatContext.loggedInUser) return;
             setLoadingShare(true);
             try {
+                // 1. Fetch all users except the current one
                 const usersRef = collection(firestore, 'users');
                 const usersSnap = await getDocs(usersRef);
                 const allUsersFromDb = usersSnap.docs
                     .map(doc => ({ id: doc.id, ...doc.data() } as User))
                     .filter(u => u.id !== chatContext.loggedInUser.uid);
+
+                // 2. Fetch all private chats involving the current user
+                const chatsRef = collection(firestore, 'chats');
+                const privateChatsQuery = query(chatsRef, 
+                    where('type', '==', 'private'),
+                    where('members', 'array-contains', chatContext.loggedInUser.uid)
+                );
+                const privateChatsSnap = await getDocs(privateChatsQuery);
+
+                const recentChatUserIds = new Set<string>();
+                privateChatsSnap.forEach(doc => {
+                    const chatData = doc.data();
+                    const otherMemberId = chatData.members.find((id: string) => id !== chatContext.loggedInUser.uid);
+                    if (otherMemberId) {
+                        recentChatUserIds.add(otherMemberId);
+                    }
+                });
                 
-                setShareList(allUsersFromDb);
+                // 3. Categorize users
+                const recents = allUsersFromDb.filter(u => recentChatUserIds.has(u.id));
+                const others = allUsersFromDb.filter(u => !recentChatUserIds.has(u.id));
+
+                setRecentChatUsers(recents);
+                setOtherUsers(others);
 
             } catch (error) {
                 console.error("Error building share list:", error);
@@ -544,22 +570,49 @@ const MessageFocusView = ({
                   </div>
               ) : (
                   <div className="flex-1 overflow-y-auto p-2">
-                      {shareList.map((user: User) => (
-                          <div key={user.id} className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50 cursor-pointer" onClick={() => handleToggleUserSelection(user.id)}>
-                              <div className="relative">
-                                <Avatar>
-                                  <AvatarImage src={user.avatar} />
-                                  <AvatarFallback>{user.name.substring(0,1)}</AvatarFallback>
-                                </Avatar>
-                                {selectedUsers.includes(user.id) && (
-                                  <div className="absolute -bottom-1 -right-1 bg-primary text-primary-foreground rounded-full h-5 w-5 flex items-center justify-center border-2 border-background">
-                                    <Check className="w-3 h-3" />
+                      {recentChatUsers.length > 0 && (
+                          <div className="mb-4">
+                              <h4 className="px-2 text-sm font-semibold text-muted-foreground mb-2">Discussions récentes</h4>
+                              {recentChatUsers.map((user: User) => (
+                                  <div key={user.id} className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50 cursor-pointer" onClick={() => handleToggleUserSelection(user.id)}>
+                                      <div className="relative">
+                                          <Avatar>
+                                              <AvatarImage src={user.avatar} />
+                                              <AvatarFallback>{user.name.substring(0,1)}</AvatarFallback>
+                                          </Avatar>
+                                          {selectedUsers.includes(user.id) && (
+                                              <div className="absolute -bottom-1 -right-1 bg-primary text-primary-foreground rounded-full h-5 w-5 flex items-center justify-center border-2 border-background">
+                                                  <Check className="w-3 h-3" />
+                                              </div>
+                                          )}
+                                      </div>
+                                      <span className="font-medium">{user.name}</span>
                                   </div>
-                                )}
-                              </div>
-                              <span className="font-medium">{user.name}</span>
+                              ))}
                           </div>
-                      ))}
+                      )}
+                      
+                      {otherUsers.length > 0 && (
+                           <div>
+                               <h4 className="px-2 text-sm font-semibold text-muted-foreground mb-2">Autres membres</h4>
+                               {otherUsers.map((user: User) => (
+                                   <div key={user.id} className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50 cursor-pointer" onClick={() => handleToggleUserSelection(user.id)}>
+                                       <div className="relative">
+                                           <Avatar>
+                                               <AvatarImage src={user.avatar} />
+                                               <AvatarFallback>{user.name.substring(0,1)}</AvatarFallback>
+                                           </Avatar>
+                                           {selectedUsers.includes(user.id) && (
+                                               <div className="absolute -bottom-1 -right-1 bg-primary text-primary-foreground rounded-full h-5 w-5 flex items-center justify-center border-2 border-background">
+                                                   <Check className="w-3 h-3" />
+                                               </div>
+                                           )}
+                                       </div>
+                                       <span className="font-medium">{user.name}</span>
+                                   </div>
+                               ))}
+                           </div>
+                      )}
                   </div>
               )}
               {selectedUsers.length > 0 && (
