@@ -110,9 +110,7 @@ const CustomKeyboard = ({ onKeyPress, onBackspace, onEnter, onSpace, onEmojiTogg
                         </Button>
                     )}
                      {rowIndex === 2 && layout === 'numbers' && (
-                         <Button onClick={onBackspace} className="h-10 w-12">
-                            <Delete />
-                        </Button>
+                         <Button onClick={() => handleKeyPress("'")} className="h-10 w-12">'</Button>
                      )}
                 </div>
             ))}
@@ -120,6 +118,7 @@ const CustomKeyboard = ({ onKeyPress, onBackspace, onEnter, onSpace, onEmojiTogg
                 <Button onClick={() => setLayout(layout === 'letters' ? 'numbers' : 'letters')} className="h-10 w-16">
                     {layout === 'letters' ? '?123' : 'ABC'}
                 </Button>
+                <Button onClick={() => handleKeyPress(',')} className="h-10 w-12">,</Button>
                 <Button onClick={onEmojiToggle} className="h-10 w-16">😊</Button>
                 <Button onClick={onSpace} className="h-10 flex-1">
                     Espace
@@ -299,7 +298,7 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
         {view === 'closed' && (
             <motion.div
                 key="input"
-                exit={{ opacity: 0, y: 10 }}
+                exit={{ opacity: 0, y: 10, transition: { duration: 0.2 } }}
             >
                 <div className="flex items-end gap-1 p-2">
                     <Button variant="ghost" size="icon" className="h-10 w-10 shrink-0 text-muted-foreground" onClick={() => toggleView('attachments')}>
