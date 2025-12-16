@@ -1,7 +1,7 @@
 
 'use client';
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, 'useState', useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Paperclip, Mic, Send, X, Smile, Image as ImageIcon, Camera, MapPin, User, FileText, Music, Vote, Calendar, Keyboard, Sprout, Pizza, ToyBrick, Dumbbell, Film, FileImage, UserCircle, Clock, Search, Delete, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -236,7 +236,7 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
               className="flex flex-col flex-1 h-full"
             >
               {view === 'closed' ? (
-                <div className="flex items-end gap-1 p-2">
+                <div className="flex items-center gap-1 p-2">
                   <Button variant="ghost" size="icon" className="h-10 w-10 shrink-0 text-muted-foreground" onClick={() => toggleView('attachments')}>
                     <Paperclip className="w-5 h-5" />
                   </Button>
@@ -298,50 +298,7 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
                     ))}
                  </div>
               ) : (
-                 <div className="flex flex-col flex-1 h-full">
-                    <div className="flex items-end gap-1 p-2">
-                        <AnimatePresence>
-                            {(!message && !searchMode) && (
-                                <motion.div
-                                    key="keyboard-button"
-                                    initial={{ scale: 0, opacity: 0 }}
-                                    animate={{ scale: 1, opacity: 1 }}
-                                    exit={{ scale: 0, opacity: 0 }}
-                                >
-                                    <Button variant="ghost" size="icon" className="h-10 w-10 shrink-0 text-muted-foreground rounded-full" onClick={() => setView('closed')}>
-                                       <Keyboard className="w-5 h-5" />
-                                    </Button>
-                                </motion.div>
-                            )}
-                        </AnimatePresence>
-                        <TextareaAutosize
-                            value={message}
-                            onChange={handleInputChange}
-                            onKeyDown={handleKeyDown}
-                            placeholder="Message"
-                            maxRows={2}
-                            className="flex-1 resize-none bg-transparent border-0 focus:ring-0 focus:outline-none text-base placeholder:text-muted-foreground px-2"
-                            autoFocus
-                        />
-                        <div className="relative h-10 w-10 shrink-0">
-                            <AnimatePresence>
-                                {message && (
-                                    <motion.div
-                                        key="send-emoji"
-                                        initial={{ scale: 0, opacity: 0 }}
-                                        animate={{ scale: 1, opacity: 1 }}
-                                        exit={{ scale: 0, opacity: 0 }}
-                                        className="absolute inset-0"
-                                    >
-                                        <Button size="icon" className="h-10 w-10 rounded-full bg-primary text-primary-foreground" onClick={handleSend}>
-                                            <Send className="w-5 h-5" />
-                                        </Button>
-                                    </motion.div>
-                                )}
-                            </AnimatePresence>
-                        </div>
-                    </div>
-                    
+                 <div className="flex-1 flex flex-col overflow-hidden">
                     <AnimatePresence mode="wait">
                     {searchMode ? (
                         <motion.div
@@ -352,7 +309,18 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
                             exit={{ opacity: 0 }}
                             transition={{ duration: 0.2 }}
                         >
-                            <div className="px-3 py-2 flex items-center gap-2 border-y border-border/50">
+                            <div className="p-2 border-b border-border/50">
+                                <TextareaAutosize
+                                    value={message}
+                                    onChange={handleInputChange}
+                                    onKeyDown={handleKeyDown}
+                                    placeholder="Message"
+                                    maxRows={2}
+                                    className="w-full resize-none bg-transparent border-0 focus:ring-0 focus:outline-none text-base placeholder:text-muted-foreground px-2 py-2"
+                                    autoFocus
+                                />
+                            </div>
+                            <div className="px-3 py-2 flex items-center gap-2 border-b border-border/50">
                                 <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={() => {setSearchMode(false); setEmojiSearchQuery('');}}>
                                     <ArrowLeft className="w-5 h-5" />
                                 </Button>
@@ -398,7 +366,18 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
                             exit={{ opacity: 0 }}
                             transition={{ duration: 0.2 }}
                         >
-                             <div className="px-3 py-2 flex items-center justify-between border-y border-border/50">
+                             <div className="p-2 border-b border-border/50">
+                                <TextareaAutosize
+                                    value={message}
+                                    onChange={handleInputChange}
+                                    onKeyDown={handleKeyDown}
+                                    placeholder="Message"
+                                    maxRows={2}
+                                    className="w-full resize-none bg-transparent border-0 focus:ring-0 focus:outline-none text-base placeholder:text-muted-foreground px-2 py-2"
+                                    autoFocus
+                                />
+                             </div>
+                             <div className="px-3 py-2 flex items-center justify-between border-b border-border/50">
                                 <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground" onClick={() => setSearchMode(true)}>
                                     <Search className="w-5 h-5" />
                                 </Button>
