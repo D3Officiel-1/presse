@@ -13,6 +13,7 @@ import { doc, updateDoc } from 'firebase/firestore';
 import TextareaAutosize from 'react-textarea-autosize';
 import { Input } from '../ui/input';
 import { useRouter } from 'next/navigation';
+import { CustomKeyboard } from './custom-keyboard';
 
 interface ChatInputProps {
   chat: ChatType;
@@ -71,6 +72,7 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
   const [activeEmojiCategory, setActiveEmojiCategory] = useState(emojiCategories[0].name);
   const [searchMode, setSearchMode] = useState(false);
   const [emojiSearchQuery, setEmojiSearchQuery] = useState('');
+  const [showCustomKeyboard, setShowCustomKeyboard] = useState(false);
 
   // Voice recording state
   const [isRecording, setIsRecording] = useState(false);
@@ -190,7 +192,9 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
     if (action === 'openGallery') {
       fileInputRef.current?.click();
     }
-    // Handle other actions later
+    if (action === 'Audio') {
+        router.push('/chat/music');
+    }
   };
 
   const onFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -281,12 +285,16 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
                       <Smile className="w-5 h-5" />
                   </Button>
                   <TextareaAutosize
-                    ref={input => input && !replyInfo && input.focus()}
+                    ref={input => input && !replyInfo && !showCustomKeyboard && input.focus()}
                     value={message}
                     onChange={handleInputChange}
                     onKeyDown={handleKeyDown}
                     placeholder="Message"
                     maxRows={5}
+                    readOnly={showCustomKeyboard}
+                    onFocus={(e) => {
+                        if (showCustomKeyboard) e.target.blur();
+                    }}
                     className="flex-1 resize-none bg-transparent border-0 focus:ring-0 focus:outline-none text-base placeholder:text-muted-foreground px-2"
                   />
                   <div className="relative h-10 w-10 shrink-0">
@@ -326,7 +334,7 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
               ) : view === 'attachments' ? (
                  <div className="flex-1 p-4 grid grid-cols-4 gap-4 items-center justify-center">
                     {attachmentActions.map(action => (
-                      <div key={action.label} className="flex flex-col items-center gap-2 text-center cursor-pointer" onClick={() => handleAttachmentAction(action.action as string)}>
+                      <div key={action.label} className="flex flex-col items-center gap-2 text-center cursor-pointer" onClick={() => handleAttachmentAction(action.label)}>
                           <div className={`w-14 h-14 rounded-full flex items-center justify-center bg-background`}>
                               <action.icon className={`w-6 h-6 ${action.color}`} />
                           </div>
@@ -477,7 +485,7 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
         </AnimatePresence>
         
         <AnimatePresence>
-            {(view !== 'closed' && !searchMode) && (
+            {(view !== 'closed' || showCustomKeyboard) && !searchMode && (
                 <motion.div
                     className="absolute top-2 right-2 z-10"
                     initial={{ opacity: 0, scale: 0.5, rotate: -90 }}
@@ -488,20 +496,43 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
                         variant="ghost" size="icon"
                         className="h-10 w-10 shrink-0 text-muted-foreground rounded-full"
                         onClick={() => {
-                            if (view === 'emoji' && searchMode) {
-                                setSearchMode(false);
-                            } else {
+                            if (view !== 'closed') {
                                 setView('closed');
+                            }
+                            if (showCustomKeyboard) {
+                                setShowCustomKeyboard(false);
                             }
                         }}
                     >
-                         {view === 'emoji' && searchMode ? <ArrowLeft className="w-5 h-5" /> : <Keyboard className="w-5 h-5" />}
+                         <Keyboard className="w-5 h-5" />
                     </Button>
                 </motion.div>
             )}
         </AnimatePresence>
-
+        
+        {!message && view === 'closed' && (
+             <Button
+                variant="ghost"
+                size="icon"
+                className="absolute top-2 right-2 h-10 w-10 shrink-0 text-muted-foreground rounded-full"
+                onClick={() => setShowCustomKeyboard(!showCustomKeyboard)}
+            >
+                <Keyboard className="w-5 h-5" />
+            </Button>
+        )}
       </motion.div>
+      <AnimatePresence>
+        {showCustomKeyboard && (
+            <div className="fixed bottom-0 left-0 right-0 z-50">
+                <CustomKeyboard 
+                    onKeyPress={(key) => setMessage(prev => prev + key)}
+                    onBackspace={handleBackspace}
+                    onSpace={() => setMessage(prev => prev + ' ')}
+                    onEnter={handleSend}
+                />
+            </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
