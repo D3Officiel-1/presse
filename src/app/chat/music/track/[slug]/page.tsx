@@ -11,6 +11,13 @@ import { motion } from 'framer-motion';
 import { type TrackForPlayer } from '@/lib/types';
 import ReactPlayer from 'react-player/youtube';
 
+const extractUrlFromIframe = (iframeString?: string | null): string | undefined => {
+    if (!iframeString) return undefined;
+    if (iframeString.trim().startsWith('http')) return iframeString;
+    const match = iframeString.match(/src="([^"]+)"/);
+    return match ? match[1] : undefined;
+}
+
 function PlayerComponent() {
     const router = useRouter();
     const searchParams = useSearchParams();
@@ -90,7 +97,7 @@ function PlayerComponent() {
         );
     }
     
-    const trackUrl = track.audioUrl || track.preview_url;
+    const trackUrl = extractUrlFromIframe(track.audioUrl) || track.preview_url;
 
     return (
         <div className="relative flex flex-col h-screen w-full overflow-hidden bg-background">
