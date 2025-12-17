@@ -30,7 +30,8 @@ import {
   ArrowLeft,
   User as UserIcon,
   Download,
-  FileText,
+  FileText as FileTextIcon,
+  RefreshCw,
 } from 'lucide-react';
 import { ChatMessageStatus } from './chat-message-status';
 import { useToast } from '@/hooks/use-toast';
@@ -221,6 +222,30 @@ const ChatMessage = ({
   const [editedContent, setEditedContent] = useState(message.content);
   const isStarred = message.starredBy?.includes(loggedInUser.uid);
 
+  const [downloadedDocs, setDownloadedDocs] = useState<Set<string>>(new Set());
+
+  useEffect(() => {
+    const savedDownloads = localStorage.getItem('downloadedDocs');
+    if (savedDownloads) {
+      setDownloadedDocs(new Set(JSON.parse(savedDownloads)));
+    }
+  }, []);
+
+  const handleDownload = (msg: Message) => {
+    if (!msg.documentMetadata) return;
+
+    const link = document.createElement('a');
+    link.href = msg.content;
+    link.download = msg.documentMetadata.fileName;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    const newDownloadedDocs = new Set(downloadedDocs).add(msg.id);
+    setDownloadedDocs(newDownloadedDocs);
+    localStorage.setItem('downloadedDocs', JSON.stringify(Array.from(newDownloadedDocs)));
+  };
+
   const isDeletedForAll = message.content === "Ce message a été supprimé";
 
   useEffect(() => {
@@ -374,17 +399,17 @@ const ChatMessage = ({
                 {message.type === 'document' && message.documentMetadata && (
                    <div className="p-2 bg-background/20 rounded-lg flex items-center gap-3">
                        <div className="bg-foreground/10 p-3 rounded-lg">
-                           <FileText className="w-6 h-6" />
+                           <FileTextIcon className="w-6 h-6" />
                        </div>
                        <div className="flex-1 min-w-0">
                            <p className="font-semibold text-sm truncate">{message.documentMetadata.fileName}</p>
                            <p className="text-xs opacity-80">{formatFileSize(message.documentMetadata.fileSize)}</p>
                        </div>
-                       <Button size="icon" variant="ghost" asChild>
-                           <a href={message.content} download={message.documentMetadata.fileName}>
-                             <Download className="w-5 h-5" />
-                           </a>
-                       </Button>
+                       {!isOwn && !downloadedDocs.has(message.id) && (
+                         <Button size="icon" variant="ghost" onClick={() => handleDownload(message)}>
+                            <Download className="w-5 h-5" />
+                         </Button>
+                       )}
                    </div>
                 )}
 
@@ -433,6 +458,30 @@ const MessageFocusView = ({
     const [otherUsers, setOtherUsers] = useState<User[]>([]);
 
     const [loadingShare, setLoadingShare] = useState(false);
+    const [downloadedDocs, setDownloadedDocs] = useState<Set<string>>(new Set());
+
+    useEffect(() => {
+        const savedDownloads = localStorage.getItem('downloadedDocs');
+        if (savedDownloads) {
+            setDownloadedDocs(new Set(JSON.parse(savedDownloads)));
+        }
+    }, []);
+
+    const handleDownload = (msg: Message) => {
+        if (!msg.documentMetadata) return;
+
+        const link = document.createElement('a');
+        link.href = msg.content;
+        link.download = msg.documentMetadata.fileName;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+
+        const newDownloadedDocs = new Set(downloadedDocs).add(msg.id);
+        setDownloadedDocs(newDownloadedDocs);
+        localStorage.setItem('downloadedDocs', JSON.stringify(Array.from(newDownloadedDocs)));
+        onClose(); // Close the menu after action
+    };
 
     useEffect(() => {
         if (viewMode !== 'share' || !firestore || !chatContext.loggedInUser) return;
@@ -513,9 +562,10 @@ const MessageFocusView = ({
 
     const mainActions: ActionItem[] = [
         ...(canEdit ? [{ label: 'Modifier', icon: Edit, action: onEdit }] : [{ label: 'Répondre', icon: MessageSquare, action: onReply }]),
-        { label: 'Copier', icon: Copy, action: () => navigator.clipboard.writeText(message.content) },
+        ...(message.type === 'text' ? [{ label: 'Copier', icon: Copy, action: () => navigator.clipboard.writeText(message.content) }] : []),
         { label: 'Transférer', icon: Share2, action: () => {} },
         { label: isStarred ? 'Retirer' : 'Important', icon: Star, action: onToggleStar },
+        ...(message.type === 'document' && !isOwnMessage && downloadedDocs.has(message.id) ? [{ label: 'Retélécharger', icon: RefreshCw, action: () => handleDownload(message) }] : []),
         { label: 'Supprimer', icon: Trash2, action: () => {}, className: 'text-destructive' },
     ];
     
