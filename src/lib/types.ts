@@ -88,6 +88,7 @@ export interface SpotifyTrack {
     images: { url: string }[];
   };
   preview_url: string | null;
+  audioUrl?: string;
 }
 
 export interface SpotifyArtist {
@@ -143,6 +144,7 @@ export interface Single {
   isExplicit: boolean;
   createdAt: Timestamp;
   artistName?: string;
+  spotifyId?: string;
 }
 
 export interface Track {

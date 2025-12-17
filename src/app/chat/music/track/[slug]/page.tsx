@@ -64,7 +64,7 @@ function PlayerComponent() {
     };
 
     const togglePlay = () => {
-        if (!track?.audioUrl) return;
+        if (!track?.audioUrl && !track?.preview_url) return;
         setIsPlaying(!isPlaying);
     };
     
@@ -89,12 +89,14 @@ function PlayerComponent() {
         );
     }
     
+    const trackUrl = track.audioUrl || track.preview_url;
+
     return (
         <div className="relative flex flex-col h-screen w-full overflow-hidden bg-background">
             {isClient && (
                 <ReactPlayer
                     ref={playerRef}
-                    url={track.audioUrl || ''}
+                    url={trackUrl || ''}
                     playing={isPlaying}
                     onProgress={handleProgress}
                     onDuration={handleDuration}
@@ -159,7 +161,7 @@ function PlayerComponent() {
                         <p className="text-muted-foreground font-medium truncate">{track.artists.map(a => a.name).join(', ')}</p>
                     </div>
 
-                    {track.audioUrl ? (
+                    {trackUrl ? (
                         <>
                             <div className="space-y-2">
                                 <Slider 
