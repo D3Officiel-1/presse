@@ -195,7 +195,8 @@ function ChatPageContent() {
     let finalContent = content;
     if (type === 'location') {
         const [lat, lon] = content.split(',');
-        finalContent = `https://staticmap.openstreetmap.de/staticmap.php?center=${lat},${lon}&zoom=15&size=256x256&markers=${lat},${lon},red-pushpin`;
+        const apiKey = process.env.NEXT_PUBLIC_TOMTOM_API_KEY;
+        finalContent = `https://api.tomtom.com/map/1/staticimage?key=${apiKey}&center=${lon},${lat}&zoom=15&width=512&height=512&marker=lon:${lon},lat:${lat}`;
     }
 
     let messageData: Partial<MessageType> = {

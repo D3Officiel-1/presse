@@ -124,7 +124,7 @@ const Poll: React.FC<{ message: Message }> = ({ message }) => {
                  newPollData.options[currentOptionIndex].votes = newPollData.options[currentOptionIndex].votes.filter(uid => uid !== loggedInUser.uid);
             } else {
                 // If clicking a different option, switch vote
-                newPollData.options[currentOptionIndex].votes = newPollsData.options[currentOptionIndex].votes.filter(uid => uid !== loggedInUser.uid);
+                newPollData.options[currentOptionIndex].votes = newPollData.options[currentOptionIndex].votes.filter(uid => uid !== loggedInUser.uid);
                 newPollData.options[optionIndex].votes.push(loggedInUser.uid);
             }
         } else {
@@ -494,8 +494,10 @@ const ChatMessage = ({
                 )}
                 
                 {message.type === 'location' && (() => {
-                    const [lat, lon] = message.content.split('?')[0].split('/').pop()?.split(',') || ['0', '0'];
-                    const mapsLink = `https://www.openstreetmap.org/?mlat=${lat}&mlon=${lon}#map=16/${lat}/${lon}`;
+                    const url = new URL(message.content);
+                    const center = url.searchParams.get('center');
+                    const [lon, lat] = center ? center.split(',') : ['0', '0'];
+                    const mapsLink = `https://www.google.com/maps/search/?api=1&query=${lat},${lon}`;
                     return (
                         <a href={mapsLink} target="_blank" rel="noopener noreferrer" className="block relative w-64 h-40 rounded-md overflow-hidden my-1">
                             <Image src={message.content} alt="Carte de localisation" layout="fill" className="object-cover" />

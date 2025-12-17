@@ -106,6 +106,7 @@ const withPWA = require('@ducanh2912/next-pwa').default({
 const nextConfig: NextConfig = {
   env: {
     NEXT_PUBLIC_GOOGLE_MAPS_API_KEY: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY,
+    NEXT_PUBLIC_TOMTOM_API_KEY: process.env.NEXT_PUBLIC_TOMTOM_API_KEY,
   },
   /* config options here */
   typescript: {
@@ -179,6 +180,10 @@ const nextConfig: NextConfig = {
       {
         protocol: 'https',
         hostname: 'staticmap.openstreetmap.de',
+      },
+      {
+        protocol: 'https',
+        hostname: 'api.tomtom.com',
       }
     ],
   },
