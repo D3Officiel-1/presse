@@ -34,6 +34,7 @@ import {
   RefreshCw,
   MapPin,
   Vote,
+  Calendar,
 } from 'lucide-react';
 import { ChatMessageStatus } from './chat-message-status';
 import { useToast } from '@/hooks/use-toast';
@@ -281,6 +282,60 @@ const AudioPlayer: React.FC<{ src: string; metadata?: { duration: number } }> = 
   );
 };
 
+const EventCard: React.FC<{ message: Message }> = ({ message }) => {
+  const { firestore, loggedInUser } = React.useContext(ChatContext);
+  const { eventData, id: messageId, chatId } = message;
+
+  if (!eventData) return null;
+
+  const eventDate = eventData.date.toDate();
+  const day = eventDate.getDate();
+  const month = eventDate.toLocaleString('fr-FR', { month: 'short' }).toUpperCase();
+  const time = eventDate.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+
+  const isParticipating = eventData.participants?.includes(loggedInUser.uid);
+
+  const handleParticipation = async () => {
+    if (!firestore || !loggedInUser) return;
+    const messageRef = doc(firestore, 'chats', chatId, 'messages', messageId);
+    
+    if (isParticipating) {
+      await updateDoc(messageRef, { 'eventData.participants': arrayRemove(loggedInUser.uid) });
+    } else {
+      await updateDoc(messageRef, { 'eventData.participants': arrayUnion(loggedInUser.uid) });
+    }
+  };
+
+  return (
+    <div className="bg-background/20 rounded-lg overflow-hidden border border-foreground/10 w-64">
+      <div className="bg-primary/20 p-3 text-center">
+        <div className="font-bold text-4xl text-primary">{day}</div>
+        <div className="text-sm font-semibold text-primary">{month}</div>
+      </div>
+      <div className="p-3">
+        <h4 className="font-bold text-md truncate">{eventData.title}</h4>
+        <p className="text-xs opacity-80 mb-2">{time}</p>
+        {eventData.description && <p className="text-sm opacity-80 text-ellipsis line-clamp-2">{eventData.description}</p>}
+        <div className="flex items-center justify-between mt-3">
+          <div className="text-xs opacity-80">
+            {eventData.participants?.length || 0} participant(s)
+          </div>
+          <Button
+            size="sm"
+            variant={isParticipating ? 'default' : 'outline'}
+            onClick={handleParticipation}
+            className="h-8"
+          >
+            {isParticipating && <CheckCircle className="w-4 h-4 mr-2" />}
+            {isParticipating ? 'Je participe' : 'Participer'}
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+
 const ChatMessage = ({
   message,
   position,
@@ -517,6 +572,7 @@ const ChatMessage = ({
                 })()}
 
                 {message.type === 'poll' && <Poll message={message} />}
+                {message.type === 'event' && <EventCard message={message} />}
 
 
                 <div className="flex items-center justify-end gap-1.5 mt-1 float-right">
@@ -997,7 +1053,7 @@ export function ChatMessages({
     return () => clearTimeout(timeoutId);
   }, [dailyGroups, isTyping]);
   
-  const contextProviderValue = { loggedInUser, allUsersInApp, otherUser, chat, isAdmin, onScrollToMessage };
+  const contextProviderValue = { loggedInUser, allUsersInApp, otherUser, chat, isAdmin, onScrollToMessage, firestore: useFirestore() };
 
   return (
     <ChatContext.Provider value={contextProviderValue}>

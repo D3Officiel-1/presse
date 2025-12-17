@@ -1,3 +1,4 @@
+
 import { Timestamp } from "firebase/firestore";
 
 export type User = {
@@ -33,8 +34,6 @@ export type Message = {
   deletedFor?: string[]; // Array of user IDs who have deleted this message for themselves
   audioMetadata?: {
     duration: number; // in seconds
-    source: 'recorder' | 'upload';
-    fileName?: string;
   };
   documentMetadata?: {
     fileName: string;
@@ -49,6 +48,7 @@ export type Message = {
     title: string;
     date: Timestamp;
     description?: string;
+    participants: string[];
   };
   editedAt?: Timestamp;
   forwardedFrom?: {
