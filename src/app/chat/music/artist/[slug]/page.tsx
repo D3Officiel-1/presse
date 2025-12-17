@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
@@ -42,27 +41,34 @@ export default function ArtistProfilePage() {
     const [loading, setLoading] = useState(true);
     const [isSyncing, setIsSyncing] = useState(false);
 
-    const syncAlbums = useCallback(async (artistData: Artist) => {
+    const syncDiscography = useCallback(async (artistData: Artist) => {
         if (!artistData.spotifyId || !firestore) return;
         setIsSyncing(true);
         
         try {
-            const [spotifyData, firestoreSnapshot] = await Promise.all([
+            const [spotifyData, firestoreAlbumsSnap, firestoreSinglesSnap] = await Promise.all([
                 getArtistAlbums(artistData.spotifyId),
-                getDocs(collection(firestore, 'music', artistData.id, 'albums'))
+                getDocs(query(collection(firestore, 'music'), where('artistId', '==', artistData.id), where('type', '==', 'album'))),
+                getDocs(query(collection(firestore, 'music'), where('artistId', '==', artistData.id), where('type', '==', 'single')))
             ]);
 
-            const firestoreAlbumSpotifyIds = new Set(firestoreSnapshot.docs.map(doc => doc.data().spotifyId));
-            
+            const firestoreAlbumSpotifyIds = new Set(firestoreAlbumsSnap.docs.map(doc => doc.data().spotifyId));
+            const firestoreSingleSpotifyIds = new Set(firestoreSinglesSnap.docs.map(doc => doc.data().spotifyId));
+
             const newAlbumsFromSpotify = spotifyData.items.filter((item: any) => 
-                item.album_type === 'album' && !firestoreAlbumSpotifyIds.has(item.id)
+                item.album_group === 'album' && !firestoreAlbumSpotifyIds.has(item.id)
+            );
+            
+            const newSinglesFromSpotify = spotifyData.items.filter((item: any) => 
+                item.album_group === 'single' && !firestoreSingleSpotifyIds.has(item.id)
             );
 
-            if (newAlbumsFromSpotify.length > 0) {
+            if (newAlbumsFromSpotify.length > 0 || newSinglesFromSpotify.length > 0) {
                 const batch = writeBatch(firestore);
+                
                 newAlbumsFromSpotify.forEach((album: any) => {
-                    const newAlbumRef = doc(collection(firestore, 'music', artistData.id, 'albums'));
-                    const albumSlug = album.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+                    const newAlbumRef = doc(collection(firestore, 'music'));
+                    const albumSlug = (artistData.slug + '-' + album.name).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
 
                     batch.set(newAlbumRef, {
                         type: 'album',
@@ -78,12 +84,33 @@ export default function ArtistProfilePage() {
                         createdAt: Timestamp.now(),
                     });
                 });
+
+                newSinglesFromSpotify.forEach((single: any) => {
+                    const newSingleRef = doc(collection(firestore, 'music'));
+                    batch.set(newSingleRef, {
+                        type: 'single',
+                        title: single.name,
+                        spotifyId: single.id,
+                        cover: single.images[0]?.url,
+                        releaseDate: single.release_date,
+                        isExplicit: single.explicit ?? false,
+                        artistId: artistData.id,
+                        artistName: artistData.name,
+                        createdAt: Timestamp.now(),
+                        // Fields to be populated later, e.g., from track details
+                        audioUrl: '',
+                        duration: 0,
+                        streams: 0,
+                    });
+                });
+
                 await batch.commit();
-                toast({ description: `${newAlbumsFromSpotify.length} nouvel(s) album(s) ajouté(s).` });
+                const totalNewItems = newAlbumsFromSpotify.length + newSinglesFromSpotify.length;
+                toast({ description: `${totalNewItems} nouvel(s) élément(s) ajouté(s) à la discographie.` });
             }
         } catch (error) {
-            console.error("Failed to sync albums:", error);
-            toast({ variant: 'destructive', title: 'Erreur de synchronisation', description: "Impossible de mettre à jour les albums." });
+            console.error("Failed to sync discography:", error);
+            toast({ variant: 'destructive', title: 'Erreur de synchronisation', description: "Impossible de mettre à jour la discographie." });
         } finally {
             setIsSyncing(false);
         }
@@ -107,19 +134,17 @@ export default function ArtistProfilePage() {
                 const doc = snapshot.docs[0];
                 const artistData = { id: doc.id, ...doc.data() } as Artist;
                 setArtist(artistData);
-                syncAlbums(artistData);
+                syncDiscography(artistData);
 
                 // Fetch albums
-                const albumsRef = collection(firestore, 'music', artistData.id, 'albums');
-                const albumsQuery = query(albumsRef, orderBy('releaseDate', 'desc'));
+                const albumsQuery = query(collection(firestore, 'music'), where('artistId', '==', artistData.id), where('type', '==', 'album'), orderBy('releaseDate', 'desc'));
                 onSnapshot(albumsQuery, (albumsSnapshot) => {
                     const albumsData = albumsSnapshot.docs.map(albumDoc => ({ id: albumDoc.id, ...albumDoc.data() } as Album));
                     setAlbums(albumsData);
                 });
 
                 // Fetch singles
-                const singlesRef = collection(firestore, 'music', artistData.id, 'singles');
-                const singlesQuery = query(singlesRef, orderBy('releaseDate', 'desc'));
+                const singlesQuery = query(collection(firestore, 'music'), where('artistId', '==', artistData.id), where('type', '==', 'single'), orderBy('releaseDate', 'desc'));
                 onSnapshot(singlesQuery, (singlesSnapshot) => {
                     const singlesData = singlesSnapshot.docs.map(singleDoc => ({ id: singleDoc.id, ...singleDoc.data() } as Single));
                     setSingles(singlesData);
@@ -136,7 +161,7 @@ export default function ArtistProfilePage() {
         });
 
         return () => unsubscribeArtist();
-    }, [firestore, slug, syncAlbums]);
+    }, [firestore, slug, syncDiscography]);
 
 
     if (loading) {
@@ -303,9 +328,11 @@ export default function ArtistProfilePage() {
                                                         </div>
                                                         <div className="flex items-center gap-2 text-muted-foreground">
                                                             {single.isExplicit && <Explicit className="w-4 h-4" title="Explicite"/>}
-                                                            <span className="text-xs font-mono w-12 text-right">
-                                                                {Math.floor(single.duration / 60)}:{String(single.duration % 60).padStart(2, '0')}
-                                                            </span>
+                                                            {single.duration > 0 && (
+                                                              <span className="text-xs font-mono w-12 text-right">
+                                                                  {Math.floor(single.duration / 60)}:{String(single.duration % 60).padStart(2, '0')}
+                                                              </span>
+                                                            )}
                                                         </div>
                                                     </div>
                                                 </motion.div>
@@ -321,7 +348,7 @@ export default function ArtistProfilePage() {
                             </TabsContent>
                             <TabsContent value="about" className="mt-6 p-4 bg-card/30 rounded-xl">
                                 <p className="text-center text-muted-foreground leading-relaxed">
-                                  {artist.bio}
+                                  {artist.bio || "Aucune biographie disponible pour cet artiste."}
                                 </p>
                             </TabsContent>
                         </Tabs>
