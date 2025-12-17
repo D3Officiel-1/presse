@@ -32,7 +32,7 @@ const attachmentActions = [
     { icon: MapPin, label: "Localisation", color: "text-green-500", action: 'shareLocation' },
     { icon: User, label: "Membre", color: "text-orange-500", action: 'ShareContact' },
     { icon: FileText, label: "Document", color: "text-indigo-500", action: 'openDocument' },
-    { icon: Music, label: "Audio", color: "text-red-500", action: 'Audio' },
+    { icon: Music, label: "Audio", color: "text-red-500", action: 'openAudioFile' },
     { icon: Vote, label: "Sondage", color: "text-yellow-500", action: 'createPoll' },
     { icon: Calendar, label: "Évènement", color: "text-teal-500" },
 ];
@@ -74,6 +74,7 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const documentInputRef = useRef<HTMLInputElement>(null);
+  const audioInputRef = useRef<HTMLInputElement>(null);
   const longPressTimerRef = useRef<NodeJS.Timeout | null>(null);
   
   const [view, setView] = useState<'closed' | 'attachments' | 'emoji' | 'share-contact' | 'create-poll'>('closed');
@@ -296,8 +297,8 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
     if (action === 'openDocument') {
       documentInputRef.current?.click();
     }
-    if (action === 'Audio') {
-        router.push('/chat/music');
+    if (action === 'openAudioFile') {
+      audioInputRef.current?.click();
     }
     if (action === 'ShareContact') {
         toggleView('share-contact');
@@ -361,6 +362,23 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
       toggleView('closed');
     };
     reader.readAsDataURL(file);
+    e.target.value = '';
+  };
+
+  const onAudioFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const audio = new Audio(URL.createObjectURL(file));
+    audio.onloadedmetadata = () => {
+      const reader = new FileReader();
+      reader.onload = (loadEvent) => {
+        const dataUrl = loadEvent.target?.result as string;
+        onSendMessage(dataUrl, 'audio', { duration: Math.round(audio.duration) });
+        toggleView('closed');
+      };
+      reader.readAsDataURL(file);
+    };
     e.target.value = '';
   };
   
@@ -623,6 +641,14 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
         className="hidden"
         onChange={onDocumentFileSelect}
         accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt"
+      />
+
+      <input
+        type="file"
+        ref={audioInputRef}
+        className="hidden"
+        onChange={onAudioFileSelect}
+        accept="audio/*"
       />
         
         <AnimatePresence>
