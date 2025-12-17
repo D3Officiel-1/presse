@@ -13,7 +13,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Explicit } from '@/components/ui/tabs';
+import { Explicit } from '@/components/chat/chat-messages';
 
 
 const FADE_UP_ANIMATION_VARIANTS = {
@@ -274,4 +274,3 @@ export default function ArtistProfilePage() {
         </div>
     );
 }
-

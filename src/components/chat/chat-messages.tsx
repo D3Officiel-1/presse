@@ -46,6 +46,12 @@ import { Timestamp, collection, getDocs, query, where, doc, updateDoc, arrayUnio
 import { useFirestore } from '@/firebase/provider';
 import Link from 'next/link';
 
+export const Explicit = (props: React.SVGProps<SVGSVGElement>) => (
+    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+        <path d="M14.5 7.5h-5C8.67 7.5 8 8.17 8 9v6c0 .83.67 1.5 1.5 1.5h5c.83 0 1.5-.67 1.5-1.5V9c0-.83-.67-1.5-1.5-1.5zm-5 5v-4h5v4h-5z"/>
+        <path d="M3 3h18v18H3z"/>
+    </svg>
+);
 
 const ReactionEmojis = ['👍', '❤️', '😂', '😮', '😢', '🙏'];
 

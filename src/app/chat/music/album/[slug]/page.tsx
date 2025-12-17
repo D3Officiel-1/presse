@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Loader2, ArrowLeft, MoreVertical, Play, Clock, Music } from 'lucide-react';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
-import { Explicit } from '@/components/ui/tabs';
+import { Explicit } from '@/components/chat/chat-messages';
 
 const FADE_UP_ANIMATION_VARIANTS = {
   hidden: { opacity: 0, y: 10 },
