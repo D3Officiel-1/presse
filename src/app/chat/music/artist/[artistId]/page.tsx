@@ -1,20 +1,19 @@
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useFirestore } from '@/firebase/provider';
-import { doc, getDoc, setDoc, Timestamp, collection, getDocs, writeBatch, query, where, limit } from 'firebase/firestore';
-import type { Artist, Album, Single, Track, SpotifyArtist } from '@/lib/types';
-import { getArtistDetails, getArtistTopTracks, getArtistAlbums } from '@/lib/spotify';
+import { doc, getDoc, Timestamp, collection, getDocs, writeBatch, query, where, limit } from 'firebase/firestore';
+import type { Artist, Album, Single } from '@/lib/types';
+import { getArtistTopTracks, getArtistAlbums } from '@/lib/spotify';
 
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ArrowLeft, Loader2, RefreshCw, Star, Play, Music, Users, Verified, Disc } from 'lucide-react';
+import { ArrowLeft, Loader2, RefreshCw, Play, Users, Verified } from 'lucide-react';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useToast } from '@/hooks/use-toast';
-import { cn } from '@/lib/utils';
 import Link from 'next/link';
 import { Explicit } from '@/components/chat/chat-messages';
 
@@ -63,7 +62,6 @@ export default function ArtistPage() {
                     setTopTracks(tracksData.tracks);
                 }
                 
-                // Fetch albums and singles from subcollections
                 const albumsRef = collection(artistRef, 'albums');
                 const singlesRef = collection(artistRef, 'singles');
                 const [albumsSnap, singlesSnap] = await Promise.all([getDocs(albumsRef), getDocs(singlesRef)]);
@@ -88,13 +86,11 @@ export default function ArtistPage() {
             const batch = writeBatch(firestore);
             const artistRef = doc(firestore, 'music', artistId);
 
-            // Sync Albums and Singles
             const spotifyAlbumsData = await getArtistAlbums(artist.spotifyId);
             
             const albumPromises = spotifyAlbumsData.items.map(async (albumItem: any) => {
                 const collectionName = albumItem.album_type === 'album' ? 'albums' : 'singles';
                 
-                // Check if album/single already exists by spotifyId
                 const q = query(collection(artistRef, collectionName), where('spotifyId', '==', albumItem.id), limit(1));
                 const existingDoc = await getDocs(q);
 
@@ -105,7 +101,7 @@ export default function ArtistPage() {
                     cover: albumItem.images?.[0]?.url || '',
                     releaseDate: albumItem.release_date,
                     tracksCount: albumItem.total_tracks,
-                    isExplicit: false, // This info is not on album level
+                    isExplicit: false,
                     createdAt: Timestamp.now(),
                     artistId: artist.id,
                     artistName: artist.name,
@@ -115,16 +111,12 @@ export default function ArtistPage() {
                 if (existingDoc.empty) {
                     const newDocRef = doc(collection(artistRef, collectionName));
                     batch.set(newDocRef, data);
-                } else {
-                    // Optionally update existing doc
-                    // batch.update(existingDoc.docs[0].ref, data);
                 }
             });
 
             await Promise.all(albumPromises);
             await batch.commit();
 
-            // Refetch local data
             const albumsRef = collection(artistRef, 'albums');
             const singlesRef = collection(artistRef, 'singles');
             const [albumsSnap, singlesSnap] = await Promise.all([getDocs(albumsRef), getDocs(singlesRef)]);
@@ -140,6 +132,32 @@ export default function ArtistPage() {
         }
     };
     
+    const handleTopTrackClick = async (track: any) => {
+        if (!firestore || !artist) return;
+
+        const q = query(
+            collection(firestore, 'music', artist.id, 'singles'),
+            where('spotifyId', '==', track.id),
+            limit(1)
+        );
+
+        const snap = await getDocs(q);
+
+        if (snap.empty) {
+            toast({
+            title: 'Titre non disponible',
+            description: 'Synchronisez la discographie pour écouter ce titre.',
+            });
+            return;
+        }
+
+        const trackDoc = snap.docs[0];
+
+        router.push(
+            `/chat/music/track/${artist.id}/${trackDoc.id}`
+        );
+    };
+
     if (loading) {
         return (
             <div className="flex h-screen w-full items-center justify-center bg-black">
@@ -152,7 +170,6 @@ export default function ArtistPage() {
 
     return (
         <div className="relative min-h-screen bg-black text-white">
-            {/* Header Section */}
             <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
@@ -216,9 +233,7 @@ export default function ArtistPage() {
                 </div>
             </motion.div>
 
-            {/* Content Section */}
             <main className="p-4 md:p-6 space-y-8">
-                {/* Top Tracks */}
                 <motion.div
                     variants={FADE_UP_ANIMATION_VARIANTS}
                     initial="hidden"
@@ -240,7 +255,7 @@ export default function ArtistPage() {
                                     <p className="font-semibold truncate flex items-center gap-2">{track.name} {track.explicit && <Explicit className="w-4 h-4 text-muted-foreground"/>}</p>
                                     <p className="text-sm text-muted-foreground truncate">{track.artists.map((a: any) => a.name).join(', ')}</p>
                                 </div>
-                                <Button variant="ghost" size="icon">
+                                <Button variant="ghost" size="icon" onClick={() => handleTopTrackClick(track)}>
                                     <Play className="w-5 h-5"/>
                                 </Button>
                             </motion.div>
@@ -248,7 +263,6 @@ export default function ArtistPage() {
                     </div>
                 </motion.div>
 
-                {/* Discography */}
                  <motion.div
                     variants={FADE_UP_ANIMATION_VARIANTS}
                     initial="hidden"
@@ -304,5 +318,4 @@ export default function ArtistPage() {
             </main>
         </div>
     );
-
-    
+}
