@@ -127,3 +127,17 @@ export interface Album {
     artistId: string;
     artistName: string;
 }
+
+export interface Single {
+  id: string;
+  type: 'single';
+  title: string;
+  cover: string;
+  audioUrl: string;
+  duration: number;
+  releaseDate: string;
+  streams: number;
+  isExplicit: boolean;
+  createdAt: Timestamp;
+  artistName?: string;
+}

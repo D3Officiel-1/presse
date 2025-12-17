@@ -5,10 +5,10 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useFirestore } from '@/firebase/provider';
 import { collection, query, where, onSnapshot, limit, orderBy } from 'firebase/firestore';
-import type { Artist, Album } from '@/lib/types';
+import type { Artist, Album, Single } from '@/lib/types';
 
 import { Button } from '@/components/ui/button';
-import { Loader2, ArrowLeft, MoreVertical, Play, Star, UserPlus, Music, ListMusic, Disc } from 'lucide-react';
+import { Loader2, ArrowLeft, MoreVertical, Play, Star, UserPlus, Music, Disc, Mic, Explicit } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -34,6 +34,7 @@ export default function ArtistProfilePage() {
 
     const [artist, setArtist] = useState<Artist | null>(null);
     const [albums, setAlbums] = useState<Album[]>([]);
+    const [singles, setSingles] = useState<Single[]>([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
@@ -54,18 +55,23 @@ export default function ArtistProfilePage() {
                 const artistData = { id: doc.id, ...doc.data() } as Artist;
                 setArtist(artistData);
 
-                // Now fetch albums
+                // Fetch albums
                 const albumsRef = collection(firestore, 'music', artistData.id, 'albums');
                 const albumsQuery = query(albumsRef, orderBy('releaseDate', 'desc'));
-                const unsubscribeAlbums = onSnapshot(albumsQuery, (albumsSnapshot) => {
+                onSnapshot(albumsQuery, (albumsSnapshot) => {
                     const albumsData = albumsSnapshot.docs.map(albumDoc => ({ id: albumDoc.id, ...albumDoc.data() } as Album));
                     setAlbums(albumsData);
-                    setLoading(false);
-                }, (error) => {
-                    console.error("Error fetching albums:", error);
-                    setLoading(false);
                 });
-                return unsubscribeAlbums; // This won't be returned by onSnapshot but needed for cleanup logic
+
+                // Fetch singles
+                const singlesRef = collection(firestore, 'music', artistData.id, 'singles');
+                const singlesQuery = query(singlesRef, orderBy('releaseDate', 'desc'));
+                onSnapshot(singlesQuery, (singlesSnapshot) => {
+                    const singlesData = singlesSnapshot.docs.map(singleDoc => ({ id: singleDoc.id, ...singleDoc.data() } as Single));
+                    setSingles(singlesData);
+                });
+
+                setLoading(false);
             } else {
                 console.error("No artist found with that slug.");
                 setLoading(false);
@@ -97,6 +103,18 @@ export default function ArtistProfilePage() {
             </div>
         )
     }
+    
+    const handlePlaySingle = (single: Single) => {
+        const trackData = {
+            id: single.id,
+            name: single.title,
+            artists: [{ name: artist.name }],
+            album: { images: [{ url: single.cover }] },
+            preview_url: single.audioUrl,
+        };
+        const params = new URLSearchParams({ trackData: encodeURIComponent(JSON.stringify(trackData)) });
+        router.push(`/chat/music/${single.id}?${params.toString()}`);
+    }
 
     return (
         <div className="relative min-h-screen bg-background text-foreground">
@@ -112,7 +130,7 @@ export default function ArtistProfilePage() {
                 <Button variant="ghost" size="icon" className="size-9 rounded-full bg-background/50 backdrop-blur-sm">
                     <MoreVertical size={20} />
                 </Button>
-            </header>
+            </motion.header>
             
             <motion.div
                 className="relative w-full h-[40vh] overflow-hidden"
@@ -163,8 +181,9 @@ export default function ArtistProfilePage() {
 
                      <motion.div variants={FADE_UP_ANIMATION_VARIANTS} className="mt-8">
                          <Tabs defaultValue="albums" className="w-full">
-                            <TabsList className="grid w-full grid-cols-2">
+                            <TabsList className="grid w-full grid-cols-3">
                                 <TabsTrigger value="albums"><Disc className="w-4 h-4 mr-2"/>Albums</TabsTrigger>
+                                <TabsTrigger value="singles"><Mic className="w-4 h-4 mr-2"/>Singles</TabsTrigger>
                                 <TabsTrigger value="about"><UserPlus className="w-4 h-4 mr-2"/>À propos</TabsTrigger>
                             </TabsList>
                             <TabsContent value="albums" className="mt-6">
@@ -198,6 +217,46 @@ export default function ArtistProfilePage() {
                                             <Disc className="w-10 h-10 mx-auto mb-4" />
                                             <h3 className="font-semibold">Aucun album pour le moment</h3>
                                             <p className="text-sm">Les albums de cet artiste apparaîtront bientôt ici.</p>
+                                        </div>
+                                    )}
+                                </AnimatePresence>
+                            </TabsContent>
+                             <TabsContent value="singles" className="mt-6">
+                                <AnimatePresence>
+                                    {singles.length > 0 ? (
+                                        <div className="space-y-2">
+                                            {singles.map((single, i) => (
+                                                <motion.div
+                                                    key={single.id}
+                                                    variants={FADE_UP_ANIMATION_VARIANTS}
+                                                    custom={i}
+                                                    initial="hidden"
+                                                    animate="visible"
+                                                    exit="hidden"
+                                                    onClick={() => handlePlaySingle(single)}
+                                                >
+                                                    <div className="group flex items-center gap-4 p-2 rounded-lg hover:bg-muted/50 cursor-pointer transition-colors">
+                                                        <div className="aspect-square w-12 h-12 relative flex-shrink-0">
+                                                            <Image src={single.cover} alt={single.title} fill className="object-cover rounded-md shadow-sm" />
+                                                        </div>
+                                                        <div className="flex-1 min-w-0">
+                                                            <p className="font-semibold truncate">{single.title}</p>
+                                                            <p className="text-xs text-muted-foreground">{new Date(single.releaseDate).getFullYear()}</p>
+                                                        </div>
+                                                        <div className="flex items-center gap-2 text-muted-foreground">
+                                                            {single.isExplicit && <Explicit className="w-4 h-4" title="Explicite"/>}
+                                                            <span className="text-xs font-mono w-12 text-right">
+                                                                {Math.floor(single.duration / 60)}:{String(single.duration % 60).padStart(2, '0')}
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                </motion.div>
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        <div className="text-center text-muted-foreground p-8">
+                                            <Mic className="w-10 h-10 mx-auto mb-4" />
+                                            <h3 className="font-semibold">Aucun single pour le moment</h3>
                                         </div>
                                     )}
                                 </AnimatePresence>
