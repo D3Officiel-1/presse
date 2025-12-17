@@ -113,3 +113,17 @@ export interface Artist {
     createdAt: Timestamp;
     updatedAt: Timestamp;
 }
+
+export interface Album {
+    id: string;
+    type: 'album';
+    title: string;
+    slug: string;
+    cover: string;
+    releaseDate: string;
+    tracksCount: number;
+    isExplicit: boolean;
+    createdAt: Timestamp;
+    artistId: string;
+    artistName: string;
+}

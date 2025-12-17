@@ -4,14 +4,14 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useFirestore } from '@/firebase/provider';
-import { collection, query, where, onSnapshot, limit } from 'firebase/firestore';
-import type { Artist } from '@/lib/types';
+import { collection, query, where, onSnapshot, limit, orderBy } from 'firebase/firestore';
+import type { Artist, Album } from '@/lib/types';
 
 import { Button } from '@/components/ui/button';
-import { Loader2, ArrowLeft, MoreVertical, Play, Star, UserPlus, Music, ListMusic } from 'lucide-react';
+import { Loader2, ArrowLeft, MoreVertical, Play, Star, UserPlus, Music, ListMusic, Disc } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import Image from 'next/image';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 
@@ -33,11 +33,13 @@ export default function ArtistProfilePage() {
     const firestore = useFirestore();
 
     const [artist, setArtist] = useState<Artist | null>(null);
+    const [albums, setAlbums] = useState<Album[]>([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         if (!firestore || !slug) return;
 
+        setLoading(true);
         const artistsRef = collection(firestore, 'music');
         const q = query(
             artistsRef,
@@ -46,20 +48,34 @@ export default function ArtistProfilePage() {
             limit(1)
         );
 
-        const unsubscribe = onSnapshot(q, (snapshot) => {
+        const unsubscribeArtist = onSnapshot(q, (snapshot) => {
             if (!snapshot.empty) {
                 const doc = snapshot.docs[0];
-                setArtist({ id: doc.id, ...doc.data() } as Artist);
+                const artistData = { id: doc.id, ...doc.data() } as Artist;
+                setArtist(artistData);
+
+                // Now fetch albums
+                const albumsRef = collection(firestore, 'music', artistData.id, 'albums');
+                const albumsQuery = query(albumsRef, orderBy('releaseDate', 'desc'));
+                const unsubscribeAlbums = onSnapshot(albumsQuery, (albumsSnapshot) => {
+                    const albumsData = albumsSnapshot.docs.map(albumDoc => ({ id: albumDoc.id, ...albumDoc.data() } as Album));
+                    setAlbums(albumsData);
+                    setLoading(false);
+                }, (error) => {
+                    console.error("Error fetching albums:", error);
+                    setLoading(false);
+                });
+                return unsubscribeAlbums; // This won't be returned by onSnapshot but needed for cleanup logic
             } else {
                 console.error("No artist found with that slug.");
+                setLoading(false);
             }
-            setLoading(false);
         }, (error) => {
             console.error("Error fetching artist:", error);
             setLoading(false);
         });
 
-        return () => unsubscribe();
+        return () => unsubscribeArtist();
     }, [firestore, slug]);
 
 
@@ -96,7 +112,7 @@ export default function ArtistProfilePage() {
                 <Button variant="ghost" size="icon" className="size-9 rounded-full bg-background/50 backdrop-blur-sm">
                     <MoreVertical size={20} />
                 </Button>
-            </motion.header>
+            </header>
             
             <motion.div
                 className="relative w-full h-[40vh] overflow-hidden"
@@ -146,17 +162,45 @@ export default function ArtistProfilePage() {
                     </motion.div>
 
                      <motion.div variants={FADE_UP_ANIMATION_VARIANTS} className="mt-8">
-                         <Tabs defaultValue="tracks" className="w-full">
+                         <Tabs defaultValue="albums" className="w-full">
                             <TabsList className="grid w-full grid-cols-2">
-                                <TabsTrigger value="tracks"><ListMusic className="w-4 h-4 mr-2"/>Titres</TabsTrigger>
+                                <TabsTrigger value="albums"><Disc className="w-4 h-4 mr-2"/>Albums</TabsTrigger>
                                 <TabsTrigger value="about"><UserPlus className="w-4 h-4 mr-2"/>À propos</TabsTrigger>
                             </TabsList>
-                            <TabsContent value="tracks" className="mt-6">
-                                <div className="text-center text-muted-foreground p-8">
-                                    <Music className="w-10 h-10 mx-auto mb-4" />
-                                    <h3 className="font-semibold">Aucun titre pour le moment</h3>
-                                    <p className="text-sm">Les titres de cet artiste apparaîtront bientôt ici.</p>
-                                </div>
+                            <TabsContent value="albums" className="mt-6">
+                                <AnimatePresence>
+                                    {albums.length > 0 ? (
+                                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                                            {albums.map((album, i) => (
+                                                <motion.div
+                                                    key={album.id}
+                                                    variants={FADE_UP_ANIMATION_VARIANTS}
+                                                    custom={i}
+                                                    initial="hidden"
+                                                    animate="visible"
+                                                    exit="hidden"
+                                                    onClick={() => router.push(`/chat/music/album/${album.slug}`)}
+                                                >
+                                                    <div className="group space-y-2 cursor-pointer">
+                                                        <div className="aspect-square relative">
+                                                            <Image src={album.cover} alt={album.title} fill className="object-cover rounded-lg transition-transform duration-300 group-hover:scale-105 shadow-lg" />
+                                                        </div>
+                                                        <div className="text-center">
+                                                            <p className="text-sm font-semibold truncate">{album.title}</p>
+                                                            <p className="text-xs text-muted-foreground">{new Date(album.releaseDate).getFullYear()}</p>
+                                                        </div>
+                                                    </div>
+                                                </motion.div>
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        <div className="text-center text-muted-foreground p-8">
+                                            <Disc className="w-10 h-10 mx-auto mb-4" />
+                                            <h3 className="font-semibold">Aucun album pour le moment</h3>
+                                            <p className="text-sm">Les albums de cet artiste apparaîtront bientôt ici.</p>
+                                        </div>
+                                    )}
+                                </AnimatePresence>
                             </TabsContent>
                             <TabsContent value="about" className="mt-6 p-4 bg-card/30 rounded-xl">
                                 <p className="text-center text-muted-foreground leading-relaxed">
@@ -170,4 +214,3 @@ export default function ArtistProfilePage() {
         </div>
     );
 }
-
