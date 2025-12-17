@@ -189,7 +189,7 @@ function ChatPageContent() {
     return otherUserId ? usersData[otherUserId] : undefined;
   }, [chatData, currentUser, usersData]);
 
-  const handleSendMessage = async (content: string, type: 'text' | 'image' | 'audio' | 'contact' | 'document' = 'text', metadata: any = {}) => {
+  const handleSendMessage = async (content: string, type: MessageType['type'] = 'text', metadata: any = {}) => {
     if (!firestore || !currentUser || !chatId) return;
 
     let messageData: Partial<MessageType> = {
@@ -225,6 +225,8 @@ function ChatPageContent() {
       lastMessageContent = `${currentUser.displayName} a partagé le contact de ${metadata.contactData.name}.`;
     } else if (type === 'document' && metadata.fileName) {
         lastMessageContent = `📄 ${metadata.fileName}`;
+    } else if (type === 'location') {
+        lastMessageContent = `📍 Position partagée`;
     }
 
 

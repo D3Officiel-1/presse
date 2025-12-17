@@ -104,6 +104,9 @@ const withPWA = require('@ducanh2912/next-pwa').default({
 });
 
 const nextConfig: NextConfig = {
+  env: {
+    NEXT_PUBLIC_GOOGLE_MAPS_API_KEY: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY,
+  },
   /* config options here */
   typescript: {
     ignoreBuildErrors: true,
@@ -154,6 +157,10 @@ const nextConfig: NextConfig = {
         hostname: 'i.scdn.co',
         port: '',
         pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'maps.googleapis.com',
       }
     ],
   },

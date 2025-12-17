@@ -22,7 +22,7 @@ export type Message = {
   senderId: string;
   content: string;
   timestamp: Timestamp;
-  type: 'text' | 'image' | 'audio' | 'video' | 'poll' | 'event' | 'contact' | 'document';
+  type: 'text' | 'image' | 'audio' | 'video' | 'poll' | 'event' | 'contact' | 'document' | 'location';
   readBy: string[]; // Array of user IDs who have read the message
   isAnnouncement?: boolean;
   starredBy?: string[];
@@ -68,7 +68,7 @@ export type Chat = {
   deletedBy?: { [key: string]: Timestamp }; // Map of userId to deletion timestamp
   lastMessage?: {
     content?: string;
-    type?: 'text' | 'image' | 'audio' | 'video' | 'poll' | 'event' | 'contact' | 'document';
+    type?: 'text' | 'image' | 'audio' | 'video' | 'poll' | 'event' | 'contact' | 'document' | 'location';
     senderId?: string;
   };
   lastMessageTimestamp?: Timestamp;
