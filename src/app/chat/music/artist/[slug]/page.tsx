@@ -72,7 +72,7 @@ export default function ArtistProfilePage() {
                         cover: album.images[0]?.url,
                         releaseDate: album.release_date,
                         tracksCount: album.total_tracks,
-                        isExplicit: album.explicit,
+                        isExplicit: album.explicit ?? false,
                         artistId: artistData.id,
                         artistName: artistData.name,
                         createdAt: Timestamp.now(),
