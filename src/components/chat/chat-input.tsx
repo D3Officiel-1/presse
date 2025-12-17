@@ -345,6 +345,7 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
     };
     reader.readAsDataURL(file);
     e.target.value = '';
+    setView('closed');
   };
 
   const onDocumentFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {

@@ -2,7 +2,7 @@
 'use client';
 
 import React, { useState, useRef, useEffect, Suspense, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Loader2, ArrowLeft, Crop, RotateCw, Send, Type, Brush, X, Check, Smile, AlignLeft, AlignCenter, AlignRight, ChevronUp, ChevronDown, Trash2, Minus, Wind, Delete, ArrowUp, CornerDownLeft } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
@@ -336,6 +336,8 @@ function EditorComponent() {
         
         try {
             const dataUrl = await htmlToImage.toPng(imageContainerRef.current, {
+              quality: 0.95,
+              pixelRatio: 1,
               filter: (node: HTMLElement) => {
                 // Exclude the canvas from the initial render if it's empty
                 if (node.tagName === 'CANVAS' && !node.getContext('2d')?.getImageData(0,0,node.width,node.height).data.some(channel => channel !== 0)) {
@@ -345,12 +347,10 @@ function EditorComponent() {
               }
             });
             
-            console.log("Image prête à être envoyée:", dataUrl.substring(0, 100) + '...');
-            
-            toast({
-                title: "Fonctionnalité à venir",
-                description: "L'envoi de médias sera bientôt disponible."
-            });
+            sessionStorage.setItem('image-to-send', dataUrl);
+            sessionStorage.removeItem('media-to-edit');
+            sessionStorage.removeItem('media-type-to-edit');
+            router.back();
 
         } catch (error) {
             console.error('oops, something went wrong!', error);
@@ -701,7 +701,16 @@ function EditorComponent() {
     );
 }
 
-export default function EditorPage() {
+function EditorPage() {
+    const router = useRouter();
+    const searchParams = useSearchParams();
+
+    // The router and searchParams are only available on the client-side.
+    // We can use a Suspense boundary to wait for them.
+    useEffect(() => {
+        // This effect runs on the client after hydration
+    }, [router, searchParams]);
+
     return (
         <Suspense fallback={
             <div className="flex h-screen w-full items-center justify-center bg-black">
@@ -712,3 +721,5 @@ export default function EditorPage() {
         </Suspense>
     );
 }
+
+export default EditorPage;
