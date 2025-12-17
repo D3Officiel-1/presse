@@ -1,3 +1,4 @@
+
 'use client'
 
 import React, { useState, useEffect, useCallback } from 'react';
@@ -73,9 +74,52 @@ export default function MusicPage() {
 
     const handleArtistClick = async (artist: any) => {
         if (artist.source === 'firestore') {
-            router.push(`/music/artist/${artist.slug}`);
+            router.push(`/chat/music/artist/${artist.id}`);
         } else {
-            toast({ description: "Bientôt disponible: importez cet artiste dans votre bibliothèque." });
+            if (!firestore) return;
+            setImportingArtistId(artist.id);
+            try {
+                // Check if artist already exists by spotifyId
+                const q = query(collection(firestore, 'music'), where('spotifyId', '==', artist.id));
+                const querySnapshot = await getDocs(q);
+
+                if (!querySnapshot.empty) {
+                    const existingArtist = querySnapshot.docs[0];
+                    toast({ description: `${artist.name} est déjà dans votre bibliothèque.` });
+                    router.push(`/chat/music/artist/${existingArtist.id}`);
+                    return;
+                }
+
+                // If not, fetch details and import
+                const artistDetails = await getArtistDetails(artist.id);
+                
+                const newArtistData = {
+                    type: 'artist',
+                    name: artistDetails.name,
+                    slug: artistDetails.name.toLowerCase().replace(/ /g, '-').replace(/[^\w-]+/g, ''),
+                    verified: true, // Assuming verification from Spotify
+                    country: 'CI', // Default or from API if available
+                    genres: artistDetails.genres,
+                    profileImage: artistDetails.images?.[0]?.url || '',
+                    bannerImage: artistDetails.images?.[1]?.url || artistDetails.images?.[0]?.url || '',
+                    bio: `Artiste découvert sur Spotify.`,
+                    followersCount: artistDetails.followers.total,
+                    spotifyId: artistDetails.id,
+                    createdAt: Timestamp.now(),
+                    updatedAt: Timestamp.now(),
+                };
+
+                const newArtistRef = await addDoc(collection(firestore, 'music'), newArtistData);
+                
+                toast({ title: "Artiste ajouté !", description: `${artistDetails.name} a été ajouté à votre bibliothèque.` });
+                router.push(`/chat/music/artist/${newArtistRef.id}`);
+
+            } catch (error) {
+                console.error("Error importing artist:", error);
+                toast({ variant: 'destructive', title: "Erreur d'importation", description: "Impossible d'ajouter cet artiste." });
+            } finally {
+                setImportingArtistId(null);
+            }
         }
     };
     
@@ -94,10 +138,17 @@ export default function MusicPage() {
             onClick={() => handleArtistClick({ ...artist, source })}
             className="flex flex-col items-center gap-3 text-center cursor-pointer group"
         >
-            <Avatar className="w-24 h-24 border-2 border-transparent group-hover:border-primary transition-all duration-300">
-                <AvatarImage src={artist.images?.[0]?.url || artist.profileImage} alt={artist.name} />
-                <AvatarFallback>{artist.name.substring(0, 1)}</AvatarFallback>
-            </Avatar>
+             <div className="relative">
+                <Avatar className="w-24 h-24 border-2 border-transparent group-hover:border-primary transition-all duration-300">
+                    <AvatarImage src={artist.images?.[0]?.url || artist.profileImage} alt={artist.name} />
+                    <AvatarFallback>{artist.name.substring(0, 1)}</AvatarFallback>
+                </Avatar>
+                {importingArtistId === artist.id && (
+                    <div className="absolute inset-0 bg-black/60 rounded-full flex items-center justify-center">
+                        <Loader2 className="w-8 h-8 animate-spin text-white" />
+                    </div>
+                )}
+            </div>
             <span className="text-sm font-semibold truncate w-full">{artist.name}</span>
         </motion.div>
     );
@@ -170,10 +221,17 @@ export default function MusicPage() {
                                           className="bg-card/30 p-6 rounded-2xl flex flex-col md:flex-row items-center gap-6 cursor-pointer"
                                           onClick={() => handleArtistClick({ ...searchResults.artists.items[0], source: 'spotify' })}
                                         >
-                                            <Avatar className="w-28 h-28">
-                                                <AvatarImage src={searchResults.artists.items[0].images?.[0]?.url} />
-                                                <AvatarFallback>{searchResults.artists.items[0].name.substring(0, 1)}</AvatarFallback>
-                                            </Avatar>
+                                            <div className="relative">
+                                                <Avatar className="w-28 h-28">
+                                                    <AvatarImage src={searchResults.artists.items[0].images?.[0]?.url} />
+                                                    <AvatarFallback>{searchResults.artists.items[0].name.substring(0, 1)}</AvatarFallback>
+                                                </Avatar>
+                                                {importingArtistId === searchResults.artists.items[0].id && (
+                                                    <div className="absolute inset-0 bg-black/60 rounded-full flex items-center justify-center">
+                                                        <Loader2 className="w-8 h-8 animate-spin text-white" />
+                                                    </div>
+                                                )}
+                                            </div>
                                             <div className="text-center md:text-left">
                                                 <h3 className="text-3xl font-bold">{searchResults.artists.items[0].name}</h3>
                                                 <span className="text-sm font-semibold uppercase tracking-wider bg-white/10 px-2 py-1 rounded">Artiste</span>
