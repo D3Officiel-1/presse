@@ -52,8 +52,7 @@ function PlayerComponent() {
         const fetchTrack = async () => {
           if (!params.trackId || !params.artistId || !firestore) return;
 
-          const trackId = params.trackId;
-          const artistId = params.artistId;
+          const { artistId, trackId } = params;
           const cacheKey = `${artistId}:${trackId}`;
 
           // Check cache first
@@ -162,22 +161,13 @@ function PlayerComponent() {
             </div>
         );
     }
-    
-    if (isClient && !track.audioUrl) {
-      return (
-        <div className="flex h-screen w-full items-center justify-center bg-background text-center p-4">
-             <Music className="mx-auto w-8 h-8 mb-2 text-muted-foreground"/>
-             <p className="text-sm text-muted-foreground">Aucun audio disponible pour ce titre.</p>
-        </div>
-      )
-    }
 
     const clipEmbedUrl = extractClipUrl(track.clipUrl);
 
 
     return (
         <div className="relative flex flex-col h-screen w-full overflow-hidden bg-background">
-            {isClient && (
+            {isClient && track.audioUrl && (
                 <ReactPlayer
                     ref={playerRef}
                     url={track.audioUrl}
