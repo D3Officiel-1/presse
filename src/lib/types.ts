@@ -79,22 +79,11 @@ export type Chat = {
   pinnedMessages?: Message[];
 };
 
-export interface SpotifyTrack {
-  id: string;
-  name: string;
-  artists: { name: string }[];
-  album: {
-    images: { url: string }[];
-  };
-  preview_url: string | null;
-  audioUrl?: string; // For YouTube links etc.
-  duration_ms?: number;
-}
-
 export type TrackForPlayer = {
   id: string;
   title: string;
   audioUrl: string;
+  clipUrl?: string;
   duration: number;
   cover: string;
   artistName: string;

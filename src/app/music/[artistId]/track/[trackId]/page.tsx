@@ -5,21 +5,27 @@ import { useRouter, useParams, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
 import Image from 'next/image';
-import { ArrowLeft, Pause, Play, Loader2, Music, Shuffle, SkipBack, SkipForward, Repeat } from 'lucide-react';
+import { ArrowLeft, Pause, Play, Loader2, Music, Shuffle, SkipBack, SkipForward, Repeat, Video } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { type TrackForPlayer } from '@/lib/types';
-import ReactPlayer from 'react-player/youtube';
+import ReactPlayer from 'react-player';
 import { useFirestore } from '@/firebase/provider';
 import { doc, getDoc, collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import {
+  Dialog,
+  DialogContent,
+  DialogTrigger,
+} from "@/components/ui/dialog"
 
 const trackCache = new Map<string, TrackForPlayer>();
 
-const extractUrlFromIframe = (iframeString?: string | null): string | undefined => {
+const extractClipUrl = (iframeString?: string | null): string | undefined => {
     if (!iframeString) return undefined;
     if (iframeString.trim().startsWith('http')) return iframeString;
     const match = iframeString.match(/src="([^"]+)"/);
     return match ? match[1] : undefined;
 }
+
 
 function PlayerComponent() {
     const router = useRouter();
@@ -37,6 +43,9 @@ function PlayerComponent() {
     const [isClient, setIsClient] = useState(false);
     const firestore = useFirestore();
     const hasLoggedRef = useRef(false);
+
+    const [isClipOpen, setIsClipOpen] = useState(false);
+    const wasPlayingBeforeClip = useRef(false);
 
     useEffect(() => {
         setIsClient(true);
@@ -128,6 +137,24 @@ function PlayerComponent() {
         return `${minutes}:${secs.toString().padStart(2, '0')}`;
     };
 
+    const togglePlay = () => {
+        if (!track?.audioUrl) return;
+        setIsPlaying(!isPlaying);
+    };
+
+    const handleClipOpen = () => {
+        wasPlayingBeforeClip.current = isPlaying;
+        setIsPlaying(false);
+        setIsClipOpen(true);
+    }
+    
+    const handleClipClose = () => {
+        setIsClipOpen(false);
+        if (wasPlayingBeforeClip.current) {
+            setIsPlaying(true);
+        }
+    }
+
     if (!track) {
         return (
             <div className="flex h-screen w-full items-center justify-center bg-background">
@@ -136,13 +163,6 @@ function PlayerComponent() {
         );
     }
     
-    const trackUrl = extractUrlFromIframe(track.audioUrl);
-
-    const togglePlay = () => {
-        if (!track?.audioUrl || !trackUrl) return;
-        setIsPlaying(!isPlaying);
-    };
-
     if (isClient && !track.audioUrl) {
       return (
         <div className="flex h-screen w-full items-center justify-center bg-background text-center p-4">
@@ -152,12 +172,15 @@ function PlayerComponent() {
       )
     }
 
+    const clipEmbedUrl = extractClipUrl(track.clipUrl);
+
+
     return (
         <div className="relative flex flex-col h-screen w-full overflow-hidden bg-background">
-            {isClient && trackUrl && (
+            {isClient && (
                 <ReactPlayer
                     ref={playerRef}
-                    url={trackUrl}
+                    url={track.audioUrl}
                     playing={isPlaying}
                     onProgress={handleProgress}
                     onDuration={handleDuration}
@@ -222,7 +245,7 @@ function PlayerComponent() {
                         <p className="text-muted-foreground font-medium truncate">{track.artistName}</p>
                     </div>
 
-                    {trackUrl ? (
+                    {track.audioUrl ? (
                         <>
                             <div className="space-y-2">
                                 <Slider 
@@ -250,9 +273,31 @@ function PlayerComponent() {
                                 <Button variant="ghost" size="icon" className="h-16 w-16 text-muted-foreground">
                                     <SkipForward className="w-8 h-8 fill-current" />
                                 </Button>
-                                <Button variant="ghost" size="icon" className="h-12 w-12 text-muted-foreground">
-                                    <Repeat className="w-5 h-5" />
-                                </Button>
+                                {clipEmbedUrl ? (
+                                    <Dialog open={isClipOpen} onOpenChange={handleClipClose}>
+                                        <DialogTrigger asChild>
+                                            <Button variant="ghost" size="icon" className="h-12 w-12 text-muted-foreground" onClick={handleClipOpen}>
+                                                <Video className="w-5 h-5" />
+                                            </Button>
+                                        </DialogTrigger>
+                                        <DialogContent className="p-0 border-0 max-w-4xl bg-black">
+                                            <div className="aspect-video">
+                                                <iframe 
+                                                    src={clipEmbedUrl} 
+                                                    title="YouTube video player" 
+                                                    frameBorder="0" 
+                                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                                                    allowFullScreen
+                                                    className="w-full h-full"
+                                                ></iframe>
+                                            </div>
+                                        </DialogContent>
+                                    </Dialog>
+                                ) : (
+                                    <Button variant="ghost" size="icon" className="h-12 w-12 text-muted-foreground" disabled>
+                                        <Repeat className="w-5 h-5" />
+                                    </Button>
+                                )}
                             </div>
                         </>
                     ) : (
