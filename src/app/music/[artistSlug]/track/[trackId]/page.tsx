@@ -2,7 +2,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef, Suspense } from 'react';
-import { useRouter, useParams, useSearchParams } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
 import Image from 'next/image';
@@ -10,6 +10,8 @@ import { ArrowLeft, Pause, Play, Loader2, Music, Shuffle, SkipBack, SkipForward,
 import { motion } from 'framer-motion';
 import { type TrackForPlayer } from '@/lib/types';
 import ReactPlayer from 'react-player/youtube';
+import { useFirestore } from '@/firebase/provider';
+import { doc, getDoc } from 'firebase/firestore';
 
 const extractUrlFromIframe = (iframeString?: string | null): string | undefined => {
     if (!iframeString) return undefined;
@@ -20,9 +22,7 @@ const extractUrlFromIframe = (iframeString?: string | null): string | undefined 
 
 function PlayerComponent() {
     const router = useRouter();
-    const searchParams = useSearchParams();
-    const params = useParams();
-    const slug = params.slug;
+    const params = useParams() as { artistSlug: string; trackId: string; albumId?: string };
     
     const [track, setTrack] = useState<TrackForPlayer | null>(null);
     const [isPlaying, setIsPlaying] = useState(false);
@@ -32,24 +32,56 @@ function PlayerComponent() {
     const playerRef = useRef<ReactPlayer>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [isClient, setIsClient] = useState(false);
+    const firestore = useFirestore();
 
     useEffect(() => {
         setIsClient(true);
-        const trackData = searchParams.get('trackData');
-        if (trackData) {
-            try {
-                const parsedTrack = JSON.parse(decodeURIComponent(trackData));
-                setTrack(parsedTrack);
-                setDuration(parsedTrack.duration || 0);
-                setIsPlaying(true); // Autoplay
-            } catch (error) {
-                console.error("Failed to parse track data", error);
-                router.back();
-            }
-        } else {
+        const fetchTrack = async () => {
+          if (!params.trackId || !params.artistSlug || !firestore) {
+              setIsLoading(false);
+              return;
+          };
+
+          // Find artistId from slug first
+          const artistsRef = collection(firestore, 'music');
+          const artistQuery = query(artistsRef, where('slug', '==', params.artistSlug), limit(1));
+          const artistSnap = await getDocs(artistQuery);
+
+          if (artistSnap.empty) {
+              console.error("Artist not found for slug:", params.artistSlug);
+              setIsLoading(false);
+              router.back();
+              return;
+          }
+          const artistId = artistSnap.docs[0].id;
+          
+          let trackRef;
+          if (params.albumId) {
+            trackRef = doc(firestore, `music/${artistId}/albums/${params.albumId}/tracks/${params.trackId}`);
+          } else {
+            trackRef = doc(firestore, `music/${artistId}/singles/${params.trackId}`);
+          }
+          
+          const snap = await getDoc(trackRef);
+      
+          if (!snap.exists()) {
+             console.error("Track not found at path:", trackRef.path);
+             setIsLoading(false);
              router.back();
-        }
-    }, [searchParams, router]);
+             return;
+          }
+      
+          setTrack({
+            id: snap.id,
+            ...snap.data()
+          } as TrackForPlayer);
+          setDuration(snap.data().duration || 0);
+          setIsPlaying(true);
+          setIsLoading(false);
+        };
+      
+        fetchTrack();
+      }, [params, firestore, router]);
 
     const handleProgress = (state: { played: number; playedSeconds: number }) => {
         setProgress(state.played * 100);
@@ -72,7 +104,7 @@ function PlayerComponent() {
     };
 
     const togglePlay = () => {
-        if (!track?.audioUrl && !track?.preview_url) return;
+        if (!track?.audioUrl) return;
         setIsPlaying(!isPlaying);
     };
     
@@ -89,7 +121,7 @@ function PlayerComponent() {
         return `${minutes}:${secs.toString().padStart(2, '0')}`;
     };
 
-    if (!track) {
+    if (isLoading || !track) {
         return (
             <div className="flex h-screen w-full items-center justify-center bg-background">
                 <Loader2 className="h-10 w-10 animate-spin text-primary" />
@@ -97,7 +129,7 @@ function PlayerComponent() {
         );
     }
     
-    const trackUrl = extractUrlFromIframe(track.audioUrl) || track.preview_url;
+    const trackUrl = extractUrlFromIframe(track.audioUrl);
 
     return (
         <div className="relative flex flex-col h-screen w-full overflow-hidden bg-background">
@@ -117,9 +149,9 @@ function PlayerComponent() {
                 />
             )}
             <div className="absolute inset-0 z-0">
-                {track.album.images[0]?.url && (
+                {track.cover && (
                     <Image
-                        src={track.album.images[0].url}
+                        src={track.cover}
                         alt="Album background"
                         layout="fill"
                         className="object-cover blur-3xl scale-125 opacity-30"
@@ -144,10 +176,10 @@ function PlayerComponent() {
                     className="w-full max-w-sm"
                 >
                     <div className="relative aspect-square rounded-2xl shadow-2xl overflow-hidden">
-                       {track.album.images[0]?.url && (
+                       {track.cover && (
                             <Image
-                                src={track.album.images[0].url}
-                                alt={track.name}
+                                src={track.cover}
+                                alt={track.title}
                                 layout="fill"
                                 className="object-cover"
                                 priority
@@ -165,8 +197,8 @@ function PlayerComponent() {
             >
                 <div className="max-w-md mx-auto space-y-4">
                     <div className="text-center">
-                        <h1 className="text-2xl font-bold tracking-tight truncate">{track.name}</h1>
-                        <p className="text-muted-foreground font-medium truncate">{track.artists.map(a => a.name).join(', ')}</p>
+                        <h1 className="text-2xl font-bold tracking-tight truncate">{track.title}</h1>
+                        <p className="text-muted-foreground font-medium truncate">{track.artistName}</p>
                     </div>
 
                     {trackUrl ? (

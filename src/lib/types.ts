@@ -92,9 +92,14 @@ export interface SpotifyTrack {
   duration_ms?: number;
 }
 
-export interface TrackForPlayer extends SpotifyTrack {
-    duration?: number;
-}
+export type TrackForPlayer = {
+  id: string;
+  title: string;
+  audioUrl: string;
+  duration: number;
+  cover: string;
+  artistName: string;
+};
 
 export interface SpotifyArtist {
     id: string;
@@ -161,4 +166,6 @@ export interface Track {
   position: number;
   streams: number;
   isExplicit: boolean;
+  cover: string;
+  artistName: string;
 }

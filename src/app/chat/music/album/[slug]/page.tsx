@@ -45,7 +45,7 @@ export default function AlbumPage() {
             
             if (spotifyData.items && spotifyData.items.length > 0) {
                 const batch = writeBatch(firestore);
-                const tracksRef = collection(firestore, 'music', albumData.id, 'tracks');
+                const tracksRef = collection(firestore, 'music', albumData.artistId, 'albums', albumData.id, 'tracks');
 
                 spotifyData.items.forEach((track: any) => {
                     const newTrackRef = doc(tracksRef, track.id);
@@ -56,6 +56,8 @@ export default function AlbumPage() {
                         position: track.track_number,
                         streams: 0, // Not available from this endpoint
                         isExplicit: track.explicit,
+                        cover: albumData.cover,
+                        artistName: albumData.artistName,
                     });
                 });
                 await batch.commit();
@@ -95,7 +97,7 @@ export default function AlbumPage() {
                     }
                 }
                 
-                const tracksRef = collection(firestore, 'music', albumDoc.id, 'tracks');
+                const tracksRef = collection(firestore, 'music', albumData.id, 'tracks');
                 const tracksQuery = query(tracksRef, orderBy('position', 'asc'));
                 const unsubscribeTracks = onSnapshot(tracksQuery, (tracksSnapshot) => {
                     if (tracksSnapshot.empty && albumData.spotifyId) {
@@ -122,17 +124,7 @@ export default function AlbumPage() {
     
     const handlePlayTrack = (track: Track) => {
         if (!album || !artist) return;
-        
-        const trackDataForPlayer = {
-            id: track.id,
-            name: track.title,
-            artists: [{ name: artist.name }],
-            album: { images: [{ url: album.cover }] },
-            audioUrl: track.audioUrl,
-            duration: track.duration
-        };
-        const params = new URLSearchParams({ trackData: encodeURIComponent(JSON.stringify(trackDataForPlayer)) });
-        router.push(`/chat/music/track/${track.id}?${params.toString()}`);
+        router.push(`/music/${artist.slug}/album/${album.id}/track/${track.id}`);
     }
 
     if (loading) {

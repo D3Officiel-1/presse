@@ -49,8 +49,8 @@ export default function ArtistProfilePage() {
         try {
             const [spotifyData, firestoreAlbumsSnap, firestoreSinglesSnap] = await Promise.all([
                 getArtistAlbums(artistData.spotifyId),
-                getDocs(query(collection(firestore, 'music'), where('artistId', '==', artistData.id), where('type', '==', 'album'))),
-                getDocs(query(collection(firestore, 'music'), where('artistId', '==', artistData.id), where('type', '==', 'single')))
+                getDocs(query(collection(firestore, 'music', artistData.id, 'albums'))),
+                getDocs(query(collection(firestore, 'music', artistData.id, 'singles')))
             ]);
 
             const firestoreAlbumSpotifyIds = new Set(firestoreAlbumsSnap.docs.map(doc => doc.data().spotifyId));
@@ -68,7 +68,7 @@ export default function ArtistProfilePage() {
                 const batch = writeBatch(firestore);
                 
                 newAlbumsFromSpotify.forEach((album: any) => {
-                    const newAlbumRef = doc(collection(firestore, 'music'));
+                    const newAlbumRef = doc(collection(firestore, 'music', artistData.id, 'albums'));
                     const albumSlug = (artistData.name + '-' + album.name).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
 
                     batch.set(newAlbumRef, {
@@ -87,7 +87,7 @@ export default function ArtistProfilePage() {
                 });
 
                 newSinglesFromSpotify.forEach((single: any) => {
-                    const newSingleRef = doc(collection(firestore, 'music'));
+                    const newSingleRef = doc(collection(firestore, 'music', artistData.id, 'singles'));
                     batch.set(newSingleRef, {
                         type: 'single',
                         title: single.name,
@@ -137,14 +137,14 @@ export default function ArtistProfilePage() {
                 syncDiscography(artistData);
 
                 // Fetch albums
-                const albumsQuery = query(collection(firestore, 'music'), where('artistId', '==', artistData.id), where('type', '==', 'album'), orderBy('releaseDate', 'desc'));
+                const albumsQuery = query(collection(firestore, 'music', artistData.id, 'albums'), orderBy('releaseDate', 'desc'));
                 onSnapshot(albumsQuery, (albumsSnapshot) => {
                     const albumsData = albumsSnapshot.docs.map(albumDoc => ({ id: albumDoc.id, ...albumDoc.data() } as Album));
                     setAlbums(albumsData);
                 });
 
                 // Fetch singles
-                const singlesQuery = query(collection(firestore, 'music'), where('artistId', '==', artistData.id), where('type', '==', 'single'), orderBy('releaseDate', 'desc'));
+                const singlesQuery = query(collection(firestore, 'music', artistData.id, 'singles'), orderBy('releaseDate', 'desc'));
                 onSnapshot(singlesQuery, (singlesSnapshot) => {
                     const singlesData = singlesSnapshot.docs.map(singleDoc => ({ id: singleDoc.id, ...singleDoc.data() } as Single));
                     setSingles(singlesData);
@@ -184,16 +184,8 @@ export default function ArtistProfilePage() {
     }
     
     const handlePlaySingle = (single: Single) => {
-        const trackData = {
-            id: single.id,
-            name: single.title,
-            artists: [{ name: artist.name }],
-            album: { images: [{ url: single.cover }] },
-            audioUrl: single.audioUrl,
-            duration: single.duration,
-        };
-        const params = new URLSearchParams({ trackData: encodeURIComponent(JSON.stringify(trackData)) });
-        router.push(`/chat/music/track/${single.id}?${params.toString()}`);
+        if (!artist) return;
+        router.push(`/music/${artist.slug}/track/${single.id}`);
     }
 
     return (
