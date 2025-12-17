@@ -79,7 +79,7 @@ export function ChatTopbar({ info, isGroup, chat, allUsers, onPinnedMessageClick
         </div>
       </div>
       <AnimatePresence>
-        {chat.pinnedMessages && chat.pinnedMessages.length > 0 && (
+        {chat && chat.pinnedMessages && chat.pinnedMessages.length > 0 && (
           <motion.div
             className="bg-muted/50 px-4 py-2"
             initial={{ opacity: 0, y: -20, height: 0 }}

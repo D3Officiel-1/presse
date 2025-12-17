@@ -118,7 +118,7 @@ export function ActionFocusView({
     });
 
     return () => unsubscribe();
-  }, [firestore, chat]);
+  }, [firestore, chat, usersData]);
 
   useEffect(() => {
     if (!loadingMessages && messagesContainerRef.current) {
@@ -127,7 +127,7 @@ export function ActionFocusView({
         }, 0);
         return () => clearTimeout(timer);
     }
-  }, [loadingMessages]);
+  }, [loadingMessages, messages]);
 
 
   const isCommunity = chat?.type === 'community';
@@ -230,12 +230,18 @@ export function ActionFocusView({
 
      return (
         <div className="relative flex flex-col h-full w-full bg-background overflow-hidden">
-            <ChatTopbar info={chatInfoForTopbar} isGroup={chat.type !== 'private'} />
+            <ChatTopbar 
+                info={chatInfoForTopbar} 
+                isGroup={chat.type !== 'private'} 
+                chat={chat} 
+                allUsers={allChatUsers} 
+                onPinnedMessageClick={() => {}}
+            />
             
             <div ref={messagesContainerRef} className="flex-1 overflow-y-auto">
                  <ChatMessages
                     messages={messages}
-                    chatType={chat.type}
+                    chat={chat}
                     loggedInUser={currentUser}
                     otherUser={otherUserForMessages!}
                     isTyping={chat.typing?.[otherUserForMessages?.id || ''] || false}
@@ -245,7 +251,11 @@ export function ActionFocusView({
                     onDeleteForEveryone={() => {}}
                     onToggleStar={() => {}}
                     onShare={()=>{}}
+                    onTogglePin={() => {}}
+                    onEditMessage={() => {}}
                     allUsersInApp={Object.values(usersData)}
+                    isAdmin={false}
+                    onScrollToMessage={() => {}}
                 />
             </div>
            
