@@ -78,7 +78,6 @@ function PlayerComponent() {
             ...snap.data()
           } as TrackForPlayer);
           setDuration(snap.data().duration || 0);
-          setIsPlaying(true);
           setIsLoading(false);
         };
       
@@ -92,7 +91,11 @@ function PlayerComponent() {
 
     const handleDuration = (duration: number) => {
         setDuration(duration);
+    };
+
+    const handleReady = () => {
         setIsLoading(false);
+        setIsPlaying(true);
     };
 
     const handleEnded = () => {
@@ -123,7 +126,7 @@ function PlayerComponent() {
         return `${minutes}:${secs.toString().padStart(2, '0')}`;
     };
 
-    if (isLoading || !track) {
+    if (!track) {
         return (
             <div className="flex h-screen w-full items-center justify-center bg-background">
                 <Loader2 className="h-10 w-10 animate-spin text-primary" />
@@ -142,8 +145,8 @@ function PlayerComponent() {
                     playing={isPlaying}
                     onProgress={handleProgress}
                     onDuration={handleDuration}
+                    onReady={handleReady}
                     onEnded={handleEnded}
-                    onReady={() => setIsLoading(false)}
                     onError={(e) => console.error('Player Error', e)}
                     hidden={true}
                     width="0"
