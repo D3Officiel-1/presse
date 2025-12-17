@@ -192,16 +192,23 @@ function ChatPageContent() {
   const handleSendMessage = async (content: string, type: MessageType['type'] = 'text', metadata: any = {}) => {
     if (!firestore || !currentUser || !chatId) return;
 
+    let finalContent = content;
+    if (type === 'location') {
+        const [lat, lon] = content.split(',');
+        const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
+        finalContent = `https://maps.googleapis.com/maps/api/staticmap?center=${lat},${lon}&zoom=15&size=256x256&markers=color:red%7C${lat},${lon}&key=${apiKey}`;
+    }
+
     let messageData: Partial<MessageType> = {
       chatId,
       senderId: currentUser.uid,
-      content,
+      content: finalContent,
       timestamp: serverTimestamp() as Timestamp,
       type,
       readBy: [currentUser.uid],
       ...(replyInfo && { replyTo: { messageId: replyInfo.id, senderName: replyInfo.sender.name, message: replyInfo.content } }),
     };
-
+    
     if (type === 'audio' && metadata.duration) {
       messageData.audioMetadata = { duration: metadata.duration };
     }

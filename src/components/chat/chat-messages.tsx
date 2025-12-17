@@ -415,12 +415,10 @@ const ChatMessage = ({
                 )}
                 
                 {message.type === 'location' && (() => {
-                    const [lat, lon] = message.content.split(',');
-                    const mapUrl = `https://maps.googleapis.com/maps/api/staticmap?center=${lat},${lon}&zoom=15&size=256x256&markers=color:red%7C${lat},${lon}&key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}`;
-                    const mapsLink = `https://www.google.com/maps/search/?api=1&query=${lat},${lon}`;
+                    const mapsLink = `https://www.google.com/maps/search/?api=1&query=${message.content.split('?')[0].split('/').pop()}`;
                     return (
                         <a href={mapsLink} target="_blank" rel="noopener noreferrer" className="block relative w-64 h-40 rounded-md overflow-hidden my-1">
-                            <Image src={mapUrl} alt="Carte de localisation" layout="fill" className="object-cover" />
+                            <Image src={message.content} alt="Carte de localisation" layout="fill" className="object-cover" />
                             <div className="absolute inset-0 bg-black/20 flex items-center justify-center">
                                 <div className="p-2 bg-black/50 rounded-full">
                                     <MapPin className="w-6 h-6 text-white"/>
