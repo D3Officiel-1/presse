@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import React, { useState, useRef, useEffect, Suspense, useCallback } from 'react';
@@ -335,17 +336,8 @@ function EditorComponent() {
         if (!imageContainerRef.current) return;
         
         try {
-            const dataUrl = await htmlToImage.toPng(imageContainerRef.current, {
-              quality: 0.95,
-              pixelRatio: 1,
-              filter: (node: HTMLElement) => {
-                // Exclude the canvas from the initial render if it's empty
-                if (node.tagName === 'CANVAS' && !node.getContext('2d')?.getImageData(0,0,node.width,node.height).data.some(channel => channel !== 0)) {
-                  return false;
-                }
-                return true;
-              }
-            });
+            const svgDataUrl = await htmlToImage.toSvg(imageContainerRef.current);
+            const dataUrl = await htmlToImage.toPng(imageContainerRef.current);
             
             sessionStorage.setItem('image-to-send', dataUrl);
             sessionStorage.removeItem('media-to-edit');
