@@ -9,7 +9,7 @@ import { ChatAvatar } from '@/components/chat/chat-avatar'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
-import { MoreHorizontal, SquarePen, Shield, Search, CheckCheck, Settings, User as UserIcon, Archive, BellOff, Pin, Ban, Trash, Users, MessageSquare, Star, MailWarning, X, Bell, MailOpen, Music } from 'lucide-react'
+import { MoreHorizontal, SquarePen, Shield, Search, CheckCheck, Settings, User as UserIcon, Archive, BellOff, Pin, Ban, Trash, Users, MessageSquare, Star, MailWarning, X, Bell, MailOpen } from 'lucide-react'
 import { useUser } from '@/firebase/auth/use-user'
 import { useFirestore } from '@/firebase/provider'
 import { doc, getDoc, collection, query, where, onSnapshot, orderBy, setDoc, serverTimestamp, writeBatch, collectionGroup, limit, getDocs, updateDoc, arrayUnion, arrayRemove } from 'firebase/firestore'
@@ -576,7 +576,6 @@ export default function ChatsPage() {
   const navActions: ActionItem[] = [
     ...(hasStarredMessages ? [{ icon: Star, label: 'Important', action: () => router.push('/chat/starred') }] : []),
     ...(hasUnreadChats ? [{ icon: MailWarning, label: 'Non lus', action: () => setShowUnreadOnly(!showUnreadOnly) }] : []),
-    { icon: Music, label: 'Musique', action: () => router.push('/chat/music') },
     ...(hasArchivedChats ? [{ icon: Archive, label: 'Archivées', action: () => router.push('/chat/archived') }] : []),
     ...(hasUnreadChats ? [{ icon: CheckCheck, label: 'Tout lire', action: handleMarkAllAsRead }] : []),
     { icon: UserIcon, label: 'Profil', action: () => user && router.push(`/chat/settings/${user.uid}`) },
