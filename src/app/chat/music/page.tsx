@@ -1,4 +1,3 @@
-
 'use client'
 
 import React, { useState, useEffect, useCallback } from 'react';
@@ -73,63 +72,94 @@ export default function MusicPage() {
     }, [debouncedSearchTerm, toast]);
 
     const handleArtistClick = async (artist: any) => {
+        if (!artist?.id) return;
+
         if (artist.source === 'firestore') {
             router.push(`/chat/music/artist/${artist.id}`);
-        } else {
-            if (!firestore) return;
-            setImportingArtistId(artist.id);
-            try {
-                // Check if artist already exists by spotifyId
-                const q = query(collection(firestore, 'music'), where('spotifyId', '==', artist.id));
-                const querySnapshot = await getDocs(q);
+            return;
+        }
 
-                if (!querySnapshot.empty) {
-                    const existingArtist = querySnapshot.docs[0];
-                    toast({ description: `${artist.name} est déjà dans votre bibliothèque.` });
-                    router.push(`/chat/music/artist/${existingArtist.id}`);
-                    return;
-                }
+        if (!firestore) return;
+        setImportingArtistId(artist.id);
 
-                // If not, fetch details and import
-                const artistDetails = await getArtistDetails(artist.id);
-                
-                const newArtistData = {
-                    type: 'artist',
-                    name: artistDetails.name,
-                    slug: artistDetails.name.toLowerCase().replace(/ /g, '-').replace(/[^\w-]+/g, ''),
-                    verified: true, // Assuming verification from Spotify
-                    country: 'CI', // Default or from API if available
-                    genres: artistDetails.genres,
-                    profileImage: artistDetails.images?.[0]?.url || '',
-                    bannerImage: artistDetails.images?.[1]?.url || artistDetails.images?.[0]?.url || '',
-                    bio: `Artiste découvert sur Spotify.`,
-                    followersCount: artistDetails.followers.total,
-                    spotifyId: artistDetails.id,
-                    createdAt: Timestamp.now(),
-                    updatedAt: Timestamp.now(),
-                };
+        try {
+            // Check if artist already exists by spotifyId
+            const q = query(collection(firestore, 'music'), where('spotifyId', '==', artist.id));
+            const querySnapshot = await getDocs(q);
 
-                const newArtistRef = await addDoc(collection(firestore, 'music'), newArtistData);
-                
-                toast({ title: "Artiste ajouté !", description: `${artistDetails.name} a été ajouté à votre bibliothèque.` });
-                router.push(`/chat/music/artist/${newArtistRef.id}`);
-
-            } catch (error) {
-                console.error("Error importing artist:", error);
-                toast({ variant: 'destructive', title: "Erreur d'importation", description: "Impossible d'ajouter cet artiste." });
-            } finally {
-                setImportingArtistId(null);
+            if (!querySnapshot.empty) {
+                const existingArtist = querySnapshot.docs[0];
+                toast({ description: `${artist.name} est déjà dans votre bibliothèque.` });
+                router.push(`/chat/music/artist/${existingArtist.id}`);
+                return;
             }
+
+            // If not, fetch details and import
+            const artistDetails = await getArtistDetails(artist.id);
+            
+            const newArtistData = {
+                type: 'artist',
+                name: artistDetails.name,
+                slug: artistDetails.name.toLowerCase().replace(/ /g, '-').replace(/[^\w-]+/g, ''),
+                verified: true, // Assuming verification from Spotify
+                country: 'CI', // Default or from API if available
+                genres: artistDetails.genres,
+                profileImage: artistDetails.images?.[0]?.url || '',
+                bannerImage: artistDetails.images?.[1]?.url || artistDetails.images?.[0]?.url || '',
+                bio: `Artiste découvert sur Spotify.`,
+                followersCount: artistDetails.followers.total,
+                spotifyId: artistDetails.id,
+                createdAt: Timestamp.now(),
+                updatedAt: Timestamp.now(),
+            };
+
+            const newArtistRef = await addDoc(collection(firestore, 'music'), newArtistData);
+            
+            toast({ title: "Artiste ajouté !", description: `${artistDetails.name} a été ajouté à votre bibliothèque.` });
+            router.push(`/chat/music/artist/${newArtistRef.id}`);
+
+        } catch (error) {
+            console.error("Error importing artist:", error);
+            toast({ variant: 'destructive', title: "Erreur d'importation", description: "Impossible d'ajouter cet artiste." });
+        } finally {
+            setImportingArtistId(null);
         }
     };
     
-    const handleTrackClick = (track: any) => {
+    const handleTrackClick = async (track: any) => {
+        if (!firestore) return;
+
+        const mainArtist = track.artists?.[0];
+        if (!mainArtist) return;
+
+        // Find the Firestore artist linked to the Spotify artist
+        const q = query(
+            collection(firestore, 'music'),
+            where('spotifyId', '==', mainArtist.id)
+        );
+
+        const snap = await getDocs(q);
+
+        if (snap.empty) {
+            toast({
+            variant: 'destructive',
+            title: 'Artiste non importé',
+            description: 'Ajoutez l’artiste avant de lire ce titre.',
+            });
+            return;
+        }
+
+        const artistId = snap.docs[0].id;
+
         toast({
             title: `Lecture de ${track.name}`,
-            description: `Par ${track.artists.map((a: any) => a.name).join(', ')}`,
+            description: `Par ${mainArtist.name}`,
         });
-        // Future: router.push(`/music/player/${track.id}`);
-    }
+        
+        // This assumes a track player page exists at this route
+        // We will create this page in a future step if it doesn't exist.
+        router.push(`/chat/music/track/${artistId}/${track.id}`);
+    };
 
     const renderArtistItem = (artist: any, source: 'firestore' | 'spotify') => (
         <motion.div
