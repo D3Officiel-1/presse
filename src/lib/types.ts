@@ -34,6 +34,8 @@ export type Message = {
   deletedFor?: string[]; // Array of user IDs who have deleted this message for themselves
   audioMetadata?: {
     duration: number; // in seconds
+    source: 'recorder' | 'upload';
+    fileName?: string;
   };
   documentMetadata?: {
     fileName: string;
@@ -94,4 +96,20 @@ export interface SpotifyArtist {
     images: { url: string }[];
     followers: { total: number };
     genres: string[];
+}
+
+export interface Artist {
+    id: string;
+    type: 'artist';
+    name: string;
+    slug: string;
+    verified: boolean;
+    country: string;
+    genres: string[];
+    profileImage: string;
+    bannerImage: string;
+    bio: string;
+    followersCount: number;
+    createdAt: Timestamp;
+    updatedAt: Timestamp;
 }

@@ -33,6 +33,8 @@ function PlayerComponent() {
                 console.error("Failed to parse track data", error);
                 router.back();
             }
+        } else {
+             router.back();
         }
     }, [searchParams, router]);
 
@@ -40,24 +42,18 @@ function PlayerComponent() {
         if (track && track.preview_url && audioRef.current) {
             const audio = audioRef.current;
             
-            const handleCanPlayThrough = () => {
-                // Check if audio can play through without stopping for buffering
-                // Some browsers might not fire this consistently, so we might need a backup
-                if (audio.readyState >= 4) { // HAVE_ENOUGH_DATA
-                     audio.play().catch(e => console.error("Autoplay failed:", e));
-                     setIsPlaying(true);
-                     setIsLoading(false);
-                }
+            audio.src = track.preview_url;
+            audio.load();
+
+            const handleCanPlay = () => {
+                 audio.play().catch(e => console.error("Autoplay failed:", e));
             };
-            
-            const handleLoadedData = () => {
-                // Fallback for browsers that don't fire canplaythrough well
-                 if (audio.readyState >= 2 && !isPlaying) { // HAVE_CURRENT_DATA
-                     audio.play().catch(e => console.error("Autoplay failed:", e));
-                     setIsPlaying(true);
-                     setIsLoading(false);
-                 }
+
+            const handlePlay = () => {
+                setIsPlaying(true);
+                setIsLoading(false);
             }
+            const handlePause = () => setIsPlaying(false);
 
             const handleTimeUpdate = () => {
                 if (audio.duration > 0) {
@@ -68,29 +64,29 @@ function PlayerComponent() {
 
             const handleLoadedMetadata = () => {
                 setDuration(audio.duration);
+                setIsLoading(false);
             };
 
             const handleEnded = () => {
                 setIsPlaying(false);
-                setProgress(100); // Mark as finished
+                setProgress(100);
                  setTimeout(() => {
                     setProgress(0);
                     setCurrentTime(0);
                  }, 500)
             };
             
-            audio.src = track.preview_url;
-            audio.load(); // Important to load the new source
-
-            audio.addEventListener('canplaythrough', handleCanPlayThrough);
-            audio.addEventListener('loadeddata', handleLoadedData);
+            audio.addEventListener('canplay', handleCanPlay);
+            audio.addEventListener('play', handlePlay);
+            audio.addEventListener('pause', handlePause);
             audio.addEventListener('timeupdate', handleTimeUpdate);
             audio.addEventListener('loadedmetadata', handleLoadedMetadata);
             audio.addEventListener('ended', handleEnded);
 
             return () => {
-                audio.removeEventListener('canplaythrough', handleCanPlayThrough);
-                audio.removeEventListener('loadeddata', handleLoadedData);
+                audio.removeEventListener('canplay', handleCanPlay);
+                audio.removeEventListener('play', handlePlay);
+                audio.removeEventListener('pause', handlePause);
                 audio.removeEventListener('timeupdate', handleTimeUpdate);
                 audio.removeEventListener('loadedmetadata', handleLoadedMetadata);
                 audio.removeEventListener('ended', handleEnded);
@@ -111,7 +107,6 @@ function PlayerComponent() {
                 }
                 audioRef.current.play();
             }
-            setIsPlaying(!isPlaying);
         }
     };
     
