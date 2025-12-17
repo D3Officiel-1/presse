@@ -8,7 +8,7 @@ import { Slider } from '@/components/ui/slider';
 import Image from 'next/image';
 import { ArrowLeft, Pause, Play, Loader2, Music, Shuffle, SkipBack, SkipForward, Repeat } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { type SpotifyTrack } from '@/lib/types';
+import { type TrackForPlayer } from '@/lib/types';
 import ReactPlayer from 'react-player/youtube';
 
 function PlayerComponent() {
@@ -17,7 +17,7 @@ function PlayerComponent() {
     const params = useParams();
     const slug = params.slug;
     
-    const [track, setTrack] = useState<SpotifyTrack | null>(null);
+    const [track, setTrack] = useState<TrackForPlayer | null>(null);
     const [isPlaying, setIsPlaying] = useState(false);
     const [progress, setProgress] = useState(0);
     const [duration, setDuration] = useState(0);
@@ -33,6 +33,7 @@ function PlayerComponent() {
             try {
                 const parsedTrack = JSON.parse(decodeURIComponent(trackData));
                 setTrack(parsedTrack);
+                setDuration(parsedTrack.duration || 0);
                 setIsPlaying(true); // Autoplay
             } catch (error) {
                 console.error("Failed to parse track data", error);

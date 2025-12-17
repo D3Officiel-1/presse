@@ -88,7 +88,12 @@ export interface SpotifyTrack {
     images: { url: string }[];
   };
   preview_url: string | null;
-  audioUrl?: string;
+  audioUrl?: string; // For YouTube links etc.
+  duration_ms?: number;
+}
+
+export interface TrackForPlayer extends SpotifyTrack {
+    duration?: number;
 }
 
 export interface SpotifyArtist {
