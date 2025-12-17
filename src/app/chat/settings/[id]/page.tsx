@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useParams, notFound, useRouter } from 'next/navigation';
@@ -41,33 +40,37 @@ export default function UserProfilePage() {
   const isOwnProfile = currentUser?.uid === params.id;
 
   useEffect(() => {
-    if (!firestore || !currentUser) return;
-
-    const checkAdminStatus = async () => {
-      const userRef = doc(firestore, 'users', currentUser.uid);
-      const userDoc = await getDoc(userRef);
-      if (userDoc.exists() && userDoc.data().admin === true) {
-        setIsAdmin(true);
-      }
-    };
-    checkAdminStatus();
-    
-    const fetchUser = async () => {
+    const fetchUserData = async () => {
+      if (!firestore) return;
+      
       setLoading(true);
-      const userRef = doc(firestore, 'users', params.id as string);
-      const docSnap = await getDoc(userRef);
+      
+      // Fetch the viewed profile's data
+      const userRef = doc(firestore, 'users', params.id);
+      const userSnap = await getDoc(userRef);
 
-      if (docSnap.exists()) {
-        const userData = { id: docSnap.id, ...docSnap.data() } as UserType;
-        setUser(userData);
+      if (userSnap.exists()) {
+        setUser({ id: userSnap.id, ...userSnap.data() } as UserType);
       } else {
         notFound();
+        return;
       }
+
+      // If a user is logged in, check if they are an admin
+      if (currentUser) {
+        const adminCheckRef = doc(firestore, 'users', currentUser.uid);
+        const adminDoc = await getDoc(adminCheckRef);
+        if (adminDoc.exists() && adminDoc.data().admin === true) {
+          setIsAdmin(true);
+        }
+      }
+      
       setLoading(false);
     };
 
-    fetchUser();
+    fetchUserData();
   }, [firestore, params.id, currentUser]);
+
 
   const handleLogout = async () => {
     try {
