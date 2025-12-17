@@ -1,16 +1,18 @@
 
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useFirestore } from '@/firebase/provider';
-import { collection, query, where, onSnapshot, limit, getDoc, doc, orderBy } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, limit, getDoc, doc, orderBy, writeBatch } from 'firebase/firestore';
 import type { Album, Artist, Track } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { Loader2, ArrowLeft, MoreVertical, Play, Clock, Music } from 'lucide-react';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { Explicit } from '@/components/chat/chat-messages';
+import { useToast } from '@/hooks/use-toast';
+import { getAlbumTracks } from '@/lib/spotify';
 
 const FADE_UP_ANIMATION_VARIANTS = {
   hidden: { opacity: 0, y: 10 },
@@ -26,11 +28,47 @@ export default function AlbumPage() {
     const params = useParams();
     const slug = params.slug as string;
     const firestore = useFirestore();
+    const { toast } = useToast();
 
     const [album, setAlbum] = useState<Album | null>(null);
     const [artist, setArtist] = useState<Artist | null>(null);
     const [tracks, setTracks] = useState<Track[]>([]);
     const [loading, setLoading] = useState(true);
+    const [isSyncing, setIsSyncing] = useState(false);
+
+    const syncTracks = useCallback(async (albumData: Album) => {
+        if (!albumData.spotifyId || !firestore) return;
+        setIsSyncing(true);
+
+        try {
+            const spotifyData = await getAlbumTracks(albumData.spotifyId);
+            
+            if (spotifyData.items && spotifyData.items.length > 0) {
+                const batch = writeBatch(firestore);
+                const tracksRef = collection(firestore, 'music', albumData.id, 'tracks');
+
+                spotifyData.items.forEach((track: any) => {
+                    const newTrackRef = doc(tracksRef, track.id);
+                    batch.set(newTrackRef, {
+                        title: track.name,
+                        audioUrl: track.preview_url || '',
+                        duration: Math.round(track.duration_ms / 1000),
+                        position: track.track_number,
+                        streams: 0, // Not available from this endpoint
+                        isExplicit: track.explicit,
+                    });
+                });
+                await batch.commit();
+                toast({ description: `${spotifyData.items.length} pistes synchronisées pour cet album.` });
+            }
+        } catch (error) {
+            console.error("Failed to sync album tracks:", error);
+            toast({ variant: 'destructive', title: 'Erreur de synchronisation', description: "Impossible de récupérer les pistes de l'album." });
+        } finally {
+            setIsSyncing(false);
+        }
+    }, [firestore, toast]);
+
 
     useEffect(() => {
         if (!firestore || !slug) return;
@@ -43,7 +81,7 @@ export default function AlbumPage() {
             limit(1)
         );
         
-        const unsubscribe = onSnapshot(q, async (snapshot) => {
+        const unsubscribeAlbum = onSnapshot(q, async (snapshot) => {
             if (!snapshot.empty) {
                 const albumDoc = snapshot.docs[0];
                 const albumData = { id: albumDoc.id, ...albumDoc.data() } as Album;
@@ -59,23 +97,28 @@ export default function AlbumPage() {
                 
                 const tracksRef = collection(firestore, 'music', albumDoc.id, 'tracks');
                 const tracksQuery = query(tracksRef, orderBy('position', 'asc'));
-                onSnapshot(tracksQuery, (tracksSnapshot) => {
-                    const tracksData = tracksSnapshot.docs.map(trackDoc => ({ id: trackDoc.id, ...trackDoc.data() } as Track));
-                    setTracks(tracksData);
+                const unsubscribeTracks = onSnapshot(tracksQuery, (tracksSnapshot) => {
+                    if (tracksSnapshot.empty && albumData.spotifyId) {
+                       syncTracks(albumData);
+                    } else {
+                        const tracksData = tracksSnapshot.docs.map(trackDoc => ({ id: trackDoc.id, ...trackDoc.data() } as Track));
+                        setTracks(tracksData);
+                    }
                 });
 
-
+                 setLoading(false);
+                 // We don't return unsubscribeTracks here because it needs to stay alive
             } else {
                  console.error("No album found with that slug.");
+                 setLoading(false);
             }
-            setLoading(false);
         }, (error) => {
             console.error("Error fetching album:", error);
             setLoading(false);
         });
 
-        return () => unsubscribe();
-    }, [firestore, slug]);
+        return () => unsubscribeAlbum();
+    }, [firestore, slug, syncTracks]);
     
     const handlePlayTrack = (track: Track) => {
         if (!album || !artist) return;
@@ -191,35 +234,48 @@ export default function AlbumPage() {
                         },
                     }}
                 >
-                    <div className="space-y-2">
-                        {tracks.map((track, i) => (
-                             <motion.div
-                                key={track.id}
-                                variants={FADE_UP_ANIMATION_VARIANTS}
-                                custom={i}
-                                initial="hidden"
-                                animate="visible"
-                                exit="hidden"
-                                onClick={() => handlePlayTrack(track)}
-                            >
-                                <div className="group flex items-center gap-4 p-3 rounded-lg hover:bg-muted/50 cursor-pointer transition-colors">
-                                    <div className="text-muted-foreground font-mono text-sm w-5 text-center">
-                                        {track.position}
+                    {(isSyncing && tracks.length === 0) ? (
+                         <div className="flex flex-col items-center justify-center text-center text-muted-foreground py-16">
+                            <Loader2 className="w-8 h-8 animate-spin mb-4" />
+                            <h3 className="text-lg font-semibold">Synchronisation des pistes...</h3>
+                        </div>
+                    ) : tracks.length === 0 ? (
+                        <div className="flex flex-col items-center justify-center text-center text-muted-foreground py-16">
+                            <Music className="w-12 h-12 mb-4" />
+                            <h3 className="text-lg font-semibold">Aucune piste trouvée</h3>
+                            <p className="text-sm">Impossible de charger les pistes pour cet album.</p>
+                        </div>
+                    ) : (
+                        <div className="space-y-2">
+                            {tracks.map((track, i) => (
+                                <motion.div
+                                    key={track.id}
+                                    variants={FADE_UP_ANIMATION_VARIANTS}
+                                    custom={i}
+                                    initial="hidden"
+                                    animate="visible"
+                                    exit="hidden"
+                                    onClick={() => handlePlayTrack(track)}
+                                >
+                                    <div className="group flex items-center gap-4 p-3 rounded-lg hover:bg-muted/50 cursor-pointer transition-colors">
+                                        <div className="text-muted-foreground font-mono text-sm w-5 text-center">
+                                            {track.position}
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                            <p className="font-semibold truncate">{track.title}</p>
+                                            <p className="text-xs text-muted-foreground">{artist?.name}</p>
+                                        </div>
+                                        <div className="flex items-center gap-2 text-muted-foreground">
+                                            {track.isExplicit && <Explicit className="w-4 h-4" title="Explicite"/>}
+                                            <span className="text-xs font-mono w-12 text-right">
+                                                {formatDuration(track.duration)}
+                                            </span>
+                                        </div>
                                     </div>
-                                    <div className="flex-1 min-w-0">
-                                        <p className="font-semibold truncate">{track.title}</p>
-                                        <p className="text-xs text-muted-foreground">{artist?.name}</p>
-                                    </div>
-                                    <div className="flex items-center gap-2 text-muted-foreground">
-                                        {track.isExplicit && <Explicit className="w-4 h-4" title="Explicite"/>}
-                                        <span className="text-xs font-mono w-12 text-right">
-                                            {formatDuration(track.duration)}
-                                        </span>
-                                    </div>
-                                </div>
-                            </motion.div>
-                        ))}
-                    </div>
+                                </motion.div>
+                            ))}
+                        </div>
+                    )}
                 </motion.div>
             </main>
         </div>
