@@ -483,6 +483,32 @@ export default function ChatsPage() {
         }
     };
 
+    const handleLogout = async () => {
+        if (!firestore || !user) {
+            toast({
+                variant: "destructive",
+                title: "Erreur",
+                description: "Impossible de se déconnecter pour le moment."
+            });
+            return;
+        }
+
+        try {
+            const userRef = doc(firestore, 'users', user.uid);
+            await updateDoc(userRef, { online: false, lastSeen: new Date() });
+            localStorage.removeItem('userId');
+            localStorage.removeItem('user');
+            localStorage.removeItem('deviceId');
+            router.push('/login');
+            toast({ description: "Vous avez été déconnecté." });
+        } catch (error) {
+            console.error("Error signing out: ", error);
+            toast({ variant: 'destructive', title: 'Erreur', description: 'Impossible de se déconnecter.' });
+        } finally {
+            setSelectedChatId(null);
+        }
+    }
+
   const selectedChat = chats.find(c => c.id === selectedChatId);
   const isSelectedChatMuted = selectedChat?.mutedBy?.includes(user?.uid ?? '');
   const isSelectedChatPinned = selectedChat?.pinnedBy?.includes(user?.uid ?? '');
