@@ -10,7 +10,9 @@ import { motion } from 'framer-motion';
 import { type TrackForPlayer } from '@/lib/types';
 import ReactPlayer from 'react-player/youtube';
 import { useFirestore } from '@/firebase/provider';
-import { doc, getDoc, collection, query, where, getDocs, limit } from 'firebase/firestore';
+import { doc, getDoc, collection, addDoc, serverTimestamp } from 'firebase/firestore';
+
+const trackCache = new Map<string, TrackForPlayer>();
 
 const extractUrlFromIframe = (iframeString?: string | null): string | undefined => {
     if (!iframeString) return undefined;
@@ -21,7 +23,7 @@ const extractUrlFromIframe = (iframeString?: string | null): string | undefined 
 
 function PlayerComponent() {
     const router = useRouter();
-    const params = useParams() as { artistSlug: string; trackId: string };
+    const params = useParams() as { artistId: string; trackId: string };
     const searchParams = useSearchParams();
     const albumId = searchParams.get('albumId');
     
@@ -38,25 +40,24 @@ function PlayerComponent() {
     useEffect(() => {
         setIsClient(true);
         const fetchTrack = async () => {
-          if (!params.trackId || !params.artistSlug || !firestore) return;
+          if (!params.trackId || !params.artistId || !firestore) return;
 
-          // Find artistId from slug first
-          const artistsRef = collection(firestore, 'music');
-          const artistQuery = query(artistsRef, where('slug', '==', params.artistSlug), limit(1));
-          const artistSnap = await getDocs(artistQuery);
+          const trackId = params.trackId;
+          const artistId = params.artistId;
 
-          if (artistSnap.empty) {
-              console.error("Artist not found for slug:", params.artistSlug);
-              router.back();
-              return;
+          // Check cache first
+          if (trackCache.has(trackId)) {
+            const cachedTrack = trackCache.get(trackId)!;
+            setTrack(cachedTrack);
+            setDuration(cachedTrack.duration || 0);
+            return;
           }
-          const artistId = artistSnap.docs[0].id;
           
           let trackRef;
           if (albumId) {
-            trackRef = doc(firestore, `music/${artistId}/albums/${albumId}/tracks/${params.trackId}`);
+            trackRef = doc(firestore, `music/${artistId}/albums/${albumId}/tracks/${trackId}`);
           } else {
-            trackRef = doc(firestore, `music/${artistId}/singles/${params.trackId}`);
+            trackRef = doc(firestore, `music/${artistId}/singles/${trackId}`);
           }
           
           const snap = await getDoc(trackRef);
@@ -67,11 +68,22 @@ function PlayerComponent() {
              return;
           }
       
-          setTrack({
-            id: snap.id,
-            ...snap.data()
-          } as TrackForPlayer);
-          setDuration(snap.data().duration || 0);
+          const trackData = { id: snap.id, ...snap.data() } as TrackForPlayer;
+          setTrack(trackData);
+          setDuration(trackData.duration || 0);
+          trackCache.set(trackId, trackData); // Save to cache
+
+          // Add listening stats
+          try {
+            await addDoc(collection(firestore, 'listening_stats'), {
+                trackId: snap.id,
+                artistId,
+                albumId: albumId || null,
+                playedAt: serverTimestamp()
+            });
+          } catch(e) {
+            console.error("Error adding listening stats:", e);
+          }
         };
       
         fetchTrack();
@@ -102,7 +114,7 @@ function PlayerComponent() {
     };
 
     const togglePlay = () => {
-        if (!track?.audioUrl) return;
+        if (!track?.audioUrl || !trackUrl) return;
         setIsPlaying(!isPlaying);
     };
     
@@ -129,12 +141,21 @@ function PlayerComponent() {
     
     const trackUrl = extractUrlFromIframe(track.audioUrl);
 
+    if (isClient && !track.audioUrl) {
+      return (
+        <div className="flex h-screen w-full items-center justify-center bg-background text-center p-4">
+             <Music className="mx-auto w-8 h-8 mb-2 text-muted-foreground"/>
+             <p className="text-sm text-muted-foreground">Aucun audio disponible pour ce titre.</p>
+        </div>
+      )
+    }
+
     return (
         <div className="relative flex flex-col h-screen w-full overflow-hidden bg-background">
-            {isClient && (
+            {isClient && trackUrl && (
                 <ReactPlayer
                     ref={playerRef}
-                    url={trackUrl || ''}
+                    url={trackUrl}
                     playing={isPlaying}
                     onProgress={handleProgress}
                     onDuration={handleDuration}

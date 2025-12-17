@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
@@ -185,7 +184,7 @@ export default function ArtistProfilePage() {
     
     const handlePlaySingle = (single: Single) => {
         if (!artist) return;
-        router.push(`/music/${artist.slug}/track/${single.id}`);
+        router.push(`/music/${artist.id}/track/${single.id}`);
     }
 
     return (
@@ -211,7 +210,7 @@ export default function ArtistProfilePage() {
                 transition={{ duration: 0.5 }}
             >
                 <div className="absolute inset-0">
-                    <Image src={artist.bannerImage} alt={`${artist.name} banner`} layout="fill" objectFit="cover" className="opacity-40" priority/>
+                    <Image src={artist.bannerImage} alt={`${artist.name} banner`} fill className="object-cover opacity-40" priority/>
                     <div className="absolute inset-0 bg-gradient-to-t from-background via-background/70 to-transparent" />
                 </div>
             </motion.div>

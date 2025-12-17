@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
@@ -123,7 +122,7 @@ export default function AlbumPage() {
     
     const handlePlayTrack = (track: Track) => {
         if (!album || !artist) return;
-        router.push(`/music/${artist.slug}/track/${track.id}?albumId=${album.id}`);
+        router.push(`/music/${artist.id}/track/${track.id}?albumId=${album.id}`);
     }
 
     if (loading) {
@@ -174,7 +173,7 @@ export default function AlbumPage() {
                 transition={{ duration: 0.5 }}
             >
                 <div className="absolute inset-0">
-                    <Image src={album.cover} alt={`${album.title} cover`} layout="fill" objectFit="cover" className="opacity-30 blur-xl scale-125" priority/>
+                    <Image src={album.cover} alt={`${album.title} cover`} fill className="object-cover opacity-30 blur-xl scale-125" priority/>
                     <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-transparent" />
                 </div>
                  <div className="relative z-10 flex flex-col items-center justify-end h-full text-center p-6">
@@ -184,7 +183,7 @@ export default function AlbumPage() {
                         animate={{ opacity: 1, scale: 1 }}
                         transition={{ duration: 0.5, delay: 0.1, ease: 'easeOut' }}
                     >
-                         <Image src={album.cover} alt={album.title} layout="fill" objectFit="cover" className="rounded-lg"/>
+                         <Image src={album.cover} alt={album.title} fill className="object-cover rounded-lg"/>
                     </motion.div>
                 </div>
             </motion.div>
