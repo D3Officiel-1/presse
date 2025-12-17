@@ -30,6 +30,7 @@ import {
   ArrowLeft,
   User as UserIcon,
   Download,
+  FileText,
 } from 'lucide-react';
 import { ChatMessageStatus } from './chat-message-status';
 import { useToast } from '@/hooks/use-toast';
