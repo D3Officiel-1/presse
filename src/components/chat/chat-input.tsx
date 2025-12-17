@@ -31,7 +31,7 @@ const attachmentActions = [
     { icon: Camera, label: "Caméra", color: "text-blue-500" },
     { icon: MapPin, label: "Localisation", color: "text-green-500" },
     { icon: User, label: "Membre", color: "text-orange-500", action: 'ShareContact' },
-    { icon: FileText, label: "Document", color: "text-indigo-500" },
+    { icon: FileText, label: "Document", color: "text-indigo-500", action: 'openDocument' },
     { icon: Music, label: "Audio", color: "text-red-500", action: 'Audio' },
     { icon: Vote, label: "Sondage", color: "text-yellow-500" },
     { icon: Calendar, label: "Évènement", color: "text-teal-500" },
@@ -60,7 +60,7 @@ const allEmojis = emojiCategories.flatMap(category => category.emojis);
 
 interface ChatInputProps {
   chat: ChatType;
-  onSendMessage: (content: string, type?: 'text' | 'image' | 'audio' | 'contact', metadata?: any) => void;
+  onSendMessage: (content: string, type?: 'text' | 'image' | 'audio' | 'contact' | 'document', metadata?: any) => void;
   replyInfo?: ReplyInfo;
   onClearReply: () => void;
 }
@@ -73,6 +73,7 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
   const firestore = useFirestore();
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const documentInputRef = useRef<HTMLInputElement>(null);
   const longPressTimerRef = useRef<NodeJS.Timeout | null>(null);
   
   const [view, setView] = useState<'closed' | 'attachments' | 'emoji' | 'share-contact'>('closed');
@@ -288,6 +289,9 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
     if (action === 'openGallery') {
       fileInputRef.current?.click();
     }
+    if (action === 'openDocument') {
+      documentInputRef.current?.click();
+    }
     if (action === 'Audio') {
         router.push('/chat/music');
     }
@@ -309,6 +313,24 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
       sessionStorage.setItem('media-to-edit', dataUrl);
       sessionStorage.setItem('media-type-to-edit', mediaType);
       router.push('/chat/editor');
+    };
+    reader.readAsDataURL(file);
+    e.target.value = '';
+  };
+
+  const onDocumentFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (loadEvent) => {
+      const dataUrl = loadEvent.target?.result as string;
+      onSendMessage(dataUrl, 'document', {
+        fileName: file.name,
+        fileSize: file.size,
+        fileType: file.type,
+      });
+      toggleView('closed');
     };
     reader.readAsDataURL(file);
     e.target.value = '';
@@ -392,6 +414,7 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
             }}
             placeholder={inputMode === 'message' ? 'Message' : 'Rechercher un emoji...'}
             maxRows={5}
+            minRows={1}
             className="w-full resize-none bg-transparent border-0 focus:ring-0 focus:outline-none text-base placeholder:text-muted-foreground px-2 py-2"
           />
         </div>
@@ -523,6 +546,14 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
         className="hidden"
         onChange={onFileSelect}
         accept="image/*,video/*"
+      />
+
+      <input
+        type="file"
+        ref={documentInputRef}
+        className="hidden"
+        onChange={onDocumentFileSelect}
+        accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt"
       />
         
         <AnimatePresence>

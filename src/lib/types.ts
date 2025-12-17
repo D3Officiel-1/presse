@@ -22,7 +22,7 @@ export type Message = {
   senderId: string;
   content: string;
   timestamp: Timestamp;
-  type: 'text' | 'image' | 'audio' | 'video' | 'poll' | 'event' | 'contact';
+  type: 'text' | 'image' | 'audio' | 'video' | 'poll' | 'event' | 'contact' | 'document';
   readBy: string[]; // Array of user IDs who have read the message
   isAnnouncement?: boolean;
   starredBy?: string[];
@@ -34,6 +34,11 @@ export type Message = {
   deletedFor?: string[]; // Array of user IDs who have deleted this message for themselves
   audioMetadata?: {
     duration: number; // in seconds
+  };
+  documentMetadata?: {
+    fileName: string;
+    fileSize: number;
+    fileType: string;
   };
   pollData?: {
     question: string;
@@ -63,7 +68,7 @@ export type Chat = {
   deletedBy?: { [key: string]: Timestamp }; // Map of userId to deletion timestamp
   lastMessage?: {
     content?: string;
-    type?: 'text' | 'image' | 'audio' | 'video' | 'poll' | 'event' | 'contact';
+    type?: 'text' | 'image' | 'audio' | 'video' | 'poll' | 'event' | 'contact' | 'document';
     senderId?: string;
   };
   lastMessageTimestamp?: Timestamp;

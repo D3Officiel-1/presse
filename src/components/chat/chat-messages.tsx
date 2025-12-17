@@ -29,6 +29,7 @@ import {
   AlertTriangle,
   ArrowLeft,
   User as UserIcon,
+  Download,
 } from 'lucide-react';
 import { ChatMessageStatus } from './chat-message-status';
 import { useToast } from '@/hooks/use-toast';
@@ -257,6 +258,14 @@ const ChatMessage = ({
       onCancelEdit();
     }
   };
+  
+  const formatFileSize = (bytes: number) => {
+      if (bytes === 0) return '0 Bytes';
+      const k = 1024;
+      const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+      const i = Math.floor(Math.log(bytes) / Math.log(k));
+      return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  }
 
   const bubbleClasses = cn(
     'relative w-fit max-w-xs md:max-w-md px-3.5 py-2.5 shadow-md',
@@ -359,6 +368,23 @@ const ChatMessage = ({
                         </div>
                     </div>
                   </Link>
+                )}
+                
+                {message.type === 'document' && message.documentMetadata && (
+                   <div className="p-2 bg-background/20 rounded-lg flex items-center gap-3">
+                       <div className="bg-foreground/10 p-3 rounded-lg">
+                           <FileText className="w-6 h-6" />
+                       </div>
+                       <div className="flex-1 min-w-0">
+                           <p className="font-semibold text-sm truncate">{message.documentMetadata.fileName}</p>
+                           <p className="text-xs opacity-80">{formatFileSize(message.documentMetadata.fileSize)}</p>
+                       </div>
+                       <Button size="icon" variant="ghost" asChild>
+                           <a href={message.content} download={message.documentMetadata.fileName}>
+                             <Download className="w-5 h-5" />
+                           </a>
+                       </Button>
+                   </div>
                 )}
 
 

@@ -189,7 +189,7 @@ function ChatPageContent() {
     return otherUserId ? usersData[otherUserId] : undefined;
   }, [chatData, currentUser, usersData]);
 
-  const handleSendMessage = async (content: string, type: 'text' | 'image' | 'audio' | 'contact' = 'text', metadata: any = {}) => {
+  const handleSendMessage = async (content: string, type: 'text' | 'image' | 'audio' | 'contact' | 'document' = 'text', metadata: any = {}) => {
     if (!firestore || !currentUser || !chatId) return;
 
     let messageData: Partial<MessageType> = {
@@ -208,6 +208,9 @@ function ChatPageContent() {
      if (type === 'contact' && metadata.contactData) {
       messageData.contactData = metadata.contactData;
     }
+     if (type === 'document' && metadata.fileName) {
+      messageData.documentMetadata = { fileName: metadata.fileName, fileSize: metadata.fileSize, fileType: metadata.fileType };
+    }
     
     // Add message to subcollection
     const messagesRef = collection(firestore, 'chats', chatId, 'messages');
@@ -220,6 +223,8 @@ function ChatPageContent() {
     let lastMessageContent = content;
     if (type === 'contact' && metadata.contactData) {
       lastMessageContent = `${currentUser.displayName} a partagé le contact de ${metadata.contactData.name}.`;
+    } else if (type === 'document' && metadata.fileName) {
+        lastMessageContent = `📄 ${metadata.fileName}`;
     }
 
 
