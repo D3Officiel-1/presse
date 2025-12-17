@@ -195,8 +195,7 @@ function ChatPageContent() {
     let finalContent = content;
     if (type === 'location') {
         const [lat, lon] = content.split(',');
-        const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
-        finalContent = `https://maps.googleapis.com/maps/api/staticmap?center=${lat},${lon}&zoom=15&size=256x256&markers=color:red%7C${lat},${lon}&key=${apiKey}`;
+        finalContent = `https://staticmap.openstreetmap.de/staticmap.php?center=${lat},${lon}&zoom=15&size=256x256&markers=${lat},${lon},red-pushpin`;
     }
 
     let messageData: Partial<MessageType> = {
@@ -218,6 +217,9 @@ function ChatPageContent() {
      if (type === 'document' && metadata.fileName) {
       messageData.documentMetadata = { fileName: metadata.fileName, fileSize: metadata.fileSize, fileType: metadata.fileType };
     }
+    if (type === 'poll' && metadata.pollData) {
+      messageData.pollData = metadata.pollData;
+    }
     
     // Add message to subcollection
     const messagesRef = collection(firestore, 'chats', chatId, 'messages');
@@ -234,6 +236,8 @@ function ChatPageContent() {
         lastMessageContent = `📄 ${metadata.fileName}`;
     } else if (type === 'location') {
         lastMessageContent = `📍 Position partagée`;
+    } else if (type === 'poll' && metadata.pollData) {
+        lastMessageContent = `📊 Sondage: ${metadata.pollData.question}`;
     }
 
 

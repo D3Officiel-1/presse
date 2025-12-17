@@ -33,6 +33,7 @@ import {
   FileText as FileTextIcon,
   RefreshCw,
   MapPin,
+  Vote,
 } from 'lucide-react';
 import { ChatMessageStatus } from './chat-message-status';
 import { useToast } from '@/hooks/use-toast';
@@ -41,7 +42,7 @@ import type { ActionItem } from './action-focus-view';
 import { Separator } from '../ui/separator';
 import { Skeleton } from '../ui/skeleton';
 import { Textarea } from '../ui/textarea';
-import { Timestamp, collection, getDocs, query, where } from 'firebase/firestore';
+import { Timestamp, collection, getDocs, query, where, doc, updateDoc, arrayUnion, arrayRemove } from 'firebase/firestore';
 import { useFirestore } from '@/firebase/provider';
 import Link from 'next/link';
 
@@ -89,6 +90,84 @@ interface SenderMessageGroup {
 interface DailyMessageGroup {
     date: string;
     groups: SenderMessageGroup[];
+}
+
+const Poll: React.FC<{ message: Message }> = ({ message }) => {
+    const firestore = useFirestore();
+    const { loggedInUser } = React.useContext(ChatContext);
+    const { pollData, id: messageId, chatId } = message;
+
+    if (!pollData) return null;
+
+    const totalVotes = pollData.options.reduce((sum, option) => sum + option.votes.length, 0);
+
+    const handleVote = async (optionIndex: number) => {
+        if (!firestore || !loggedInUser) return;
+
+        const messageRef = doc(firestore, 'chats', chatId, 'messages', messageId);
+
+        const newPollData = { ...pollData };
+        let hasVoted = false;
+        let currentOptionIndex = -1;
+
+        // Check if user has already voted and where
+        newPollData.options.forEach((opt, idx) => {
+            if (opt.votes.includes(loggedInUser.uid)) {
+                hasVoted = true;
+                currentOptionIndex = idx;
+            }
+        });
+
+        if (hasVoted) {
+            // If clicking the same option, remove vote
+            if (currentOptionIndex === optionIndex) {
+                 newPollData.options[currentOptionIndex].votes = newPollData.options[currentOptionIndex].votes.filter(uid => uid !== loggedInUser.uid);
+            } else {
+                // If clicking a different option, switch vote
+                newPollData.options[currentOptionIndex].votes = newPollsData.options[currentOptionIndex].votes.filter(uid => uid !== loggedInUser.uid);
+                newPollData.options[optionIndex].votes.push(loggedInUser.uid);
+            }
+        } else {
+            // New vote
+            newPollData.options[optionIndex].votes.push(loggedInUser.uid);
+        }
+        
+        await updateDoc(messageRef, { pollData: newPollData });
+    };
+
+    return (
+        <div className="space-y-3">
+            <div className="flex items-center gap-2 font-semibold">
+                <Vote className="w-5 h-5"/>
+                <p>{pollData.question}</p>
+            </div>
+            <div className="space-y-2">
+                {pollData.options.map((option, index) => {
+                    const percentage = totalVotes === 0 ? 0 : (option.votes.length / totalVotes) * 100;
+                    const hasVotedForThis = option.votes.includes(loggedInUser.uid);
+                    return (
+                        <div key={index} onClick={() => handleVote(index)} className="p-2.5 rounded-lg border border-foreground/20 bg-background/20 cursor-pointer hover:bg-background/40">
+                             <div className="flex justify-between items-center text-sm mb-1">
+                                <span className="font-medium flex items-center gap-1.5">
+                                    {hasVotedForThis && <CheckCircle className="w-4 h-4 text-primary" />}
+                                    {option.text}
+                                </span>
+                                <span className="text-xs opacity-80">{Math.round(percentage)}% ({option.votes.length})</span>
+                             </div>
+                             <div className="w-full h-2 bg-foreground/10 rounded-full overflow-hidden">
+                                 <motion.div 
+                                     className="h-full bg-primary"
+                                     initial={{ width: 0 }}
+                                     animate={{ width: `${percentage}%`}}
+                                     transition={{ duration: 0.5, ease: 'easeOut' }}
+                                 />
+                             </div>
+                        </div>
+                    );
+                })}
+            </div>
+        </div>
+    )
 }
 
 const AudioPlayer: React.FC<{ src: string; metadata?: { duration: number } }> = ({ src, metadata }) => {
@@ -415,7 +494,8 @@ const ChatMessage = ({
                 )}
                 
                 {message.type === 'location' && (() => {
-                    const mapsLink = `https://www.google.com/maps/search/?api=1&query=${message.content.split('?')[0].split('/').pop()}`;
+                    const [lat, lon] = message.content.split('?')[0].split('/').pop()?.split(',') || ['0', '0'];
+                    const mapsLink = `https://www.openstreetmap.org/?mlat=${lat}&mlon=${lon}#map=16/${lat}/${lon}`;
                     return (
                         <a href={mapsLink} target="_blank" rel="noopener noreferrer" className="block relative w-64 h-40 rounded-md overflow-hidden my-1">
                             <Image src={message.content} alt="Carte de localisation" layout="fill" className="object-cover" />
@@ -427,6 +507,8 @@ const ChatMessage = ({
                         </a>
                     )
                 })()}
+
+                {message.type === 'poll' && <Poll message={message} />}
 
 
                 <div className="flex items-center justify-end gap-1.5 mt-1 float-right">

@@ -3,7 +3,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Paperclip, Mic, Send, X, Smile, Image as ImageIcon, Camera, MapPin, User, FileText, Music, Vote, Calendar, Keyboard, Sprout, Pizza, ToyBrick, Dumbbell, Film, FileImage, UserCircle, Clock, Search, Delete, ArrowUp, CornerDownLeft, Grip, StickyNote, Clipboard, Settings, Palette, Menu, Voicemail, Heart, Flag, Trash2, Check, ArrowLeft } from 'lucide-react';
+import { Paperclip, Mic, Send, X, Smile, Image as ImageIcon, Camera, MapPin, User, FileText, Music, Vote, Calendar, Keyboard, Sprout, Pizza, ToyBrick, Dumbbell, Film, FileImage, UserCircle, Clock, Search, Delete, ArrowUp, CornerDownLeft, Grip, StickyNote, Clipboard, Settings, Palette, Menu, Voicemail, Heart, Flag, Trash2, Check, ArrowLeft, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import type { ReplyInfo } from './chat-messages';
 import type { Chat as ChatType, User as UserType, Message } from '@/lib/types';
@@ -33,7 +33,7 @@ const attachmentActions = [
     { icon: User, label: "Membre", color: "text-orange-500", action: 'ShareContact' },
     { icon: FileText, label: "Document", color: "text-indigo-500", action: 'openDocument' },
     { icon: Music, label: "Audio", color: "text-red-500", action: 'Audio' },
-    { icon: Vote, label: "Sondage", color: "text-yellow-500" },
+    { icon: Vote, label: "Sondage", color: "text-yellow-500", action: 'createPoll' },
     { icon: Calendar, label: "Évènement", color: "text-teal-500" },
 ];
 
@@ -76,7 +76,7 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
   const documentInputRef = useRef<HTMLInputElement>(null);
   const longPressTimerRef = useRef<NodeJS.Timeout | null>(null);
   
-  const [view, setView] = useState<'closed' | 'attachments' | 'emoji' | 'share-contact'>('closed');
+  const [view, setView] = useState<'closed' | 'attachments' | 'emoji' | 'share-contact' | 'create-poll'>('closed');
   const [activeMainTab, setActiveMainTab] = useState('emoji');
   const [activeEmojiCategory, setActiveEmojiCategory] = useState(emojiCategories[0].name);
   
@@ -99,6 +99,10 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
   const [allUsers, setAllUsers] = useState<UserType[]>([]);
   const [loadingUsers, setLoadingUsers] = useState(false);
   const [userSearch, setUserSearch] = useState('');
+
+  // Poll state
+  const [pollQuestion, setPollQuestion] = useState('');
+  const [pollOptions, setPollOptions] = useState(['', '']);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const value = e.target.value;
@@ -274,7 +278,7 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
       }
   };
 
-  const toggleView = (newView: 'attachments' | 'emoji' | 'share-contact' | 'closed') => {
+  const toggleView = (newView: 'attachments' | 'emoji' | 'share-contact' | 'create-poll' | 'closed') => {
     if (view === newView) {
         setView('closed');
     } else {
@@ -301,6 +305,9 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
     }
     if (action === 'shareLocation') {
         handleShareLocation();
+    }
+    if (action === 'createPoll') {
+        toggleView('create-poll');
     }
   };
 
@@ -388,6 +395,47 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
     onSendMessage(user.id, 'contact', { contactData: user });
     toggleView('closed');
   }
+
+  const handlePollOptionChange = (index: number, value: string) => {
+    const newOptions = [...pollOptions];
+    newOptions[index] = value;
+    setPollOptions(newOptions);
+  };
+
+  const addPollOption = () => {
+    setPollOptions([...pollOptions, '']);
+  };
+
+  const removePollOption = (index: number) => {
+    if (pollOptions.length > 2) {
+      const newOptions = pollOptions.filter((_, i) => i !== index);
+      setPollOptions(newOptions);
+    }
+  };
+
+  const handleSendPoll = () => {
+    if (!pollQuestion.trim()) {
+      toast({ variant: 'destructive', description: "La question du sondage ne peut pas être vide." });
+      return;
+    }
+    const filledOptions = pollOptions.map(o => o.trim()).filter(o => o !== '');
+    if (filledOptions.length < 2) {
+      toast({ variant: 'destructive', description: "Un sondage doit avoir au moins deux options." });
+      return;
+    }
+    
+    const pollData = {
+      question: pollQuestion.trim(),
+      options: filledOptions.map(opt => ({ text: opt, votes: [] })),
+    };
+
+    onSendMessage('', 'poll', { pollData });
+
+    // Reset state and close view
+    setPollQuestion('');
+    setPollOptions(['', '']);
+    setView('closed');
+  };
 
   const searchResults = emojiSearchQuery 
     ? allEmojis.filter(emoji => emoji.includes(emojiSearchQuery))
@@ -677,6 +725,46 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
                                     </div>
                                 )}
                             </ScrollArea>
+                        </div>
+                    )}
+                    {view === 'create-poll' && (
+                        <div className='h-auto flex flex-col'>
+                            <div className="flex items-center p-2 border-b">
+                                <Button variant="ghost" size="icon" onClick={() => toggleView('closed')}><ArrowLeft className="w-5 h-5"/></Button>
+                                <div className='flex-1 text-center font-semibold'>Créer un sondage</div>
+                                <div className="w-9"></div>
+                            </div>
+                            <div className="p-4 space-y-4">
+                                <TextareaAutosize
+                                    value={pollQuestion}
+                                    onChange={(e) => setPollQuestion(e.target.value)}
+                                    placeholder="Posez votre question..."
+                                    className="w-full text-lg resize-none bg-transparent border-0 focus:ring-0 focus:outline-none placeholder:text-muted-foreground px-2 py-2"
+                                />
+                                <div className="space-y-2">
+                                    {pollOptions.map((option, index) => (
+                                        <div key={index} className="flex items-center gap-2">
+                                            <Input
+                                                value={option}
+                                                onChange={(e) => handlePollOptionChange(index, e.target.value)}
+                                                placeholder={`Option ${index + 1}`}
+                                            />
+                                            {pollOptions.length > 2 && (
+                                                <Button variant="ghost" size="icon" onClick={() => removePollOption(index)}>
+                                                    <X className="w-4 h-4 text-destructive"/>
+                                                </Button>
+                                            )}
+                                        </div>
+                                    ))}
+                                </div>
+                                <Button variant="outline" onClick={addPollOption} className="w-full">
+                                    <Plus className="w-4 h-4 mr-2"/>
+                                    Ajouter une option
+                                </Button>
+                            </div>
+                             <div className="p-4 border-t">
+                                <Button onClick={handleSendPoll} className="w-full">Envoyer le sondage</Button>
+                            </div>
                         </div>
                     )}
                 </motion.div>
