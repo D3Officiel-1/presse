@@ -4,7 +4,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useFirestore } from '@/firebase/provider';
-import { collection, query, where, onSnapshot, limit, getDoc, doc, orderBy, writeBatch } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, limit, getDoc, doc, orderBy, writeBatch, collectionGroup } from 'firebase/firestore';
 import type { Album, Artist, Track } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { Loader2, ArrowLeft, MoreVertical, Play, Clock, Music } from 'lucide-react';
@@ -75,10 +75,9 @@ export default function AlbumPage() {
     useEffect(() => {
         if (!firestore || !slug) return;
 
-        const albumsRef = collection(firestore, 'music');
+        const albumsRef = collectionGroup(firestore, 'albums');
         const q = query(
             albumsRef,
-            where('type', '==', 'album'),
             where('slug', '==', slug),
             limit(1)
         );
@@ -97,7 +96,7 @@ export default function AlbumPage() {
                     }
                 }
                 
-                const tracksRef = collection(firestore, 'music', albumData.id, 'tracks');
+                const tracksRef = collection(firestore, 'music', albumData.artistId, 'albums', albumData.id, 'tracks');
                 const tracksQuery = query(tracksRef, orderBy('position', 'asc'));
                 const unsubscribeTracks = onSnapshot(tracksQuery, (tracksSnapshot) => {
                     if (tracksSnapshot.empty && albumData.spotifyId) {
@@ -124,7 +123,7 @@ export default function AlbumPage() {
     
     const handlePlayTrack = (track: Track) => {
         if (!album || !artist) return;
-        router.push(`/music/${artist.slug}/album/${album.id}/track/${track.id}`);
+        router.push(`/music/${artist.slug}/track/${track.id}?albumId=${album.id}`);
     }
 
     if (loading) {

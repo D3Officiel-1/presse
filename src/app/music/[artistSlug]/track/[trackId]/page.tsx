@@ -2,7 +2,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef, Suspense } from 'react';
-import { useRouter, useParams } from 'next/navigation';
+import { useRouter, useParams, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
 import Image from 'next/image';
@@ -11,7 +11,7 @@ import { motion } from 'framer-motion';
 import { type TrackForPlayer } from '@/lib/types';
 import ReactPlayer from 'react-player/youtube';
 import { useFirestore } from '@/firebase/provider';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, collection, query, where, getDocs, limit } from 'firebase/firestore';
 
 const extractUrlFromIframe = (iframeString?: string | null): string | undefined => {
     if (!iframeString) return undefined;
@@ -22,7 +22,9 @@ const extractUrlFromIframe = (iframeString?: string | null): string | undefined 
 
 function PlayerComponent() {
     const router = useRouter();
-    const params = useParams() as { artistSlug: string; trackId: string; albumId?: string };
+    const params = useParams() as { artistSlug: string; trackId: string };
+    const searchParams = useSearchParams();
+    const albumId = searchParams.get('albumId');
     
     const [track, setTrack] = useState<TrackForPlayer | null>(null);
     const [isPlaying, setIsPlaying] = useState(false);
@@ -56,8 +58,8 @@ function PlayerComponent() {
           const artistId = artistSnap.docs[0].id;
           
           let trackRef;
-          if (params.albumId) {
-            trackRef = doc(firestore, `music/${artistId}/albums/${params.albumId}/tracks/${params.trackId}`);
+          if (albumId) {
+            trackRef = doc(firestore, `music/${artistId}/albums/${albumId}/tracks/${params.trackId}`);
           } else {
             trackRef = doc(firestore, `music/${artistId}/singles/${params.trackId}`);
           }
@@ -81,7 +83,7 @@ function PlayerComponent() {
         };
       
         fetchTrack();
-      }, [params, firestore, router]);
+      }, [params, albumId, firestore, router]);
 
     const handleProgress = (state: { played: number; playedSeconds: number }) => {
         setProgress(state.played * 100);
