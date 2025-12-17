@@ -1,11 +1,12 @@
 
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useFirestore } from '@/firebase/provider';
-import { collection, query, where, onSnapshot, limit, orderBy } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, limit, orderBy, getDocs, addDoc, Timestamp, writeBatch, doc } from 'firebase/firestore';
 import type { Artist, Album, Single } from '@/lib/types';
+import { getArtistAlbums } from '@/lib/spotify';
 
 import { Button } from '@/components/ui/button';
 import { Loader2, ArrowLeft, MoreVertical, Play, Star, UserPlus, Music, Disc, Mic } from 'lucide-react';
@@ -14,6 +15,7 @@ import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Explicit } from '@/components/chat/chat-messages';
+import { useToast } from '@/hooks/use-toast';
 
 
 const FADE_UP_ANIMATION_VARIANTS = {
@@ -32,11 +34,61 @@ export default function ArtistProfilePage() {
     const params = useParams();
     const slug = params.slug as string;
     const firestore = useFirestore();
+    const { toast } = useToast();
 
     const [artist, setArtist] = useState<Artist | null>(null);
     const [albums, setAlbums] = useState<Album[]>([]);
     const [singles, setSingles] = useState<Single[]>([]);
     const [loading, setLoading] = useState(true);
+    const [isSyncing, setIsSyncing] = useState(false);
+
+    const syncAlbums = useCallback(async (artistData: Artist) => {
+        if (!artistData.spotifyId || !firestore) return;
+        setIsSyncing(true);
+        
+        try {
+            const [spotifyData, firestoreSnapshot] = await Promise.all([
+                getArtistAlbums(artistData.spotifyId),
+                getDocs(collection(firestore, 'music', artistData.id, 'albums'))
+            ]);
+
+            const firestoreAlbumSpotifyIds = new Set(firestoreSnapshot.docs.map(doc => doc.data().spotifyId));
+            
+            const newAlbumsFromSpotify = spotifyData.items.filter((item: any) => 
+                item.album_type === 'album' && !firestoreAlbumSpotifyIds.has(item.id)
+            );
+
+            if (newAlbumsFromSpotify.length > 0) {
+                const batch = writeBatch(firestore);
+                newAlbumsFromSpotify.forEach((album: any) => {
+                    const newAlbumRef = doc(collection(firestore, 'music', artistData.id, 'albums'));
+                    const albumSlug = album.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+
+                    batch.set(newAlbumRef, {
+                        type: 'album',
+                        title: album.name,
+                        slug: albumSlug,
+                        spotifyId: album.id,
+                        cover: album.images[0]?.url,
+                        releaseDate: album.release_date,
+                        tracksCount: album.total_tracks,
+                        isExplicit: album.explicit,
+                        artistId: artistData.id,
+                        artistName: artistData.name,
+                        createdAt: Timestamp.now(),
+                    });
+                });
+                await batch.commit();
+                toast({ description: `${newAlbumsFromSpotify.length} nouvel(s) album(s) ajouté(s).` });
+            }
+        } catch (error) {
+            console.error("Failed to sync albums:", error);
+            toast({ variant: 'destructive', title: 'Erreur de synchronisation', description: "Impossible de mettre à jour les albums." });
+        } finally {
+            setIsSyncing(false);
+        }
+    }, [firestore, toast]);
+
 
     useEffect(() => {
         if (!firestore || !slug) return;
@@ -55,6 +107,7 @@ export default function ArtistProfilePage() {
                 const doc = snapshot.docs[0];
                 const artistData = { id: doc.id, ...doc.data() } as Artist;
                 setArtist(artistData);
+                syncAlbums(artistData);
 
                 // Fetch albums
                 const albumsRef = collection(firestore, 'music', artistData.id, 'albums');
@@ -83,7 +136,7 @@ export default function ArtistProfilePage() {
         });
 
         return () => unsubscribeArtist();
-    }, [firestore, slug]);
+    }, [firestore, slug, syncAlbums]);
 
 
     if (loading) {
@@ -183,7 +236,11 @@ export default function ArtistProfilePage() {
                      <motion.div variants={FADE_UP_ANIMATION_VARIANTS} className="mt-8">
                          <Tabs defaultValue="albums" className="w-full">
                             <TabsList className="grid w-full grid-cols-3">
-                                <TabsTrigger value="albums"><Disc className="w-4 h-4 mr-2"/>Albums</TabsTrigger>
+                                <TabsTrigger value="albums">
+                                    {isSyncing && <Loader2 className="w-4 h-4 mr-2 animate-spin"/>}
+                                    <Disc className="w-4 h-4 mr-2"/>
+                                    Albums
+                                </TabsTrigger>
                                 <TabsTrigger value="singles"><Mic className="w-4 h-4 mr-2"/>Singles</TabsTrigger>
                                 <TabsTrigger value="about"><UserPlus className="w-4 h-4 mr-2"/>À propos</TabsTrigger>
                             </TabsList>

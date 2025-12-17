@@ -1,7 +1,6 @@
-
 'use server'
 
-import { searchSpotify, getArtistTopTracksFromSpotify, getArtistDetailsFromSpotify as getArtistDetailsAction } from './spotify-action';
+import { searchSpotify, getArtistTopTracksFromSpotify, getArtistDetailsFromSpotify as getArtistDetailsAction, getArtistAlbumsFromSpotify } from './spotify-action';
 
 export const searchTracks = async (query: string) => {
     if (!query) {
@@ -26,4 +25,12 @@ export const getArtistDetails = async (artistId: string) => {
     }
     const result = await getArtistDetailsAction(artistId);
     return result;
+}
+
+export const getArtistAlbums = async (artistId: string) => {
+    if (!artistId) {
+        return { items: [] };
+    }
+    const results = await getArtistAlbumsFromSpotify(artistId);
+    return results;
 }

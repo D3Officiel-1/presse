@@ -1,4 +1,3 @@
-
 'use server'
 
 import { firestore } from '@/firebase/config';
@@ -167,6 +166,50 @@ export async function getArtistDetailsFromSpotify(artistId: string) {
     
     if (!response.ok) {
         throw new Error('Failed to get artist details from Spotify');
+    }
+
+    const result = await response.json();
+
+     try {
+        await setDoc(cacheRef, {
+            result,
+            timestamp: Timestamp.now()
+        });
+    } catch (e) {
+        console.error("Error writing to Firestore cache", e);
+    }
+
+    return result;
+}
+
+
+export async function getArtistAlbumsFromSpotify(artistId: string) {
+    const cacheId = `artist-albums_${artistId}`;
+    const cacheRef = doc(firestore, 'spotifyCache', cacheId);
+
+    try {
+        const docSnap = await getDoc(cacheRef);
+        if (docSnap.exists()) {
+            const data = docSnap.data();
+            const cacheAgeHours = (Timestamp.now().seconds - data.timestamp.seconds) / 3600;
+            if (cacheAgeHours < CACHE_DURATION_HOURS) {
+                console.log(`[Cache HIT] Returning cached albums for artist: ${artistId}`);
+                return data.result;
+            }
+        }
+    } catch (e) {
+        console.error("Error reading from Firestore cache", e);
+    }
+    
+    console.log(`[Cache MISS] Fetching from Spotify for artist albums: ${artistId}`);
+    const token = await getAccessToken();
+
+    const response = await fetch(`https://api.spotify.com/v1/artists/${artistId}/albums?include_groups=album,single&market=CI&limit=50`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+    });
+    
+    if (!response.ok) {
+        throw new Error('Failed to get artist albums from Spotify');
     }
 
     const result = await response.json();

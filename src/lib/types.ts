@@ -128,6 +128,7 @@ export interface Album {
     createdAt: Timestamp;
     artistId: string;
     artistName: string;
+    spotifyId?: string;
 }
 
 export interface Single {
