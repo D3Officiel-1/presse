@@ -36,6 +36,7 @@ function PlayerComponent() {
     const [isLoading, setIsLoading] = useState(true);
     const [isClient, setIsClient] = useState(false);
     const firestore = useFirestore();
+    const hasLoggedRef = useRef(false);
 
     useEffect(() => {
         setIsClient(true);
@@ -44,12 +45,15 @@ function PlayerComponent() {
 
           const trackId = params.trackId;
           const artistId = params.artistId;
+          const cacheKey = `${artistId}:${trackId}`;
 
           // Check cache first
-          if (trackCache.has(trackId)) {
-            const cachedTrack = trackCache.get(trackId)!;
+          if (trackCache.has(cacheKey)) {
+            const cachedTrack = trackCache.get(cacheKey)!;
             setTrack(cachedTrack);
             setDuration(cachedTrack.duration || 0);
+            setIsLoading(false);
+            setIsPlaying(true);
             return;
           }
           
@@ -71,19 +75,7 @@ function PlayerComponent() {
           const trackData = { id: snap.id, ...snap.data() } as TrackForPlayer;
           setTrack(trackData);
           setDuration(trackData.duration || 0);
-          trackCache.set(trackId, trackData); // Save to cache
-
-          // Add listening stats
-          try {
-            await addDoc(collection(firestore, 'listening_stats'), {
-                trackId: snap.id,
-                artistId,
-                albumId: albumId || null,
-                playedAt: serverTimestamp()
-            });
-          } catch(e) {
-            console.error("Error adding listening stats:", e);
-          }
+          trackCache.set(cacheKey, trackData); // Save to cache
         };
       
         fetchTrack();
@@ -92,6 +84,16 @@ function PlayerComponent() {
     const handleProgress = (state: { played: number; playedSeconds: number }) => {
         setProgress(state.played * 100);
         setCurrentTime(state.playedSeconds);
+
+        if (state.playedSeconds > 10 && !hasLoggedRef.current && track) {
+            hasLoggedRef.current = true;
+            addDoc(collection(firestore, 'listening_stats'), {
+              trackId: track.id,
+              artistId: params.artistId,
+              albumId: albumId || null,
+              playedAt: serverTimestamp()
+            }).catch(e => console.error("Error logging listening stats:", e));
+        }
     };
 
     const handleDuration = (duration: number) => {
@@ -111,11 +113,6 @@ function PlayerComponent() {
             setCurrentTime(0);
             playerRef.current?.seekTo(0);
         }, 500);
-    };
-
-    const togglePlay = () => {
-        if (!track?.audioUrl || !trackUrl) return;
-        setIsPlaying(!isPlaying);
     };
     
     const handleSliderChange = (value: number[]) => {
@@ -140,6 +137,11 @@ function PlayerComponent() {
     }
     
     const trackUrl = extractUrlFromIframe(track.audioUrl);
+
+    const togglePlay = () => {
+        if (!track?.audioUrl || !trackUrl) return;
+        setIsPlaying(!isPlaying);
+    };
 
     if (isClient && !track.audioUrl) {
       return (
