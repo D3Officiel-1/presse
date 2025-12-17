@@ -112,6 +112,8 @@ export interface Artist {
     followersCount: number;
     createdAt: Timestamp;
     updatedAt: Timestamp;
+    source?: 'firestore' | 'spotify';
+    spotifyId?: string;
 }
 
 export interface Album {

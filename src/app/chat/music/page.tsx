@@ -11,8 +11,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useToast } from '@/hooks/use-toast';
 import { type Artist, type SpotifyArtist } from '@/lib/types';
 import { useFirestore } from '@/firebase/provider';
-import { collection, query, where, onSnapshot, orderBy, Timestamp } from 'firebase/firestore';
-import { searchTracks } from '@/lib/spotify';
+import { collection, query, where, onSnapshot, orderBy, Timestamp, setDoc, doc, addDoc, getDocs } from 'firebase/firestore';
+import { searchTracks, getArtistDetails } from '@/lib/spotify';
 import { useDebounce } from 'use-debounce';
 
 const FADE_UP_ANIMATION_VARIANTS = {
@@ -36,6 +36,7 @@ export default function MusicPage() {
     const firestore = useFirestore();
     const [searchTerm, setSearchTerm] = useState('');
     const [loading, setLoading] = useState(true);
+    const [isImporting, setIsImporting] = useState<string | null>(null);
     const [artists, setArtists] = useState<Artist[]>([]);
     const [spotifyArtists, setSpotifyArtists] = useState<Artist[]>([]);
 
@@ -56,7 +57,7 @@ export default function MusicPage() {
         const unsubscribe = onSnapshot(q, (snapshot) => {
             const artistsData: Artist[] = [];
             snapshot.forEach(doc => {
-                artistsData.push({ id: doc.id, ...doc.data() } as Artist);
+                artistsData.push({ id: doc.id, source: 'firestore', ...doc.data() } as Artist);
             });
             setArtists(artistsData);
             setLoading(false);
@@ -95,16 +96,18 @@ export default function MusicPage() {
                     id: artist.id,
                     type: 'artist',
                     name: artist.name,
-                    slug: artist.id, // Use spotify ID as slug for navigation
-                    verified: false, // Not available directly
-                    country: '', // Not available directly
+                    slug: artist.id,
+                    verified: false, 
+                    country: '', 
                     genres: artist.genres,
                     profileImage: artist.images[0]?.url || 'https://i.postimg.cc/fbtSZFWz/icon-256x256.png',
                     bannerImage: artist.images[0]?.url || 'https://i.postimg.cc/fbtSZFWz/icon-256x256.png',
-                    bio: 'Artiste de Spotify',
+                    bio: '',
                     followersCount: artist.followers.total,
                     createdAt: Timestamp.now(),
                     updatedAt: Timestamp.now(),
+                    source: 'spotify',
+                    spotifyId: artist.id,
                 }));
                 setSpotifyArtists(spotifyResultArtists);
             } catch (error) {
@@ -122,6 +125,59 @@ export default function MusicPage() {
         handleSearch();
     }, [debouncedSearchTerm, artists, toast]);
 
+    const handleArtistClick = async (artist: Artist) => {
+        if (artist.source === 'firestore') {
+            router.push(`/chat/music/artist/${artist.slug}`);
+        } else if (artist.source === 'spotify' && firestore) {
+            setIsImporting(artist.id);
+            toast({ title: "Ajout de l'artiste...", description: `Importation de ${artist.name} dans votre bibliothèque.` });
+
+            try {
+                // Check if artist already exists by spotifyId
+                const q = query(collection(firestore, 'music'), where('spotifyId', '==', artist.spotifyId));
+                const existingDocs = await getDocs(q);
+                
+                if (!existingDocs.empty) {
+                    const existingArtist = existingDocs.docs[0].data() as Artist;
+                    toast({ description: `${artist.name} est déjà dans votre bibliothèque.` });
+                    router.push(`/chat/music/artist/${existingArtist.slug}`);
+                    return;
+                }
+
+                // If not, fetch details and add
+                const spotifyDetails = await getArtistDetails(artist.id);
+                
+                const newArtistSlug = artist.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+
+                const newArtistData: Omit<Artist, 'id' | 'source'> = {
+                    type: 'artist',
+                    name: spotifyDetails.name,
+                    slug: newArtistSlug,
+                    spotifyId: spotifyDetails.id,
+                    verified: spotifyDetails.followers.total > 100000, // Example logic for verified
+                    country: '', // Not provided by this endpoint
+                    genres: spotifyDetails.genres,
+                    profileImage: spotifyDetails.images[0]?.url || artist.profileImage,
+                    bannerImage: spotifyDetails.images[1]?.url || spotifyDetails.images[0]?.url || artist.bannerImage,
+                    bio: '',
+                    followersCount: spotifyDetails.followers.total,
+                    createdAt: Timestamp.now(),
+                    updatedAt: Timestamp.now(),
+                };
+
+                const newArtistRef = await addDoc(collection(firestore, "music"), newArtistData);
+                
+                toast({ title: "Artiste Ajouté!", description: `${artist.name} est maintenant dans votre bibliothèque.` });
+                router.push(`/chat/music/artist/${newArtistSlug}`);
+
+            } catch (error) {
+                console.error("Error importing artist:", error);
+                toast({ variant: "destructive", title: "Erreur d'importation", description: `Impossible d'ajouter ${artist.name}.` });
+            } finally {
+                setIsImporting(null);
+            }
+        }
+    };
     
     const filteredArtists = artists.filter(artist => 
         artist.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -175,9 +231,14 @@ export default function MusicPage() {
                                     initial="hidden"
                                     animate="visible"
                                     exit="hidden"
-                                    onClick={() => router.push(`/chat/music/artist/${artist.slug}`)}
+                                    onClick={() => handleArtistClick(artist)}
                                 >
                                     <div className="group relative aspect-square cursor-pointer">
+                                        {isImporting === artist.id && (
+                                            <div className="absolute inset-0 bg-black/60 flex items-center justify-center rounded-2xl z-20">
+                                                <Loader2 className="w-8 h-8 animate-spin text-white"/>
+                                            </div>
+                                        )}
                                         <Image 
                                             src={artist.profileImage} 
                                             alt={artist.name}
@@ -193,6 +254,11 @@ export default function MusicPage() {
                                             </div>
                                         </div>
                                          {artist.verified && <Star className="absolute top-3 right-3 w-5 h-5 fill-yellow-400 text-yellow-400" />}
+                                         {artist.source === 'spotify' && (
+                                            <div className="absolute top-2 left-2 bg-green-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
+                                                Spotify
+                                            </div>
+                                        )}
                                     </div>
                                 </motion.div>
                             ))}

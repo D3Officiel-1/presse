@@ -1,7 +1,7 @@
 
 'use server'
 
-import { searchSpotify, getArtistTopTracksFromSpotify } from './spotify-action';
+import { searchSpotify, getArtistTopTracksFromSpotify, getArtistDetailsFromSpotify as getArtistDetailsAction } from './spotify-action';
 
 export const searchTracks = async (query: string) => {
     if (!query) {
@@ -18,4 +18,12 @@ export const getArtistTopTracks = async (artistId: string) => {
     }
     const results = await getArtistTopTracksFromSpotify(artistId);
     return results;
+}
+
+export const getArtistDetails = async (artistId: string) => {
+    if(!artistId) {
+        throw new Error('Artist ID is required');
+    }
+    const result = await getArtistDetailsAction(artistId);
+    return result;
 }

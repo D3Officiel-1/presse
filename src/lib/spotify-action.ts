@@ -139,3 +139,46 @@ export async function getArtistTopTracksFromSpotify(artistId: string) {
 
     return result;
 }
+
+export async function getArtistDetailsFromSpotify(artistId: string) {
+    const cacheId = `artist-details_${artistId}`;
+    const cacheRef = doc(firestore, 'spotifyCache', cacheId);
+
+    try {
+        const docSnap = await getDoc(cacheRef);
+        if (docSnap.exists()) {
+            const data = docSnap.data();
+            const cacheAgeHours = (Timestamp.now().seconds - data.timestamp.seconds) / 3600;
+            if (cacheAgeHours < CACHE_DURATION_HOURS) {
+                console.log(`[Cache HIT] Returning cached details for artist: ${artistId}`);
+                return data.result;
+            }
+        }
+    } catch (e) {
+        console.error("Error reading from Firestore cache", e);
+    }
+    
+    console.log(`[Cache MISS] Fetching from Spotify for artist details: ${artistId}`);
+    const token = await getAccessToken();
+
+    const response = await fetch(`https://api.spotify.com/v1/artists/${artistId}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+    });
+    
+    if (!response.ok) {
+        throw new Error('Failed to get artist details from Spotify');
+    }
+
+    const result = await response.json();
+
+     try {
+        await setDoc(cacheRef, {
+            result,
+            timestamp: Timestamp.now()
+        });
+    } catch (e) {
+        console.error("Error writing to Firestore cache", e);
+    }
+
+    return result;
+}
