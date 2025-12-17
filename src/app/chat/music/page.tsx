@@ -1,7 +1,7 @@
 
 'use client'
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Search, Music, Loader2, ChevronRight, Mic, Star } from 'lucide-react';
 import { useRouter } from 'next/navigation';
@@ -9,9 +9,11 @@ import { Input } from '@/components/ui/input';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useToast } from '@/hooks/use-toast';
-import { type Artist } from '@/lib/types';
+import { type Artist, type SpotifyArtist } from '@/lib/types';
 import { useFirestore } from '@/firebase/provider';
-import { collection, query, where, onSnapshot, orderBy } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, orderBy, Timestamp } from 'firebase/firestore';
+import { searchTracks } from '@/lib/spotify';
+import { useDebounce } from 'use-debounce';
 
 const FADE_UP_ANIMATION_VARIANTS = {
   hidden: { opacity: 0, y: 10 },
@@ -35,9 +37,14 @@ export default function MusicPage() {
     const [searchTerm, setSearchTerm] = useState('');
     const [loading, setLoading] = useState(true);
     const [artists, setArtists] = useState<Artist[]>([]);
+    const [spotifyArtists, setSpotifyArtists] = useState<Artist[]>([]);
 
+    const [debouncedSearchTerm] = useDebounce(searchTerm, 500);
+
+    // Fetch artists from Firestore
     useEffect(() => {
         if (!firestore) return;
+        setLoading(true);
 
         const musicRef = collection(firestore, 'music');
         const q = query(
@@ -67,10 +74,61 @@ export default function MusicPage() {
 
     }, [firestore, toast]);
     
+     // Fetch artists from Spotify when search term changes
+    useEffect(() => {
+        const handleSearch = async () => {
+            if (debouncedSearchTerm.length < 2) {
+                setSpotifyArtists([]);
+                return;
+            }
+
+            // Don't search spotify if local results are found
+            const localResults = artists.filter(artist => 
+                artist.name.toLowerCase().includes(debouncedSearchTerm.toLowerCase())
+            );
+            if(localResults.length > 0) return;
+
+            setLoading(true);
+            try {
+                const results = await searchTracks(debouncedSearchTerm);
+                const spotifyResultArtists: Artist[] = results.artists.items.map((artist: SpotifyArtist) => ({
+                    id: artist.id,
+                    type: 'artist',
+                    name: artist.name,
+                    slug: artist.id, // Use spotify ID as slug for navigation
+                    verified: false, // Not available directly
+                    country: '', // Not available directly
+                    genres: artist.genres,
+                    profileImage: artist.images[0]?.url || 'https://i.postimg.cc/fbtSZFWz/icon-256x256.png',
+                    bannerImage: artist.images[0]?.url || 'https://i.postimg.cc/fbtSZFWz/icon-256x256.png',
+                    bio: 'Artiste de Spotify',
+                    followersCount: artist.followers.total,
+                    createdAt: Timestamp.now(),
+                    updatedAt: Timestamp.now(),
+                }));
+                setSpotifyArtists(spotifyResultArtists);
+            } catch (error) {
+                console.error('Error searching Spotify:', error);
+                toast({
+                    variant: "destructive",
+                    title: "Erreur Spotify",
+                    description: "Impossible de rechercher des artistes sur Spotify.",
+                });
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        handleSearch();
+    }, [debouncedSearchTerm, artists, toast]);
+
+    
     const filteredArtists = artists.filter(artist => 
         artist.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         artist.genres.some(genre => genre.toLowerCase().includes(searchTerm.toLowerCase()))
     );
+
+    const displayedArtists = searchTerm ? [...filteredArtists, ...spotifyArtists.filter(sa => !filteredArtists.some(fa => fa.name === sa.name))] : artists;
 
     return (
         <div className="flex flex-col h-full bg-background text-foreground">
@@ -96,20 +154,20 @@ export default function MusicPage() {
                     </div>
                 </div>
 
-                {loading ? (
+                {loading && searchTerm === '' ? (
                      <div className="flex justify-center items-center h-60">
                         <Loader2 className="h-8 w-8 animate-spin text-primary" />
                     </div>
-                ) : filteredArtists.length === 0 ? (
+                ) : displayedArtists.length === 0 ? (
                     <div className="text-center text-muted-foreground p-10 mt-10">
                         <Music className="mx-auto w-12 h-12 mb-4" />
                         <h3 className="font-semibold text-lg">Aucun artiste trouvé</h3>
-                        <p className="text-sm">Votre bibliothèque musicale est vide pour le moment.</p>
+                        <p className="text-sm">{searchTerm ? "Essayez une autre recherche." : "Votre bibliothèque est vide."}</p>
                     </div>
                 ) : (
                     <div className="p-4 md:p-6 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                         <AnimatePresence>
-                            {filteredArtists.map((artist, i) => (
+                            {displayedArtists.map((artist, i) => (
                                 <motion.div
                                     key={artist.id}
                                     custom={i}
@@ -117,7 +175,7 @@ export default function MusicPage() {
                                     initial="hidden"
                                     animate="visible"
                                     exit="hidden"
-                                    onClick={() => router.push(`/chat/music/${artist.slug}`)}
+                                    onClick={() => router.push(`/chat/music/artist/${artist.slug}`)}
                                 >
                                     <div className="group relative aspect-square cursor-pointer">
                                         <Image 
@@ -145,3 +203,5 @@ export default function MusicPage() {
         </div>
     );
 }
+
+    

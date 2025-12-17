@@ -7,9 +7,10 @@ import { useFirestore } from '@/firebase/provider';
 import { collection, query, where, onSnapshot, limit, getDoc, doc, orderBy } from 'firebase/firestore';
 import type { Album, Artist, Track } from '@/lib/types';
 import { Button } from '@/components/ui/button';
-import { Loader2, ArrowLeft, MoreVertical, Play, Clock, Music, Explicit } from 'lucide-react';
+import { Loader2, ArrowLeft, MoreVertical, Play, Clock, Music } from 'lucide-react';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
+import { Explicit } from '@/components/ui/tabs';
 
 const FADE_UP_ANIMATION_VARIANTS = {
   hidden: { opacity: 0, y: 10 },
@@ -87,7 +88,7 @@ export default function AlbumPage() {
             preview_url: track.audioUrl,
         };
         const params = new URLSearchParams({ trackData: encodeURIComponent(JSON.stringify(trackDataForPlayer)) });
-        router.push(`/chat/music/${track.id}?${params.toString()}`);
+        router.push(`/chat/music/track/${track.id}?${params.toString()}`);
     }
 
     if (loading) {
@@ -161,7 +162,7 @@ export default function AlbumPage() {
                     variants={FADE_UP_ANIMATION_VARIANTS}
                  >
                     <h1 className="text-3xl md:text-4xl font-bold tracking-tight">{album.title}</h1>
-                    <h2 className="text-lg text-muted-foreground mt-1 cursor-pointer hover:underline" onClick={() => artist && router.push(`/chat/music/${artist.slug}`)}>
+                    <h2 className="text-lg text-muted-foreground mt-1 cursor-pointer hover:underline" onClick={() => artist && router.push(`/chat/music/artist/${artist.slug}`)}>
                         {artist ? artist.name : album.artistName}
                     </h2>
                     <p className="text-sm text-muted-foreground mt-2">
@@ -224,3 +225,5 @@ export default function AlbumPage() {
         </div>
     );
 }
+
+    
