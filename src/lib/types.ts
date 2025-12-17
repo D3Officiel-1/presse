@@ -141,3 +141,13 @@ export interface Single {
   createdAt: Timestamp;
   artistName?: string;
 }
+
+export interface Track {
+  id: string;
+  title: string;
+  audioUrl: string;
+  duration: number;
+  position: number;
+  streams: number;
+  isExplicit: boolean;
+}

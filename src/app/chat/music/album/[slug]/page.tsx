@@ -4,10 +4,10 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useFirestore } from '@/firebase/provider';
-import { collection, query, where, onSnapshot, limit, getDocs, collectionGroup } from 'firebase/firestore';
-import type { Album, Artist } from '@/lib/types';
+import { collection, query, where, onSnapshot, limit, getDoc, doc, orderBy } from 'firebase/firestore';
+import type { Album, Artist, Track } from '@/lib/types';
 import { Button } from '@/components/ui/button';
-import { Loader2, ArrowLeft, MoreVertical, Play, Clock, Music } from 'lucide-react';
+import { Loader2, ArrowLeft, MoreVertical, Play, Clock, Music, Explicit } from 'lucide-react';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
 
@@ -28,14 +28,21 @@ export default function AlbumPage() {
 
     const [album, setAlbum] = useState<Album | null>(null);
     const [artist, setArtist] = useState<Artist | null>(null);
+    const [tracks, setTracks] = useState<Track[]>([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         if (!firestore || !slug) return;
 
-        const albumsQuery = query(collectionGroup(firestore, 'albums'), where('slug', '==', slug), limit(1));
+        const albumsRef = collection(firestore, 'music');
+        const q = query(
+            albumsRef,
+            where('type', '==', 'album'),
+            where('slug', '==', slug),
+            limit(1)
+        );
         
-        const unsubscribe = onSnapshot(albumsQuery, async (snapshot) => {
+        const unsubscribe = onSnapshot(q, async (snapshot) => {
             if (!snapshot.empty) {
                 const albumDoc = snapshot.docs[0];
                 const albumData = { id: albumDoc.id, ...albumDoc.data() } as Album;
@@ -48,6 +55,15 @@ export default function AlbumPage() {
                         setArtist({ id: artistSnap.id, ...artistSnap.data() } as Artist);
                     }
                 }
+                
+                const tracksRef = collection(firestore, 'music', albumDoc.id, 'tracks');
+                const tracksQuery = query(tracksRef, orderBy('position', 'asc'));
+                onSnapshot(tracksQuery, (tracksSnapshot) => {
+                    const tracksData = tracksSnapshot.docs.map(trackDoc => ({ id: trackDoc.id, ...trackDoc.data() } as Track));
+                    setTracks(tracksData);
+                });
+
+
             } else {
                  console.error("No album found with that slug.");
             }
@@ -59,6 +75,20 @@ export default function AlbumPage() {
 
         return () => unsubscribe();
     }, [firestore, slug]);
+    
+    const handlePlayTrack = (track: Track) => {
+        if (!album || !artist) return;
+        
+        const trackDataForPlayer = {
+            id: track.id,
+            name: track.title,
+            artists: [{ name: artist.name }],
+            album: { images: [{ url: album.cover }] },
+            preview_url: track.audioUrl,
+        };
+        const params = new URLSearchParams({ trackData: encodeURIComponent(JSON.stringify(trackDataForPlayer)) });
+        router.push(`/chat/music/${track.id}?${params.toString()}`);
+    }
 
     if (loading) {
         return (
@@ -78,6 +108,12 @@ export default function AlbumPage() {
             </div>
         )
     }
+    
+     const formatDuration = (seconds: number) => {
+        const minutes = Math.floor(seconds / 60);
+        const secs = seconds % 60;
+        return `${minutes}:${String(secs).padStart(2, '0')}`;
+    };
 
     return (
         <div className="relative min-h-screen bg-background text-foreground">
@@ -154,11 +190,34 @@ export default function AlbumPage() {
                         },
                     }}
                 >
-                    {/* Placeholder for track list */}
-                    <div className="text-center text-muted-foreground p-8">
-                        <Music className="w-10 h-10 mx-auto mb-4" />
-                        <h3 className="font-semibold">Les titres arrivent bientôt</h3>
-                        <p className="text-sm">La liste des pistes de cet album sera bientôt disponible.</p>
+                    <div className="space-y-2">
+                        {tracks.map((track, i) => (
+                             <motion.div
+                                key={track.id}
+                                variants={FADE_UP_ANIMATION_VARIANTS}
+                                custom={i}
+                                initial="hidden"
+                                animate="visible"
+                                exit="hidden"
+                                onClick={() => handlePlayTrack(track)}
+                            >
+                                <div className="group flex items-center gap-4 p-3 rounded-lg hover:bg-muted/50 cursor-pointer transition-colors">
+                                    <div className="text-muted-foreground font-mono text-sm w-5 text-center">
+                                        {track.position}
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                        <p className="font-semibold truncate">{track.title}</p>
+                                        <p className="text-xs text-muted-foreground">{artist?.name}</p>
+                                    </div>
+                                    <div className="flex items-center gap-2 text-muted-foreground">
+                                        {track.isExplicit && <Explicit className="w-4 h-4" title="Explicite"/>}
+                                        <span className="text-xs font-mono w-12 text-right">
+                                            {formatDuration(track.duration)}
+                                        </span>
+                                    </div>
+                                </div>
+                            </motion.div>
+                        ))}
                     </div>
                 </motion.div>
             </main>
