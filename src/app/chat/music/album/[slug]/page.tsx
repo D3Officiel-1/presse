@@ -51,7 +51,7 @@ export default function AlbumPage() {
                     const newTrackRef = doc(tracksRef, track.id);
                     batch.set(newTrackRef, {
                         title: track.name,
-                        audioUrl: track.preview_url || '',
+                        audioUrl: '', // Intentionally left blank for manual entry
                         duration: Math.round(track.duration_ms / 1000),
                         position: track.track_number,
                         streams: 0, // Not available from this endpoint
@@ -128,7 +128,8 @@ export default function AlbumPage() {
             name: track.title,
             artists: [{ name: artist.name }],
             album: { images: [{ url: album.cover }] },
-            preview_url: track.audioUrl,
+            audioUrl: track.audioUrl,
+            duration: track.duration
         };
         const params = new URLSearchParams({ trackData: encodeURIComponent(JSON.stringify(trackDataForPlayer)) });
         router.push(`/chat/music/track/${track.id}?${params.toString()}`);

@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
@@ -68,7 +69,7 @@ export default function ArtistProfilePage() {
                 
                 newAlbumsFromSpotify.forEach((album: any) => {
                     const newAlbumRef = doc(collection(firestore, 'music'));
-                    const albumSlug = (artistData.slug + '-' + album.name).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+                    const albumSlug = (artistData.name + '-' + album.name).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
 
                     batch.set(newAlbumRef, {
                         type: 'album',
@@ -97,7 +98,6 @@ export default function ArtistProfilePage() {
                         artistId: artistData.id,
                         artistName: artistData.name,
                         createdAt: Timestamp.now(),
-                        // Fields to be populated later, e.g., from track details
                         audioUrl: '',
                         duration: 0,
                         streams: 0,
@@ -189,7 +189,8 @@ export default function ArtistProfilePage() {
             name: single.title,
             artists: [{ name: artist.name }],
             album: { images: [{ url: single.cover }] },
-            preview_url: single.audioUrl,
+            audioUrl: single.audioUrl,
+            duration: single.duration,
         };
         const params = new URLSearchParams({ trackData: encodeURIComponent(JSON.stringify(trackData)) });
         router.push(`/chat/music/track/${single.id}?${params.toString()}`);

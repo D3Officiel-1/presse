@@ -143,7 +143,8 @@ export interface Single {
   streams: number;
   isExplicit: boolean;
   createdAt: Timestamp;
-  artistName?: string;
+  artistId: string;
+  artistName: string;
   spotifyId?: string;
 }
 
