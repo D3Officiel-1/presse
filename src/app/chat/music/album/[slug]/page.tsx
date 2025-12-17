@@ -51,6 +51,7 @@ export default function AlbumPage() {
                     batch.set(newTrackRef, {
                         title: track.name,
                         audioUrl: '', // Intentionally left blank for manual entry
+                        clipUrl: '', // Initialize clipUrl as empty
                         duration: Math.round(track.duration_ms / 1000),
                         position: track.track_number,
                         streams: 0, // Not available from this endpoint

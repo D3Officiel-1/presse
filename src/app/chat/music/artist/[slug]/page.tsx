@@ -98,6 +98,7 @@ export default function ArtistProfilePage() {
                         artistName: artistData.name,
                         createdAt: Timestamp.now(),
                         audioUrl: '',
+                        clipUrl: '',
                         duration: 0,
                         streams: 0,
                     });

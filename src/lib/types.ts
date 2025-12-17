@@ -136,6 +136,7 @@ export interface Single {
   title: string;
   cover: string;
   audioUrl: string;
+  clipUrl?: string;
   duration: number;
   releaseDate: string;
   streams: number;
@@ -150,6 +151,7 @@ export interface Track {
   id: string;
   title: string;
   audioUrl: string;
+  clipUrl?: string;
   duration: number;
   position: number;
   streams: number;
