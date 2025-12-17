@@ -9,6 +9,7 @@ import Image from 'next/image';
 import { ArrowLeft, Pause, Play, Loader2, Music, Shuffle, SkipBack, SkipForward, Repeat } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { type SpotifyTrack } from '@/lib/types';
+import ReactPlayer from 'react-player/youtube';
 
 function PlayerComponent() {
     const router = useRouter();
@@ -21,16 +22,18 @@ function PlayerComponent() {
     const [progress, setProgress] = useState(0);
     const [duration, setDuration] = useState(0);
     const [currentTime, setCurrentTime] = useState(0);
-    const audioRef = useRef<HTMLAudioElement>(null);
+    const playerRef = useRef<ReactPlayer>(null);
     const [isLoading, setIsLoading] = useState(true);
+    const [isClient, setIsClient] = useState(false);
 
     useEffect(() => {
+        setIsClient(true);
         const trackData = searchParams.get('trackData');
         if (trackData) {
             try {
                 const parsedTrack = JSON.parse(decodeURIComponent(trackData));
                 setTrack(parsedTrack);
-                setIsLoading(true); // Reset loading state for new track
+                setIsPlaying(true); // Autoplay
             } catch (error) {
                 console.error("Failed to parse track data", error);
                 router.back();
@@ -40,84 +43,35 @@ function PlayerComponent() {
         }
     }, [searchParams, router]);
 
-    useEffect(() => {
-        if (track && track.preview_url && audioRef.current) {
-            const audio = audioRef.current;
-            
-            audio.src = track.preview_url;
-            audio.load();
+    const handleProgress = (state: { played: number; playedSeconds: number }) => {
+        setProgress(state.played * 100);
+        setCurrentTime(state.playedSeconds);
+    };
 
-            const handleCanPlay = () => {
-                 audio.play().catch(e => console.error("Autoplay failed:", e));
-            };
+    const handleDuration = (duration: number) => {
+        setDuration(duration);
+        setIsLoading(false);
+    };
 
-            const handlePlay = () => {
-                setIsPlaying(true);
-                setIsLoading(false);
-            }
-            const handlePause = () => setIsPlaying(false);
-
-            const handleTimeUpdate = () => {
-                if (audio.duration > 0) {
-                  setCurrentTime(audio.currentTime);
-                  setProgress((audio.currentTime / audio.duration) * 100);
-                }
-            };
-
-            const handleLoadedMetadata = () => {
-                setDuration(audio.duration);
-                setIsLoading(false);
-            };
-
-            const handleEnded = () => {
-                setIsPlaying(false);
-                setProgress(100);
-                 setTimeout(() => {
-                    setProgress(0);
-                    setCurrentTime(0);
-                 }, 500)
-            };
-            
-            audio.addEventListener('canplay', handleCanPlay);
-            audio.addEventListener('play', handlePlay);
-            audio.addEventListener('pause', handlePause);
-            audio.addEventListener('timeupdate', handleTimeUpdate);
-            audio.addEventListener('loadedmetadata', handleLoadedMetadata);
-            audio.addEventListener('ended', handleEnded);
-
-            return () => {
-                audio.removeEventListener('canplay', handleCanPlay);
-                audio.removeEventListener('play', handlePlay);
-                audio.removeEventListener('pause', handlePause);
-                audio.removeEventListener('timeupdate', handleTimeUpdate);
-                audio.removeEventListener('loadedmetadata', handleLoadedMetadata);
-                audio.removeEventListener('ended', handleEnded);
-                audio.pause();
-            };
-        } else if (track && !track.preview_url) {
-            setIsLoading(false);
-        }
-    }, [track]);
+    const handleEnded = () => {
+        setIsPlaying(false);
+        setProgress(100);
+        setTimeout(() => {
+            setProgress(0);
+            setCurrentTime(0);
+            playerRef.current?.seekTo(0);
+        }, 500);
+    };
 
     const togglePlay = () => {
-        if (audioRef.current) {
-            if (isPlaying) {
-                audioRef.current.pause();
-            } else {
-                if (audioRef.current.ended) {
-                    audioRef.current.currentTime = 0;
-                }
-                audioRef.current.play();
-            }
-        }
+        if (!track?.audioUrl) return;
+        setIsPlaying(!isPlaying);
     };
     
     const handleSliderChange = (value: number[]) => {
-        if (audioRef.current && duration > 0) {
-            const newTime = (value[0] / 100) * duration;
-            audioRef.current.currentTime = newTime;
-            setCurrentTime(newTime);
-        }
+        const newProgress = value[0] / 100;
+        playerRef.current?.seekTo(newProgress, 'fraction');
+        setProgress(value[0]);
     };
 
     const formatTime = (seconds: number) => {
@@ -137,7 +91,21 @@ function PlayerComponent() {
     
     return (
         <div className="relative flex flex-col h-screen w-full overflow-hidden bg-background">
-            <audio ref={audioRef} className="hidden" />
+            {isClient && (
+                <ReactPlayer
+                    ref={playerRef}
+                    url={track.audioUrl || ''}
+                    playing={isPlaying}
+                    onProgress={handleProgress}
+                    onDuration={handleDuration}
+                    onEnded={handleEnded}
+                    onReady={() => setIsLoading(false)}
+                    onError={(e) => console.error('Player Error', e)}
+                    hidden={true}
+                    width="0"
+                    height="0"
+                />
+            )}
             <div className="absolute inset-0 z-0">
                 {track.album.images[0]?.url && (
                     <Image
@@ -191,7 +159,7 @@ function PlayerComponent() {
                         <p className="text-muted-foreground font-medium truncate">{track.artists.map(a => a.name).join(', ')}</p>
                     </div>
 
-                    {track.preview_url ? (
+                    {track.audioUrl ? (
                         <>
                             <div className="space-y-2">
                                 <Slider 
@@ -227,7 +195,7 @@ function PlayerComponent() {
                     ) : (
                         <div className="text-center py-8">
                              <Music className="mx-auto w-8 h-8 mb-2 text-muted-foreground"/>
-                             <p className="text-sm text-muted-foreground">Aucun aperçu disponible pour ce titre.</p>
+                             <p className="text-sm text-muted-foreground">Aucun audio disponible pour ce titre.</p>
                         </div>
                     )}
                 </div>
