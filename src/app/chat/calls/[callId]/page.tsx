@@ -42,6 +42,35 @@ export default function CallPage() {
 
     const isVideoCall = callData?.type === 'video';
 
+    const endCall = useCallback(async (updateFirebase = true) => {
+        if (peerRef.current) {
+            peerRef.current.destroy();
+            peerRef.current = null;
+        }
+        if (localStreamRef.current) {
+            localStreamRef.current.getTracks().forEach(track => track.stop());
+            localStreamRef.current = null;
+        }
+        if (durationIntervalRef.current) {
+            clearInterval(durationIntervalRef.current);
+        }
+        
+        setCallStatus('ended');
+
+        if (updateFirebase && firestore && callId && callData?.status !== 'ended') {
+            try {
+                await updateDoc(doc(firestore, 'calls', callId), { status: 'ended', endedAt: serverTimestamp() });
+            } catch (e) {
+                console.error("Error ending call in Firebase:", e);
+            }
+        }
+        if (router) {
+            // Use a timeout to ensure the user sees the 'ended' state before redirecting
+            setTimeout(() => router.push('/chat'), 1500);
+        }
+    }, [firestore, callId, callData?.status, router]);
+
+
     useEffect(() => {
         if (!firestore || !callId || !currentUser) return;
 
@@ -56,27 +85,33 @@ export default function CallPage() {
 
             const data = snapshot.data();
             setCallData(data);
-
+            
             const otherUserId = data.callerId === currentUser.uid ? data.receiverId : data.callerId;
-            const userDoc = await getDoc(doc(firestore, 'users', otherUserId));
-            if (userDoc.exists()) {
-                setCallee(userDoc.data() as UserType);
+            if (callee?.id !== otherUserId) {
+                const userDoc = await getDoc(doc(firestore, 'users', otherUserId));
+                if (userDoc.exists()) {
+                    setCallee(userDoc.data() as UserType);
+                }
             }
 
-            if (data.status === 'ended') {
-                setCallStatus('ended');
+
+            if (data.status === 'ended' && callStatus !== 'ended') {
+                endCall(false);
                 return;
             }
             
-            if (data.callerId === currentUser.uid && !data.offer) {
+            // Caller logic: create and send offer
+            if (data.callerId === currentUser.uid && !data.offer && !peerRef.current) {
                 setCallStatus('outgoing');
                 createPeer(true, data.type === 'video');
             }
             
-            if (data.receiverId === currentUser.uid && data.offer && !data.answer) {
+            // Receiver logic: receive offer
+            if (data.receiverId === currentUser.uid && data.offer && !data.answer && !peerRef.current) {
                  setCallStatus('incoming');
             }
             
+            // Caller logic: receive answer
             if (data.callerId === currentUser.uid && data.answer && peerRef.current && !peerRef.current.connected) {
                 peerRef.current.signal(data.answer);
             }
@@ -85,12 +120,21 @@ export default function CallPage() {
 
         return () => {
             unsubscribe();
-            if (durationIntervalRef.current) clearInterval(durationIntervalRef.current);
+            // This cleanup is crucial
+            if (peerRef.current) {
+                peerRef.current.destroy();
+            }
+            if (localStreamRef.current) {
+                localStreamRef.current.getTracks().forEach(track => track.stop());
+            }
+            if (durationIntervalRef.current) {
+                clearInterval(durationIntervalRef.current);
+            }
         };
-    }, [firestore, callId, currentUser]);
+    }, [firestore, callId, currentUser, endCall, callee?.id]);
 
 
-    const createPeer = async (initiator: boolean, videoEnabled: boolean) => {
+    const createPeer = useCallback(async (initiator: boolean, videoEnabled: boolean) => {
         try {
             const stream = await navigator.mediaDevices.getUserMedia({ video: videoEnabled, audio: true });
             localStreamRef.current = stream;
@@ -98,13 +142,13 @@ export default function CallPage() {
                 localVideoRef.current.srcObject = stream;
             }
             
-            const peer = new Peer({
+            const newPeer = new Peer({
                 initiator,
                 trickle: false,
                 stream: stream,
             });
 
-            peer.on('signal', async (signal) => {
+            newPeer.on('signal', async (signal) => {
                  const callRef = doc(firestore, 'calls', callId);
                  if (initiator) {
                      await updateDoc(callRef, { offer: signal });
@@ -113,29 +157,29 @@ export default function CallPage() {
                  }
             });
 
-            peer.on('stream', (remoteStream) => {
+            newPeer.on('stream', (remoteStream) => {
                 if (remoteVideoRef.current) {
                     remoteVideoRef.current.srcObject = remoteStream;
                 }
             });
 
-            peer.on('connect', () => {
+            newPeer.on('connect', () => {
                 setCallStatus('connected');
                 if (durationIntervalRef.current) clearInterval(durationIntervalRef.current);
                 durationIntervalRef.current = setInterval(() => setDuration(d => d + 1), 1000);
             });
             
-            peer.on('close', () => endCall());
-            peer.on('error', (err) => { console.error('Peer error:', err); endCall(); });
+            newPeer.on('close', () => endCall());
+            newPeer.on('error', (err) => { console.error('Peer error:', err); endCall(); });
 
-            peerRef.current = peer;
+            peerRef.current = newPeer;
 
         } catch (error) {
             console.error('Error getting media stream:', error);
             toast({ variant: 'destructive', title: "Erreur de Média", description: "Impossible d'accéder à la caméra ou au microphone."});
             endCall();
         }
-    };
+    }, [callId, firestore, toast, endCall]);
     
     const handleAcceptCall = () => {
         createPeer(false, callData.type === 'video');
@@ -158,28 +202,6 @@ export default function CallPage() {
             setIsCameraOff(!isCameraOff);
         }
     };
-
-    const endCall = async (updateFirebase = true) => {
-        if (peerRef.current) {
-            peerRef.current.destroy();
-            peerRef.current = null;
-        }
-        if (localStreamRef.current) {
-            localStreamRef.current.getTracks().forEach(track => track.stop());
-            localStreamRef.current = null;
-        }
-        if (durationIntervalRef.current) {
-            clearInterval(durationIntervalRef.current);
-        }
-        
-        if (updateFirebase && firestore && callId && callData?.status !== 'ended') {
-            await updateDoc(doc(firestore, 'calls', callId), { status: 'ended', endedAt: serverTimestamp() });
-        }
-        setCallStatus('ended');
-        if (router) {
-            router.push('/chat');
-        }
-    };
     
     const formatDuration = (seconds: number) => {
         const h = Math.floor(seconds / 3600).toString().padStart(2, '0');
@@ -200,7 +222,7 @@ export default function CallPage() {
         return (
             <div className="flex h-screen w-full items-center justify-center bg-background flex-col gap-4">
                 <h1 className="text-2xl font-bold">Appel terminé</h1>
-                <Button onClick={() => router.push('/chat')}>Retour aux discussions</Button>
+                <p className="text-muted-foreground">Vous allez être redirigé...</p>
             </div>
         );
     }
@@ -294,3 +316,5 @@ export default function CallPage() {
     );
 }
 
+
+    
