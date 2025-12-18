@@ -42,9 +42,9 @@ export function ChatTopbar({ info, isGroup, chat, allUsers, onPinnedMessageClick
         return;
     }
 
-    // For now, group calls are not implemented with WebRTC, just a toast.
     if (isGroup) {
-         toast({
+      // Group call logic not implemented
+       toast({
             title: `Lancement d'un appel de groupe ${isVideo ? 'vidéo' : 'vocal'}...`,
             description: `Cette fonctionnalité est en cours de développement.`,
         });
