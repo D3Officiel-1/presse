@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useParams, notFound, useRouter } from 'next/navigation';
@@ -17,6 +18,7 @@ import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { ActionFocusView, type ActionItem } from '@/components/chat/action-focus-view';
+import { handleSelectUser } from '@/lib/chat-action';
 
 
 const FADE_UP_ANIMATION_VARIANTS = {
@@ -38,6 +40,7 @@ export default function UserProfilePage() {
   const [isAvatarViewerOpen, setIsAvatarViewerOpen] = useState(false);
   
   const isOwnProfile = currentUser?.uid === params.id;
+  const [isCreatingChat, setIsCreatingChat] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -101,6 +104,14 @@ export default function UserProfilePage() {
     return `le ${format(date, 'dd/MM/yyyy à HH:mm', { locale: fr })}`;
   };
   
+  const handleCall = (isVideo: boolean) => {
+      if (!user) return;
+      toast({
+          title: `Appel ${isVideo ? 'vidéo' : 'vocal'} en cours...`,
+          description: `Appel de ${user.name}. Cette fonctionnalité est en cours de développement.`,
+      });
+  }
+
   const profileActions: ActionItem[] = [
     ...(isOwnProfile ? [{ icon: Edit, label: 'Modifier', action: () => router.push(`/chat/settings/${user?.id}/edit`) }] : []),
     ...(isAdmin ? [{ icon: History, label: 'Historique', action: () => router.push(`/admin/history/${user?.id}`) }] : []),
@@ -258,14 +269,15 @@ export default function UserProfilePage() {
           {/* Action Buttons */}
           {!isOwnProfile && (
              <motion.div variants={FADE_UP_ANIMATION_VARIANTS} className="flex justify-center gap-2">
-                <Button className='rounded-full h-12 flex-1' size="lg" onClick={() => router.push(`/chat/${user.id}`)}>
-                    <MessageSquare className="w-5 h-5 mr-2" /> Message
+                <Button className='rounded-full h-12 flex-1' size="lg" onClick={() => handleSelectUser(user.id, currentUser, firestore, setIsCreatingChat, router)}>
+                    {isCreatingChat === user.id ? <Loader2 className="w-5 h-5 mr-2 animate-spin" /> : <MessageSquare className="w-5 h-5 mr-2" />}
+                    Message
                 </Button>
-                <Button variant="secondary" size="icon" className="rounded-full h-12 w-12">
+                <Button variant="secondary" size="icon" className="rounded-full h-12 w-12" onClick={() => handleCall(false)}>
                   <Phone className="w-5 h-5" />
                   <span className="sr-only">Appel</span>
                 </Button>
-                <Button variant="secondary" size="icon" className="rounded-full h-12 w-12">
+                <Button variant="secondary" size="icon" className="rounded-full h-12 w-12" onClick={() => handleCall(true)}>
                   <Video className="w-5 h-5" />
                   <span className="sr-only">Appel Vidéo</span>
                 </Button>

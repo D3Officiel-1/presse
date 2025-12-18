@@ -11,6 +11,7 @@ import { useUser } from '@/firebase/auth/use-user'
 import { useFirestore } from '@/firebase/provider'
 import { collection, query, where, onSnapshot } from 'firebase/firestore'
 import type { User } from '@/lib/types'
+import { useToast } from '@/hooks/use-toast'
 
 const callHistory = [
   {
@@ -49,6 +50,8 @@ export default function CallsPage() {
   const firestore = useFirestore();
   const [usersData, setUsersData] = useState<{ [key: string]: User }>({});
   const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
+
 
   useEffect(() => {
     if (!firestore || callHistory.length === 0) {
@@ -56,27 +59,40 @@ export default function CallsPage() {
       return;
     };
 
-    const userIds = [...new Set(callHistory.map(call => call.userId))];
-    
-    if (userIds.length > 0) {
-      const usersQuery = query(collection(firestore, 'users'), where('__name__', 'in', userIds));
-      const unsubscribe = onSnapshot(usersQuery, (snapshot) => {
+    // This is a placeholder as we don't have real user IDs for the static call history yet.
+    // In a real implementation, you'd fetch based on the actual user IDs from the call logs.
+    const usersQuery = query(collection(firestore, 'users'));
+    const unsubscribe = onSnapshot(usersQuery, (snapshot) => {
         const fetchedUsers: { [key: string]: User } = {};
+        const userList: User[] = [];
         snapshot.forEach(doc => {
-          fetchedUsers[doc.id] = { id: doc.id, ...doc.data() } as User;
+          userList.push({ id: doc.id, ...doc.data() } as User);
         });
+        
+        // Let's assign some static users to the call history for the UI
+        const historyUserIds = [...new Set(callHistory.map(c => c.userId))];
+        historyUserIds.forEach((hid, index) => {
+            if (userList[index]) {
+                fetchedUsers[hid] = userList[index];
+            }
+        });
+
         setUsersData(fetchedUsers);
         setLoading(false);
-      }, (error) => {
+    }, (error) => {
         console.error("Error fetching user data for calls:", error);
         setLoading(false);
-      });
+    });
 
       return () => unsubscribe();
-    } else {
-      setLoading(false);
-    }
   }, [firestore]);
+  
+  const handleCall = (user: User, isVideo: boolean) => {
+      toast({
+          title: `Appel ${isVideo ? 'vidéo' : 'vocal'} en cours...`,
+          description: `Appel de ${user.name}. Cette fonctionnalité est en cours de développement.`,
+      });
+  }
 
 
   return (
@@ -119,7 +135,7 @@ export default function CallsPage() {
                         if (!user) return null;
 
                         return (
-                            <div key={i} className="flex items-center p-3 rounded-lg hover:bg-muted/50 cursor-pointer">
+                            <div key={i} className="flex items-center p-3 rounded-lg hover:bg-muted/50 cursor-pointer" onClick={() => handleCall(user, call.isVideo)}>
                                 <Avatar className="w-10 h-10">
                                     <AvatarImage src={user.avatar} />
                                     <AvatarFallback>{user.name.substring(0,1)}</AvatarFallback>

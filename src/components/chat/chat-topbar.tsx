@@ -7,6 +7,8 @@ import type { User, Chat } from '@/lib/types';
 import Link from 'next/link';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
+import { useToast } from '@/hooks/use-toast';
+
 
 interface ChatTopbarProps {
   info: User | { name?: string; users: User[] };
@@ -19,7 +21,16 @@ interface ChatTopbarProps {
 export function ChatTopbar({ info, isGroup, chat, allUsers, onPinnedMessageClick }: ChatTopbarProps) {
   const user = !isGroup ? (info as User) : undefined;
   const group = isGroup ? (info as { name?: string; users: User[] }) : undefined;
+  const { toast } = useToast();
   
+  const handleCall = (isVideo: boolean) => {
+    const calleeName = isGroup ? group?.name : user?.name;
+    toast({
+        title: `Appel ${isVideo ? 'vidéo' : 'vocal'} en cours...`,
+        description: `Appel de ${calleeName}. Cette fonctionnalité est en cours de développement.`,
+    });
+  }
+
   const TopbarContent = () => (
     <>
       {isGroup ? (
@@ -60,17 +71,17 @@ export function ChatTopbar({ info, isGroup, chat, allUsers, onPinnedMessageClick
               <TopbarContent />
             </div>
           ) : (
-            <Link href={`/profile/${user?.id}`} className="flex items-center gap-2">
+            <Link href={`/chat/settings/${user?.id}`} className="flex items-center gap-2">
               <TopbarContent />
             </Link>
           )}
         </div>
 
         <div className="flex items-center gap-2">
-          <Button variant="ghost" size="icon" className="text-muted-foreground">
+          <Button variant="ghost" size="icon" className="text-muted-foreground" onClick={() => handleCall(false)}>
             <Phone className="w-5 h-5" />
           </Button>
-          <Button variant="ghost" size="icon" className="text-muted-foreground">
+          <Button variant="ghost" size="icon" className="text-muted-foreground" onClick={() => handleCall(true)}>
             <Video className="w-5 h-5" />
           </Button>
           <Button variant="ghost" size="icon" className="text-muted-foreground">
