@@ -8,6 +8,10 @@ import Link from 'next/link';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
 import { useToast } from '@/hooks/use-toast';
+import { useFirestore } from '@/firebase/provider';
+import { useUser } from '@/firebase/auth/use-user';
+import { useRouter } from 'next/navigation';
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 
 
 interface ChatTopbarProps {
@@ -22,13 +26,46 @@ export function ChatTopbar({ info, isGroup, chat, allUsers, onPinnedMessageClick
   const user = !isGroup ? (info as User) : undefined;
   const group = isGroup ? (info as { name?: string; users: User[] }) : undefined;
   const { toast } = useToast();
+  const firestore = useFirestore();
+  const { user: currentUser } = useUser();
+  const router = useRouter();
   
-  const handleCall = (isVideo: boolean) => {
-    const calleeName = isGroup ? group?.name : user?.name;
-    toast({
-        title: `Appel ${isVideo ? 'vidéo' : 'vocal'} en cours...`,
-        description: `Appel de ${calleeName}. Cette fonctionnalité est en cours de développement.`,
-    });
+  const handleCall = async (isVideo: boolean) => {
+    if (!firestore || !currentUser) {
+        toast({ variant: 'destructive', description: "Vous n'êtes pas connecté." });
+        return;
+    }
+    
+    const receiverId = isGroup ? null : user?.id; // Group call logic would be different
+    if (!receiverId && !isGroup) {
+        toast({ variant: 'destructive', description: "Destinataire de l'appel introuvable." });
+        return;
+    }
+
+    // For now, group calls are not implemented with WebRTC, just a toast.
+    if (isGroup) {
+         toast({
+            title: `Lancement d'un appel de groupe ${isVideo ? 'vidéo' : 'vocal'}...`,
+            description: `Cette fonctionnalité est en cours de développement.`,
+        });
+        return;
+    }
+
+    try {
+      const callsRef = collection(firestore, 'calls');
+      const newCallDoc = await addDoc(callsRef, {
+          callerId: currentUser.uid,
+          receiverId: receiverId,
+          type: isVideo ? 'video' : 'voice',
+          status: 'dialing',
+          createdAt: serverTimestamp(),
+      });
+      
+      router.push(`/chat/calls/${newCallDoc.id}`);
+    } catch(error) {
+        console.error("Error creating call:", error);
+        toast({ variant: 'destructive', title: "Erreur d'appel", description: "Impossible de lancer l'appel." });
+    }
   }
 
   const TopbarContent = () => (

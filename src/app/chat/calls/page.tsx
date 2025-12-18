@@ -9,9 +9,10 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { useUser } from '@/firebase/auth/use-user'
 import { useFirestore } from '@/firebase/provider'
-import { collection, query, where, onSnapshot } from 'firebase/firestore'
+import { collection, query, where, onSnapshot, addDoc, serverTimestamp } from 'firebase/firestore'
 import type { User } from '@/lib/types'
 import { useToast } from '@/hooks/use-toast'
+import { useRouter } from 'next/navigation'
 
 const callHistory = [
   {
@@ -48,6 +49,7 @@ const callHistory = [
 export default function CallsPage() {
   const { user: currentUser } = useUser();
   const firestore = useFirestore();
+  const router = useRouter();
   const [usersData, setUsersData] = useState<{ [key: string]: User }>({});
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
@@ -87,11 +89,27 @@ export default function CallsPage() {
       return () => unsubscribe();
   }, [firestore]);
   
-  const handleCall = (user: User, isVideo: boolean) => {
-      toast({
-          title: `Appel ${isVideo ? 'vidéo' : 'vocal'} en cours...`,
-          description: `Appel de ${user.name}. Cette fonctionnalité est en cours de développement.`,
-      });
+  const handleCall = async (user: User, isVideo: boolean) => {
+      if (!firestore || !currentUser) {
+          toast({ variant: 'destructive', description: "Vous n'êtes pas connecté." });
+          return;
+      }
+      
+      try {
+        const callsRef = collection(firestore, 'calls');
+        const newCallDoc = await addDoc(callsRef, {
+            callerId: currentUser.uid,
+            receiverId: user.id,
+            type: isVideo ? 'video' : 'voice',
+            status: 'dialing',
+            createdAt: serverTimestamp(),
+        });
+        
+        router.push(`/chat/calls/${newCallDoc.id}`);
+      } catch(error) {
+          console.error("Error creating call:", error);
+          toast({ variant: 'destructive', title: "Erreur d'appel", description: "Impossible de lancer l'appel." });
+      }
   }
 
 
@@ -150,7 +168,7 @@ export default function CallsPage() {
                                         <span>{call.time}</span>
                                     </div>
                                 </div>
-                                <Button variant="ghost" size="icon" className='text-primary'>
+                                <Button variant="ghost" size="icon" className='text-primary' onClick={(e) => {e.stopPropagation(); handleCall(user, call.isVideo)}}>
                                 {call.isVideo ? <Video size={20} /> : <Phone size={20} />}
                                 </Button>
                             </div>

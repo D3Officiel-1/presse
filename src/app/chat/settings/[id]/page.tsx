@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft, FileText, Loader2, LogOut, Edit, Phone, Mail, Shield, BookUser, Clock, MessageSquare, Video, MoreVertical, WifiOff, QrCode, Music, X, History } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useFirestore } from '@/firebase/provider';
-import { doc, getDoc, updateDoc } from 'firebase/firestore';
+import { doc, getDoc, updateDoc, collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { useUser } from '@/firebase/auth/use-user';
 import { Separator } from '@/components/ui/separator';
@@ -43,23 +43,19 @@ export default function UserProfilePage() {
   const [isCreatingChat, setIsCreatingChat] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchUserData = async () => {
-      if (!firestore) return;
-      
-      setLoading(true);
-      
-      // Fetch the viewed profile's data
-      const userRef = doc(firestore, 'users', params.id);
-      const userSnap = await getDoc(userRef);
+    if (!firestore || !params.id) return;
 
-      if (userSnap.exists()) {
-        setUser({ id: userSnap.id, ...userSnap.data() } as UserType);
+    const fetchUser = async () => {
+      setLoading(true);
+      const userRef = doc(firestore, 'users', params.id as string);
+      const docSnap = await getDoc(userRef);
+
+      if (docSnap.exists()) {
+        setUser({ id: docSnap.id, ...docSnap.data() } as UserType);
       } else {
         notFound();
-        return;
       }
-
-      // If a user is logged in, check if they are an admin
+      
       if (currentUser) {
         const adminCheckRef = doc(firestore, 'users', currentUser.uid);
         const adminDoc = await getDoc(adminCheckRef);
@@ -71,7 +67,7 @@ export default function UserProfilePage() {
       setLoading(false);
     };
 
-    fetchUserData();
+    fetchUser();
   }, [firestore, params.id, currentUser]);
 
 
@@ -104,12 +100,26 @@ export default function UserProfilePage() {
     return `le ${format(date, 'dd/MM/yyyy à HH:mm', { locale: fr })}`;
   };
   
-  const handleCall = (isVideo: boolean) => {
-      if (!user) return;
-      toast({
-          title: `Appel ${isVideo ? 'vidéo' : 'vocal'} en cours...`,
-          description: `Appel de ${user.name}. Cette fonctionnalité est en cours de développement.`,
-      });
+  const handleCall = async (isVideo: boolean) => {
+      if (!firestore || !currentUser || !user) {
+          toast({ variant: 'destructive', description: "Impossible de lancer l'appel." });
+          return;
+      }
+      try {
+        const callsRef = collection(firestore, 'calls');
+        const newCallDoc = await addDoc(callsRef, {
+            callerId: currentUser.uid,
+            receiverId: user.id,
+            type: isVideo ? 'video' : 'voice',
+            status: 'dialing',
+            createdAt: serverTimestamp(),
+        });
+        
+        router.push(`/chat/calls/${newCallDoc.id}`);
+      } catch(error) {
+          console.error("Error creating call:", error);
+          toast({ variant: 'destructive', title: "Erreur d'appel", description: "Impossible de lancer l'appel." });
+      }
   }
 
   const profileActions: ActionItem[] = [
