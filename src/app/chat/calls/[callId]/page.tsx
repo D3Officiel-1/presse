@@ -7,11 +7,14 @@ import { useFirestore } from '@/firebase/provider';
 import { useUser } from '@/firebase/auth/use-user';
 import { doc, onSnapshot, updateDoc, getDoc, collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import type { User as UserType } from '@/lib/types';
-import { Loader2, Phone, Mic, MicOff, Volume2, Video, PhoneOff } from 'lucide-react';
+import { Loader2, PhoneOff, Mic, MicOff, Video, VideoOff } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import Peer from 'simple-peer';
+import { motion, AnimatePresence } from 'framer-motion';
+import { cn } from '@/lib/utils';
+
 
 type CallStatus = 'outgoing' | 'incoming' | 'connected' | 'ended';
 
@@ -28,11 +31,16 @@ export default function CallPage() {
     const [callee, setCallee] = useState<UserType | null>(null);
     const [callStatus, setCallStatus] = useState<CallStatus | null>(null);
     const [isMuted, setIsMuted] = useState(false);
+    const [isCameraOff, setIsCameraOff] = useState(false);
+    const [duration, setDuration] = useState(0);
 
     const localVideoRef = useRef<HTMLVideoElement>(null);
     const remoteVideoRef = useRef<HTMLVideoElement>(null);
     const peerRef = useRef<Peer.Instance | null>(null);
     const localStreamRef = useRef<MediaStream | null>(null);
+    const durationIntervalRef = useRef<NodeJS.Timeout | null>(null);
+
+    const isVideoCall = callData?.type === 'video';
 
     useEffect(() => {
         if (!firestore || !callId || !currentUser) return;
@@ -42,7 +50,7 @@ export default function CallPage() {
         const unsubscribe = onSnapshot(callRef, async (snapshot) => {
             if (!snapshot.exists()) {
                 toast({ variant: 'destructive', title: 'Appel terminé', description: "Cet appel n'existe plus." });
-                router.push('/chat');
+                endCall(false); // Don't update doc if it doesn't exist
                 return;
             }
 
@@ -60,33 +68,35 @@ export default function CallPage() {
                 return;
             }
             
-            // Initiate call if we are the caller
             if (data.callerId === currentUser.uid && !data.offer) {
                 setCallStatus('outgoing');
-                createPeer(true);
+                createPeer(true, data.type === 'video');
             }
             
-            // Answer call if we are the receiver and there's an offer
             if (data.receiverId === currentUser.uid && data.offer && !data.answer) {
                  setCallStatus('incoming');
-                 // Wait for user to accept
             }
             
-            // Caller receives answer
             if (data.callerId === currentUser.uid && data.answer && peerRef.current && !peerRef.current.connected) {
                 peerRef.current.signal(data.answer);
             }
 
         });
 
-        return () => unsubscribe();
+        return () => {
+            unsubscribe();
+            if (durationIntervalRef.current) clearInterval(durationIntervalRef.current);
+        };
     }, [firestore, callId, currentUser]);
 
 
-    const createPeer = async (initiator: boolean) => {
+    const createPeer = async (initiator: boolean, videoEnabled: boolean) => {
         try {
-            const stream = await navigator.mediaDevices.getUserMedia({ video: false, audio: true });
+            const stream = await navigator.mediaDevices.getUserMedia({ video: videoEnabled, audio: true });
             localStreamRef.current = stream;
+            if (localVideoRef.current) {
+                localVideoRef.current.srcObject = stream;
+            }
             
             const peer = new Peer({
                 initiator,
@@ -99,7 +109,7 @@ export default function CallPage() {
                  if (initiator) {
                      await updateDoc(callRef, { offer: signal });
                  } else {
-                     await updateDoc(callRef, { answer: signal });
+                     await updateDoc(callRef, { answer: signal, status: 'active' });
                  }
             });
 
@@ -111,29 +121,24 @@ export default function CallPage() {
 
             peer.on('connect', () => {
                 setCallStatus('connected');
-                 updateDoc(doc(firestore, 'calls', callId), { status: 'active' });
+                if (durationIntervalRef.current) clearInterval(durationIntervalRef.current);
+                durationIntervalRef.current = setInterval(() => setDuration(d => d + 1), 1000);
             });
             
-            peer.on('close', () => {
-                endCall();
-            });
-
-            peer.on('error', (err) => {
-                console.error('Peer error:', err);
-                endCall();
-            });
+            peer.on('close', () => endCall());
+            peer.on('error', (err) => { console.error('Peer error:', err); endCall(); });
 
             peerRef.current = peer;
 
         } catch (error) {
             console.error('Error getting media stream:', error);
-            toast({ variant: 'destructive', title: "Erreur de Média", description: "Impossible d'accéder au microphone."});
+            toast({ variant: 'destructive', title: "Erreur de Média", description: "Impossible d'accéder à la caméra ou au microphone."});
             endCall();
         }
     };
     
     const handleAcceptCall = () => {
-        createPeer(false);
+        createPeer(false, callData.type === 'video');
     };
 
     const toggleMute = () => {
@@ -144,8 +149,17 @@ export default function CallPage() {
             setIsMuted(!isMuted);
         }
     };
+    
+    const toggleCamera = () => {
+        if (localStreamRef.current && isVideoCall) {
+            localStreamRef.current.getVideoTracks().forEach(track => {
+                track.enabled = !track.enabled;
+            });
+            setIsCameraOff(!isCameraOff);
+        }
+    };
 
-    const endCall = async () => {
+    const endCall = async (updateFirebase = true) => {
         if (peerRef.current) {
             peerRef.current.destroy();
             peerRef.current = null;
@@ -154,13 +168,25 @@ export default function CallPage() {
             localStreamRef.current.getTracks().forEach(track => track.stop());
             localStreamRef.current = null;
         }
+        if (durationIntervalRef.current) {
+            clearInterval(durationIntervalRef.current);
+        }
         
-        if (firestore && callId && callData?.status !== 'ended') {
+        if (updateFirebase && firestore && callId && callData?.status !== 'ended') {
             await updateDoc(doc(firestore, 'calls', callId), { status: 'ended', endedAt: serverTimestamp() });
         }
         setCallStatus('ended');
-        router.push('/chat');
+        if (router) {
+            router.push('/chat');
+        }
     };
+    
+    const formatDuration = (seconds: number) => {
+        const h = Math.floor(seconds / 3600).toString().padStart(2, '0');
+        const m = Math.floor((seconds % 3600) / 60).toString().padStart(2, '0');
+        const s = Math.floor(seconds % 60).toString().padStart(2, '0');
+        return h !== '00' ? `${h}:${m}:${s}` : `${m}:${s}`;
+    }
     
     if (!callee || !callStatus) {
         return (
@@ -183,43 +209,88 @@ export default function CallPage() {
         switch(callStatus) {
             case 'outgoing': return 'Appel en cours...';
             case 'incoming': return 'Appel entrant...';
-            case 'connected': return 'Connecté';
+            case 'connected': return formatDuration(duration);
             default: return '';
         }
     }
 
 
     return (
-        <div className="relative flex flex-col h-screen w-full items-center justify-between p-8 bg-gradient-to-br from-background via-black to-background text-white">
-            <video ref={localVideoRef} autoPlay muted className="hidden" />
-            <video ref={remoteVideoRef} autoPlay className="hidden" />
+        <div className="relative flex flex-col h-screen w-full items-center justify-between p-8 bg-black text-white">
+            {/* Remote Video */}
+            <video ref={remoteVideoRef} autoPlay playsInline className="absolute inset-0 w-full h-full object-cover -z-10" />
+            <div className="absolute inset-0 bg-black/50 -z-10" />
 
-            <div className="text-center mt-12">
-                <Avatar className="w-40 h-40 mx-auto border-4 border-white/10 shadow-2xl">
-                    <AvatarImage src={callee.avatar} />
-                    <AvatarFallback className="text-6xl">{callee.name?.substring(0, 1)}</AvatarFallback>
-                </Avatar>
-                <h1 className="text-4xl font-bold mt-6">{callee.name}</h1>
-                <p className="text-lg text-muted-foreground mt-2">{renderCallStatus()}</p>
-            </div>
+            {/* Local Video */}
+            <AnimatePresence>
+                {isVideoCall && (
+                    <motion.div 
+                        className="absolute top-4 right-4 w-32 h-48 rounded-lg overflow-hidden border-2 border-white/20 shadow-lg"
+                        initial={{ opacity: 0, x: 20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: 0.5 }}
+                    >
+                         <video ref={localVideoRef} autoPlay playsInline muted className="w-full h-full object-cover scale-x-[-1]" />
+                         {isCameraOff && <div className="absolute inset-0 bg-black/70 flex items-center justify-center"><VideoOff className="w-8 h-8 text-white"/></div>}
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+            <AnimatePresence>
+                <motion.div 
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="text-center mt-12 z-10"
+                >
+                    <AnimatePresence>
+                        {remoteVideoRef.current?.srcObject ? null : (
+                             <motion.div
+                                initial={{ opacity: 0, scale: 0.8 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                exit={{ opacity: 0, scale: 0.8 }}
+                             >
+                                 <Avatar className="w-40 h-40 mx-auto border-4 border-white/10 shadow-2xl">
+                                    <AvatarImage src={callee.avatar} />
+                                    <AvatarFallback className="text-6xl">{callee.name?.substring(0, 1)}</AvatarFallback>
+                                </Avatar>
+                             </motion.div>
+                        )}
+                    </AnimatePresence>
+                    <h1 className="text-4xl font-bold mt-6 drop-shadow-lg">{callee.name}</h1>
+                    <p className="text-lg text-white/80 mt-2 font-mono drop-shadow-md">{renderCallStatus()}</p>
+                </motion.div>
+            </AnimatePresence>
             
-             <div className="flex items-center justify-center gap-6">
+             <motion.div 
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3 }}
+                className="flex items-center justify-center gap-6 z-10"
+             >
                  {callStatus === 'connected' && (
-                     <Button variant="outline" size="icon" className="w-16 h-16 rounded-full bg-white/10 border-white/20 hover:bg-white/20" onClick={toggleMute}>
-                        {isMuted ? <MicOff /> : <Mic />}
-                    </Button>
+                    <>
+                        {isVideoCall && (
+                           <Button variant="outline" size="icon" className={cn("w-16 h-16 rounded-full bg-white/10 border-white/20 hover:bg-white/20", isCameraOff && "bg-destructive/70")} onClick={toggleCamera}>
+                                {isCameraOff ? <VideoOff /> : <Video />}
+                            </Button>
+                        )}
+                        <Button variant="outline" size="icon" className={cn("w-16 h-16 rounded-full bg-white/10 border-white/20 hover:bg-white/20", isMuted && "bg-destructive/70")} onClick={toggleMute}>
+                            {isMuted ? <MicOff /> : <Mic />}
+                        </Button>
+                    </>
                  )}
                  
                  {callStatus === 'incoming' ? (
-                     <Button size="icon" className="w-20 h-20 rounded-full bg-green-500 hover:bg-green-600" onClick={handleAcceptCall}>
-                        <Phone />
+                     <Button size="icon" className="w-20 h-20 rounded-full bg-green-500 hover:bg-green-600 animate-pulse" onClick={handleAcceptCall}>
+                        {isVideoCall ? <Video /> : <PhoneOff style={{transform: "rotate(-135deg)"}}/>}
                     </Button>
                  ) : null}
 
-                 <Button size="icon" className="w-20 h-20 rounded-full bg-destructive hover:bg-destructive/80" onClick={endCall}>
+                 <Button size="icon" className="w-20 h-20 rounded-full bg-destructive hover:bg-destructive/80" onClick={() => endCall()}>
                     <PhoneOff />
                 </Button>
-             </div>
+             </motion.div>
         </div>
     );
 }
+
