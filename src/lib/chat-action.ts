@@ -53,3 +53,38 @@ export const handleSelectUser = async (
         }
     }
 };
+
+export const handleCreateGroup = async (
+    groupName: string,
+    selectedUserIds: string[],
+    currentUser: FirebaseUser | null,
+    firestore: Firestore | null,
+    router: AppRouterInstance,
+    groupAvatar?: string
+) => {
+    if (!currentUser || !firestore || !groupName.trim() || selectedUserIds.length === 0) {
+        return;
+    }
+
+    const members = [currentUser.uid, ...selectedUserIds];
+    const unreadCounts = members.reduce((acc, id) => ({ ...acc, [id]: 0 }), {});
+    const typing = members.reduce((acc, id) => ({ ...acc, [id]: false }), {});
+
+    try {
+        const chatsRef = collection(firestore, 'chats');
+        const newGroupDoc = await addDoc(chatsRef, {
+            type: 'group',
+            name: groupName,
+            groupAvatar: groupAvatar || `https://avatar.vercel.sh/${encodeURIComponent(groupName)}.png`,
+            members,
+            lastMessage: { content: `${currentUser.displayName || 'Quelqu\'un'} a créé le groupe.` },
+            lastMessageTimestamp: serverTimestamp(),
+            createdAt: serverTimestamp(),
+            unreadCounts,
+            typing,
+        });
+        router.push(`/chat/${newGroupDoc.id}`);
+    } catch (error) {
+        console.error("Error creating new group:", error);
+    }
+};

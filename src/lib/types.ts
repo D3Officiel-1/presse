@@ -62,6 +62,7 @@ export type Chat = {
   id: string;
   type: 'private' | 'group' | 'community';
   name?: string; // For group/community chats
+  groupAvatar?: string;
   members: string[]; // Array of user UIDs
   archivedBy?: string[]; // Array of user IDs who have archived this chat
   mutedBy?: string[]; // Array of user IDs who have muted this chat

@@ -78,7 +78,7 @@ export default function GroupsPage() {
             <Button variant="ghost" size="icon" className="size-8">
                 <Search size={20} />
             </Button>
-            <Button variant="ghost" size="icon" className="size-8">
+            <Button variant="ghost" size="icon" className="size-8" onClick={() => router.push('/chat/groups/new')}>
                 <PlusCircle size={20} />
             </Button>
           </div>
@@ -112,7 +112,7 @@ export default function GroupsPage() {
                                 <Link href={`/chat/${chat.id}`} key={chat.id}>
                                     <div className="flex items-center p-3 rounded-lg hover:bg-muted/50 cursor-pointer">
                                         <ChatAvatar
-                                            user={{ name: chat.name!, avatar: `https://avatar.vercel.sh/${chat.name}.png`, online: false, id: chat.id }}
+                                            user={{ name: chat.name!, avatar: chat.groupAvatar || `https://avatar.vercel.sh/${chat.name}.png`, online: false, id: chat.id }}
                                             isGroup={true}
                                         />
                                         <div className="ml-3 flex-1 min-w-0">
@@ -139,5 +139,3 @@ export default function GroupsPage() {
     </div>
   )
 }
-
-    
