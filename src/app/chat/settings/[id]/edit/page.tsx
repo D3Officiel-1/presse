@@ -130,10 +130,10 @@ export default function EditProfilePage() {
 
     const formData = new FormData();
     formData.append('file', imageBlob, 'profile.webp');
-    formData.append('upload_preset', 'predict_uploads'); // Use your Cloudinary upload preset
+    formData.append('upload_preset', 'predict_uploads');
 
     try {
-        const response = await fetch('https://api.cloudinary.com/v1_1/dlxomrluy/image/upload', { // Replace with your Cloudinary cloud name
+        const response = await fetch('https://api.cloudinary.com/v1_1/dlxomrluy/image/upload', {
             method: 'POST',
             body: formData,
         });

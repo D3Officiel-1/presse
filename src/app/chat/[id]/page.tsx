@@ -268,10 +268,10 @@ function ChatPageContent() {
   
   // Check for image to send from sessionStorage
   useEffect(() => {
-    const imageToSend = sessionStorage.getItem('image-to-send');
-    if (imageToSend && chatId) {
-        handleSendMessage(imageToSend, 'image');
-        sessionStorage.removeItem('image-to-send');
+    const mediaUrl = sessionStorage.getItem('media-url-to-send');
+    if (mediaUrl && chatId) {
+        handleSendMessage(mediaUrl, 'image');
+        sessionStorage.removeItem('media-url-to-send');
     }
   }, [chatId]);
 
@@ -434,7 +434,7 @@ function ChatPageContent() {
 
   return (
     <div className="relative flex flex-col h-screen w-full bg-background overflow-hidden">
-      {isCommunity && (
+      {isCommunity ? (
         <>
           <video
             src="https://cdn.pixabay.com/video/2018/03/03/14676-258508803_large.mp4"
@@ -446,7 +446,7 @@ function ChatPageContent() {
           />
            <div className="absolute inset-0 bg-gradient-to-t from-background via-background/80 to-transparent -z-10"/>
         </>
-      )}
+      ) : null}
 
       <ChatTopbar 
         info={otherUser || { name: chatData.name, users: chatMembers }} 
@@ -497,5 +497,3 @@ export default function ChatPage() {
         </Suspense>
     )
 }
-
-    

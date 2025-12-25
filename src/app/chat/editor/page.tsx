@@ -106,6 +106,7 @@ function EditorComponent() {
     const [mediaSrc, setMediaSrc] = useState<string | null>(null);
     const [mediaType, setMediaType] = useState<'image' | 'video' | null>(null);
     const [isLoading, setIsLoading] = useState(true);
+    const [isSending, setIsSending] = useState(false);
 
     const [isCropping, setIsCropping] = useState(false);
     const [crop, setCrop] = useState<CropType>();
@@ -334,19 +335,38 @@ function EditorComponent() {
 
     const handleSend = async () => {
         if (!imageContainerRef.current) return;
-        
+        setIsSending(true);
+        toast({ description: "Envoi en cours..." });
+
         try {
-            const svgDataUrl = await htmlToImage.toSvg(imageContainerRef.current);
-            const dataUrl = await htmlToImage.toPng(imageContainerRef.current);
+            const dataUrl = await htmlToImage.toPng(imageContainerRef.current, { quality: 0.95 });
             
-            sessionStorage.setItem('image-to-send', dataUrl);
+            const formData = new FormData();
+            const blob = await (await fetch(dataUrl)).blob();
+            formData.append('file', blob);
+            formData.append('upload_preset', 'predict_uploads');
+
+            const response = await fetch('https://api.cloudinary.com/v1_1/dlxomrluy/image/upload', {
+                method: 'POST',
+                body: formData,
+            });
+
+            if (!response.ok) {
+                throw new Error('Cloudinary upload failed');
+            }
+
+            const cloudinaryData = await response.json();
+            
+            sessionStorage.setItem('media-url-to-send', cloudinaryData.secure_url);
             sessionStorage.removeItem('media-to-edit');
             sessionStorage.removeItem('media-type-to-edit');
             router.back();
 
         } catch (error) {
-            console.error('oops, something went wrong!', error);
-            toast({ variant: 'destructive', title: 'Erreur', description: 'Impossible de générer l\'image finale.'});
+            console.error('Oops, something went wrong!', error);
+            toast({ variant: 'destructive', title: 'Erreur', description: 'Impossible de générer ou d\'envoyer l\'image finale.'});
+        } finally {
+            setIsSending(false);
         }
     };
     
@@ -433,6 +453,11 @@ function EditorComponent() {
 
     return (
         <div className="relative flex flex-col h-screen w-full bg-black text-white overflow-hidden">
+            {isSending && (
+                <div className="absolute inset-0 z-40 bg-black/70 flex items-center justify-center">
+                    <Loader2 className="h-8 w-8 animate-spin" />
+                </div>
+            )}
             {/* Header */}
             <AnimatePresence>
                 {!isDraggingText && !isAddingText && !isDrawing && (
@@ -682,8 +707,8 @@ function EditorComponent() {
                         className="absolute bottom-0 left-0 right-0 p-4 z-20 bg-gradient-to-t from-black/50 to-transparent"
                     >
                         <div className="flex items-center justify-end">
-                            <Button size="lg" className="rounded-full h-14 w-14 p-0" onClick={handleSend}>
-                                <Send className="w-6 h-6"/>
+                            <Button size="lg" className="rounded-full h-14 w-14 p-0" onClick={handleSend} disabled={isSending}>
+                                {isSending ? <Loader2 className="w-6 h-6 animate-spin" /> : <Send className="w-6 h-6" />}
                             </Button>
                         </div>
                     </motion.footer>
