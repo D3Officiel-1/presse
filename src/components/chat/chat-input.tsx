@@ -28,7 +28,7 @@ const formatTime = (seconds: number) => {
 
 const attachmentActions = [
     { icon: ImageIcon, label: "Galerie", color: "text-purple-500", action: 'openGallery' },
-    { icon: Camera, label: "Caméra", color: "text-blue-500" },
+    { icon: Camera, label: "Caméra", color: "text-blue-500", action: 'openCamera' },
     { icon: MapPin, label: "Localisation", color: "text-green-500", action: 'shareLocation' },
     { icon: User, label: "Membre", color: "text-orange-500", action: 'ShareContact' },
     { icon: FileText, label: "Document", color: "text-indigo-500", action: 'openDocument' },
@@ -293,6 +293,9 @@ export function ChatInput({ chat, onSendMessage, replyInfo, onClearReply }: Chat
   const handleAttachmentAction = (action?: string) => {
     if (action === 'openGallery') {
       fileInputRef.current?.click();
+    }
+    if (action === 'openCamera') {
+        router.push('/chat/camera');
     }
     if (action === 'openDocument') {
       documentInputRef.current?.click();
