@@ -1069,11 +1069,12 @@ export function ChatMessages({
                 >
                     <motion.div
                         layoutId={`avatar-${avatarInView.id}`}
-                        initial={{ y: 50, scale: 0.8, opacity: 0 }}
-                        animate={{ y: 0, scale: 1, opacity: 1 }}
-                        exit={{ y: 50, scale: 0.8, opacity: 0 }}
-                        transition={{ type: 'spring', stiffness: 300, damping: 30 }}
                         className="relative w-full h-full max-w-[90vw] max-h-[90vh]"
+                        transition={{
+                            type: 'spring',
+                            damping: 30,
+                            stiffness: 300,
+                        }}
                     >
                         <Image
                             src={avatarInView.avatar}
@@ -1082,9 +1083,15 @@ export function ChatMessages({
                             objectFit="contain"
                         />
                     </motion.div>
-                    <Button variant="ghost" size="icon" className="absolute top-4 right-4 h-10 w-10 rounded-full bg-black/30 hover:bg-black/50 text-white" onClick={() => setAvatarInView(null)}>
-                        <X />
-                    </Button>
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1, transition: { delay: 0.1 } }}
+                        exit={{ opacity: 0 }}
+                    >
+                         <Button variant="ghost" size="icon" className="absolute top-4 right-4 h-10 w-10 rounded-full bg-black/30 hover:bg-black/50 text-white" onClick={() => setAvatarInView(null)}>
+                            <X />
+                        </Button>
+                    </motion.div>
                 </motion.div>
             )}
         </AnimatePresence>
@@ -1109,7 +1116,16 @@ export function ChatMessages({
                 <div key={`${dayGroup.date}-${senderIndex}`} className={cn('flex flex-col gap-1 w-full my-1', senderGroup.position === 'right' ? 'items-end' : 'items-start')}>
                   {showSenderInfo && (
                       <div className="flex items-center gap-2">
-                          <motion.div layoutId={`avatar-${sender?.id}`} onClick={() => sender && setAvatarInView(sender)} className="cursor-pointer">
+                          <motion.div 
+                              layoutId={`avatar-${sender?.id}`}
+                              onClick={() => sender && setAvatarInView(sender)} 
+                              className="cursor-pointer"
+                              transition={{
+                                  type: 'spring',
+                                  damping: 30,
+                                  stiffness: 300,
+                              }}
+                          >
                             <Avatar className="w-8 h-8 self-end">
                                 {sender ? (
                                     <>

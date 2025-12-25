@@ -165,11 +165,12 @@ export default function UserProfilePage() {
             >
                 <motion.div
                     layoutId={`avatar-${user.id}`}
-                    initial={{ y: 50, scale: 0.8, opacity: 0 }}
-                    animate={{ y: 0, scale: 1, opacity: 1 }}
-                    exit={{ y: 50, scale: 0.8, opacity: 0 }}
-                    transition={{ type: 'spring', stiffness: 300, damping: 30 }}
                     className="relative w-full h-full max-w-[90vw] max-h-[90vh]"
+                    transition={{
+                        type: 'spring',
+                        damping: 30,
+                        stiffness: 300,
+                    }}
                 >
                     <Image
                         src={user.avatar}
@@ -178,9 +179,15 @@ export default function UserProfilePage() {
                         objectFit="contain"
                     />
                 </motion.div>
-                <Button variant="ghost" size="icon" className="absolute top-4 right-4 h-10 w-10 rounded-full bg-black/30 hover:bg-black/50 text-white" onClick={() => setIsAvatarViewerOpen(false)}>
-                    <X />
-                </Button>
+                <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1, transition: { delay: 0.1 } }}
+                    exit={{ opacity: 0 }}
+                >
+                    <Button variant="ghost" size="icon" className="absolute top-4 right-4 h-10 w-10 rounded-full bg-black/30 hover:bg-black/50 text-white" onClick={() => setIsAvatarViewerOpen(false)}>
+                        <X />
+                    </Button>
+                </motion.div>
             </motion.div>
         )}
       </AnimatePresence>
@@ -228,6 +235,11 @@ export default function UserProfilePage() {
             layoutId={`avatar-${user.id}`}
             className="cursor-pointer"
             onClick={() => setIsAvatarViewerOpen(true)}
+             transition={{
+                type: 'spring',
+                damping: 30,
+                stiffness: 300,
+            }}
           >
             <Avatar className="w-32 h-32 border-4 border-background shadow-2xl">
               <AvatarImage src={user.avatar} alt={user.name} />
