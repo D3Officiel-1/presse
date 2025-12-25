@@ -497,5 +497,3 @@ export default function ChatPage() {
         </Suspense>
     )
 }
-
-    
