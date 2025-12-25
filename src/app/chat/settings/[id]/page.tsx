@@ -156,15 +156,19 @@ export default function UserProfilePage() {
       </AnimatePresence>
       <AnimatePresence>
         {isAvatarViewerOpen && (
-            <motion.div
-                className="fixed inset-0 z-50 flex items-center justify-center bg-black/80"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
+             <motion.div
+                className="fixed inset-0 z-50 flex items-center justify-center"
+                initial={{ opacity: 0, backdropFilter: 'blur(0px)' }}
+                animate={{ opacity: 1, backdropFilter: 'blur(8px)' }}
+                exit={{ opacity: 0, backdropFilter: 'blur(0px)' }}
                 onClick={() => setIsAvatarViewerOpen(false)}
             >
                 <motion.div
                     layoutId={`avatar-${user.id}`}
+                    initial={{ y: 50, scale: 0.8, opacity: 0 }}
+                    animate={{ y: 0, scale: 1, opacity: 1 }}
+                    exit={{ y: 50, scale: 0.8, opacity: 0 }}
+                    transition={{ type: 'spring', stiffness: 300, damping: 30 }}
                     className="relative w-full h-full max-w-[90vw] max-h-[90vh]"
                 >
                     <Image
