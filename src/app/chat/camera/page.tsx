@@ -38,6 +38,7 @@ export default function CameraPage() {
 
     useEffect(() => {
         const getCameraPermission = async () => {
+            if (photoData) return; // Don't get stream if a photo is already taken
             try {
                 const newStream = await navigator.mediaDevices.getUserMedia({ 
                     video: { facingMode } 
@@ -60,8 +61,13 @@ export default function CameraPage() {
 
         getCameraPermission();
         
-        return () => stopStream();
-    }, [facingMode, toast, stopStream]);
+        return () => {
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+            }
+        };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [facingMode, photoData]);
 
     const takePhoto = async () => {
         if (!videoRef.current || !photoRef.current) return;
@@ -80,9 +86,11 @@ export default function CameraPage() {
         if (flashMode === 'on') {
             const track = stream?.getVideoTracks()[0];
             if (track && track.getCapabilities().torch) {
-                await track.applyConstraints({ advanced: [{ torch: true }] });
-                // Give it a moment to light up
-                await new Promise(resolve => setTimeout(resolve, 200));
+                try {
+                    await track.applyConstraints({ advanced: [{ torch: true }] });
+                    // Give it a moment to light up
+                    await new Promise(resolve => setTimeout(resolve, 200));
+                } catch(e) { console.error("Could not turn on flash", e)}
             }
         }
 
@@ -92,7 +100,9 @@ export default function CameraPage() {
         if (flashMode === 'on') {
             const track = stream?.getVideoTracks()[0];
             if (track && track.getCapabilities().torch) {
-                await track.applyConstraints({ advanced: [{ torch: false }] });
+                 try {
+                    await track.applyConstraints({ advanced: [{ torch: false }] });
+                } catch(e) { console.error("Could not turn off flash", e)}
             }
         }
         
@@ -101,17 +111,6 @@ export default function CameraPage() {
 
     const retakePhoto = () => {
         setPhotoData(null);
-        // Restart stream, useEffect will handle it based on state change
-        const getCameraPermission = async () => {
-             try {
-                const newStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode } });
-                setStream(newStream);
-                if (videoRef.current) {
-                    videoRef.current.srcObject = newStream;
-                }
-            } catch(e) { console.error(e); }
-        }
-        getCameraPermission();
     };
     
     const sendPhoto = () => {
@@ -122,6 +121,7 @@ export default function CameraPage() {
     };
 
     const toggleCamera = () => {
+        setPhotoData(null);
         setFacingMode(prev => prev === 'user' ? 'environment' : 'user');
     };
     
@@ -152,7 +152,7 @@ export default function CameraPage() {
     }
 
     return (
-        <div className="relative flex h-screen w-full flex-col items-center justify-between bg-black text-white p-4">
+        <div className="relative flex h-screen w-full flex-col items-center justify-between bg-black text-white">
             {/* Header */}
             <motion.div 
                 initial={{ opacity: 0, y: -20 }}
@@ -195,10 +195,10 @@ export default function CameraPage() {
             </div>
 
             {/* Footer */}
-            <motion.div 
+             <motion.div 
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="relative z-10 w-full flex items-center justify-around"
+                className="absolute bottom-0 left-0 right-0 p-4 z-10 w-full flex items-center justify-around"
             >
                 {photoData ? (
                     <>
