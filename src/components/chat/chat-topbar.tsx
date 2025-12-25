@@ -65,12 +65,11 @@ export function ChatTopbar({ info, isGroup, chat, allUsers, onPinnedMessageClick
     }
 
     if (isGroup) {
-      // Group call logic not implemented
-       toast({
-            title: `Lancement d'un appel de groupe ${isVideo ? 'vidéo' : 'vocal'}...`,
-            description: `Cette fonctionnalité est en cours de développement.`,
-        });
-        return;
+      toast({
+          title: `Appel de groupe ${isVideo ? 'vidéo' : 'vocal'} non disponible`,
+          description: `Cette fonctionnalité est en cours de développement.`,
+      });
+      return;
     }
 
     try {
