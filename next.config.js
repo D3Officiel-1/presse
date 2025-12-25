@@ -1,5 +1,6 @@
 
-import type {NextConfig} from 'next';
+/** @type {import('next').NextConfig} */
+
 const withPWA = require('@ducanh2912/next-pwa').default({
   dest: 'public',
   disable: process.env.NODE_ENV === 'development',
@@ -103,10 +104,9 @@ const withPWA = require('@ducanh2912/next-pwa').default({
   ],
 });
 
-const nextConfig: NextConfig = {
+const nextConfig = {
   env: {
     NEXT_PUBLIC_GOOGLE_MAPS_API_KEY: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY,
-    NEXT_PUBLIC_TOMTOM_API_KEY: process.env.NEXT_PUBLIC_TOMTOM_API_KEY,
   },
   /* config options here */
   typescript: {
@@ -143,24 +143,6 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: 'https',
-        hostname: 'leaders-club-saint-exupery.firebasestorage.app',
-        port: '',
-        pathname: '/**',
-      },
-      {
-        protocol: 'https',
-        hostname: 'upload.wikimedia.org',
-        port: '',
-        pathname: '/**',
-      },
-      {
-        protocol: 'https',
-        hostname: 'avatar.vercel.sh',
-        port: '',
-        pathname: '/**',
-      },
-      {
-        protocol: 'https',
         hostname: 'res.cloudinary.com',
         port: '',
         pathname: '/**',
@@ -173,14 +155,16 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: 'https',
-        hostname: 'staticmap.openstreetmap.de',
+        hostname: 'i.scdn.co',
+        port: '',
+        pathname: '/**',
       },
       {
         protocol: 'https',
-        hostname: 'api.tomtom.com',
+        hostname: 'maps.googleapis.com',
       }
     ],
   },
 };
 
-export default withPWA(nextConfig);
+module.exports = withPWA(nextConfig);
