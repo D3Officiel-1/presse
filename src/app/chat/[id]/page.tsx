@@ -221,6 +221,9 @@ function ChatPageContent() {
     if (type === 'poll' && metadata.pollData) {
       messageData.pollData = metadata.pollData;
     }
+    if (type === 'event' && metadata.eventData) {
+        messageData.eventData = metadata.eventData;
+    }
     
     // Add message to subcollection
     const messagesRef = collection(firestore, 'chats', chatId, 'messages');
@@ -241,6 +244,8 @@ function ChatPageContent() {
         lastMessageContent = `📍 Position partagée`;
     } else if (type === 'poll' && metadata.pollData) {
         lastMessageContent = `📊 Sondage: ${metadata.pollData.question}`;
+    } else if (type === 'event' && metadata.eventData) {
+        lastMessageContent = `🗓️ Évènement: ${metadata.eventData.title}`;
     }
 
 
@@ -424,29 +429,33 @@ function ChatPageContent() {
   const isTyping = otherUser ? chatData.typing?.[otherUser.id] ?? false : false;
   const chatMembers = chatData.members.map(id => usersData[id]).filter(Boolean) as UserType[];
   const allUsersInApp = Object.values(usersData);
+  const isCommunity = chatData.id === 'community-presse';
 
 
   return (
     <div className="relative flex flex-col h-screen w-full bg-background overflow-hidden">
-      <video
-        src="https://cdn.pixabay.com/video/2024/05/20/212953-944519999_large.mp4"
-        autoPlay
-        loop
-        muted
-        playsInline
-        className="absolute top-0 left-0 w-full h-full object-cover -z-10 opacity-10"
-      />
-       <div className="absolute inset-0 bg-gradient-to-t from-background via-background/80 to-transparent -z-10"/>
+      {isCommunity && (
+        <>
+          <video
+            src="https://cdn.pixabay.com/video/2024/05/20/212953-944519999_large.mp4"
+            autoPlay
+            loop
+            muted
+            playsInline
+            className="absolute top-0 left-0 w-full h-full object-cover -z-10 opacity-10"
+          />
+           <div className="absolute inset-0 bg-gradient-to-t from-background via-background/80 to-transparent -z-10"/>
+        </>
+      )}
 
-      <div className="sticky top-0 z-20 backdrop-blur-sm">
-        <ChatTopbar 
-          info={otherUser || { name: chatData.name, users: chatMembers }} 
-          isGroup={chatData.type !== 'private'} 
-          chat={chatData} 
-          allUsers={allUsersInApp}
-          onPinnedMessageClick={scrollToMessage}
-        />
-      </div>
+      <ChatTopbar 
+        info={otherUser || { name: chatData.name, users: chatMembers }} 
+        isGroup={chatData.type !== 'private'} 
+        chat={chatData} 
+        allUsers={allUsersInApp}
+        onPinnedMessageClick={scrollToMessage}
+        isCommunity={isCommunity}
+      />
       
       <div className="flex-1 overflow-y-auto" ref={messagesContainerRef}>
         <ChatMessages
@@ -488,3 +497,5 @@ export default function ChatPage() {
         </Suspense>
     )
 }
+
+    

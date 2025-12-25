@@ -16,7 +16,7 @@ export function ChatAvatar({ user, isGroup = false, isCommunity = false, classNa
     <div className={cn("relative", className)}>
       <Avatar className={cn("w-10 h-10", className)}>
         {isCommunity ? (
-            <AvatarImage src={user.avatar || "https://i.postimg.cc/fbtSZFWz/icon-256x256.png"} alt={user.name} className="p-1" />
+            <AvatarImage src={"https://i.postimg.cc/fbtSZFWz/icon-256x256.png"} alt={user.name} />
         ) : isGroup ? (
             user.groupAvatar ? (
                 <AvatarImage src={user.groupAvatar} alt={user.name} />
@@ -38,3 +38,5 @@ export function ChatAvatar({ user, isGroup = false, isCommunity = false, classNa
     </div>
   );
 }
+
+    

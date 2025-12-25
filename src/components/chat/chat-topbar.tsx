@@ -1,5 +1,5 @@
 
-import { Phone, MoreVertical, Video, ArrowLeft, Pin, X, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Phone, MoreVertical, Video, ArrowLeft, Pin, X, ChevronLeft, ChevronRight, Users } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { cn } from '@/lib/utils';
@@ -12,6 +12,7 @@ import { useFirestore } from '@/firebase/provider';
 import { useUser } from '@/firebase/auth/use-user';
 import { useRouter } from 'next/navigation';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import Image from 'next/image';
 
 
 interface ChatTopbarProps {
@@ -20,9 +21,30 @@ interface ChatTopbarProps {
   chat: Chat;
   allUsers: User[];
   onPinnedMessageClick: (messageId: string) => void;
+  isCommunity?: boolean;
 }
 
-export function ChatTopbar({ info, isGroup, chat, allUsers, onPinnedMessageClick }: ChatTopbarProps) {
+const CommunityTopbar = ({ chat, allUsers }: { chat: Chat, allUsers: User[]}) => {
+    return (
+        <div className="w-full flex flex-col p-4">
+            <div className="flex items-center gap-4">
+                <Image
+                    src="https://i.postimg.cc/fbtSZFWz/icon-256x256.png"
+                    alt="Club de Presse Logo"
+                    width={40}
+                    height={40}
+                    className="size-10"
+                />
+                <div className='flex flex-col'>
+                    <span className="font-bold text-xl tracking-tight">{chat.name}</span>
+                    <span className="text-sm text-muted-foreground">{allUsers.length} membres</span>
+                </div>
+            </div>
+        </div>
+    )
+}
+
+export function ChatTopbar({ info, isGroup, chat, allUsers, onPinnedMessageClick, isCommunity }: ChatTopbarProps) {
   const user = !isGroup ? (info as User) : undefined;
   const group = isGroup ? (info as { name?: string; users: User[] }) : undefined;
   const { toast } = useToast();
@@ -95,37 +117,41 @@ export function ChatTopbar({ info, isGroup, chat, allUsers, onPinnedMessageClick
   );
 
   return (
-    <div className="w-full flex flex-col border-b">
-      <div className="h-20 flex p-4 justify-between items-center w-full">
-        <div className="flex items-center gap-2">
-          <Link href="/chat">
-            <Button variant="ghost" size="icon">
-              <ArrowLeft className="w-5 h-5" />
-            </Button>
-          </Link>
-          {isGroup ? (
+    <div className="w-full flex flex-col border-b sticky top-0 z-20 backdrop-blur-sm bg-background/50">
+       {isCommunity ? (
+         <CommunityTopbar chat={chat} allUsers={allUsers} />
+       ) : (
+        <div className="h-20 flex p-4 justify-between items-center w-full">
             <div className="flex items-center gap-2">
-              <TopbarContent />
-            </div>
-          ) : (
-            <Link href={`/chat/settings/${user?.id}`} className="flex items-center gap-2">
-              <TopbarContent />
+            <Link href="/chat">
+                <Button variant="ghost" size="icon">
+                <ArrowLeft className="w-5 h-5" />
+                </Button>
             </Link>
-          )}
-        </div>
+            {isGroup ? (
+                <div className="flex items-center gap-2">
+                <TopbarContent />
+                </div>
+            ) : (
+                <Link href={`/chat/settings/${user?.id}`} className="flex items-center gap-2">
+                <TopbarContent />
+                </Link>
+            )}
+            </div>
 
-        <div className="flex items-center gap-2">
-          <Button variant="ghost" size="icon" className="text-muted-foreground" onClick={() => handleCall(false)}>
-            <Phone className="w-5 h-5" />
-          </Button>
-          <Button variant="ghost" size="icon" className="text-muted-foreground" onClick={() => handleCall(true)}>
-            <Video className="w-5 h-5" />
-          </Button>
-          <Button variant="ghost" size="icon" className="text-muted-foreground">
-            <MoreVertical className="w-5 h-5" />
-          </Button>
+            <div className="flex items-center gap-2">
+            <Button variant="ghost" size="icon" className="text-muted-foreground" onClick={() => handleCall(false)}>
+                <Phone className="w-5 h-5" />
+            </Button>
+            <Button variant="ghost" size="icon" className="text-muted-foreground" onClick={() => handleCall(true)}>
+                <Video className="w-5 h-5" />
+            </Button>
+            <Button variant="ghost" size="icon" className="text-muted-foreground">
+                <MoreVertical className="w-5 h-5" />
+            </Button>
+            </div>
         </div>
-      </div>
+       )}
       <AnimatePresence>
         {chat && chat.pinnedMessages && chat.pinnedMessages.length > 0 && (
           <motion.div
@@ -168,3 +194,5 @@ export function ChatTopbar({ info, isGroup, chat, allUsers, onPinnedMessageClick
     </div>
   );
 }
+
+    
