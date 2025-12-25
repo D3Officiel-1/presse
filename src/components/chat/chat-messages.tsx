@@ -578,7 +578,18 @@ const ChatMessage = ({
                 <div className="flex items-center justify-end gap-1.5 mt-1 float-right">
                     {message.editedAt && !isDeletedForAll && <span className="text-xs opacity-70 italic mr-1">modifié</span>}
                     <span className="text-xs opacity-70">{formatTimestamp(message.timestamp)}</span>
-                    {isStarred && !isDeletedForAll && <Star className="w-3 h-3 text-current opacity-70 fill-current" />}
+                    <AnimatePresence>
+                    {isStarred && !isDeletedForAll && (
+                        <motion.div
+                            initial={{ scale: 0, rotate: -90 }}
+                            animate={{ scale: 1, rotate: 0 }}
+                            exit={{ scale: 0, rotate: 90 }}
+                            transition={{ type: 'spring', stiffness: 500, damping: 20 }}
+                        >
+                            <Star className="w-3 h-3 text-current opacity-70 fill-current" />
+                        </motion.div>
+                    )}
+                    </AnimatePresence>
                     {isOwn && !isDeletedForAll && <ChatMessageStatus message={message} otherUser={(React.useContext(ChatContext) as any).otherUser} />}
                 </div>
             </>
