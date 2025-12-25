@@ -437,12 +437,12 @@ function ChatPageContent() {
       {isCommunity && (
         <>
           <video
-            src="https://cdn.pixabay.com/video/2024/05/20/212953-944519999_large.mp4"
+            src="https://cdn.pixabay.com/video/2018/03/03/14676-258508803_large.mp4"
             autoPlay
             loop
             muted
             playsInline
-            className="absolute top-0 left-0 w-full h-full object-cover -z-10 opacity-10"
+            className="absolute top-0 left-0 w-full h-full object-cover -z-10 opacity-20"
           />
            <div className="absolute inset-0 bg-gradient-to-t from-background via-background/80 to-transparent -z-10"/>
         </>
@@ -497,5 +497,3 @@ export default function ChatPage() {
         </Suspense>
     )
 }
-
-    
