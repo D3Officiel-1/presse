@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useEffect, useState } from 'react';
@@ -8,7 +7,7 @@ import { useFirestore } from '@/firebase/provider';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { LogOut, User, Phone, BadgeCheck, ShieldAlert, Award, Briefcase, Sparkles } from 'lucide-react';
+import { LogOut, User, Phone, BadgeCheck, Award, Briefcase, Sparkles } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Logo } from '@/components/logo';
 
@@ -24,7 +23,7 @@ export default function Home() {
     const uid = localStorage.getItem('userId');
     if (!uid) {
       const timer = setTimeout(() => {
-        router.push('/auth/login');
+        router.push('/auth');
       }, 3500);
       return () => clearTimeout(timer);
     }
@@ -64,7 +63,7 @@ export default function Home() {
       title: 'Déconnexion',
       description: 'Session terminée.',
     });
-    router.push('/auth/login');
+    router.push('/auth');
   };
 
   if (showSplash || loading) {
