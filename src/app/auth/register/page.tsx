@@ -58,7 +58,7 @@ export default function RegisterPage() {
       const userCredential = await createUserWithEmailAndPassword(authInstance, email, password);
       const firebaseUser = userCredential.user;
 
-      const deviceId = Math.toString(36).substring(2, 15);
+      const deviceId = Math.random().toString(36).substring(2, 15);
       const userDocRef = doc(firestoreInstance, 'users', firebaseUser.uid);
 
       await setDoc(userDocRef, {
@@ -90,7 +90,7 @@ export default function RegisterPage() {
         title: 'Erreur d\'inscription',
         description: error.message || 'Impossible de créer le compte.',
       });
-    } finaly {
+    } finally {
       setLoading(false);
     }
   };
