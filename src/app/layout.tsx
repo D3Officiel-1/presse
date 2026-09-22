@@ -1,3 +1,4 @@
+
 import type { Metadata } from 'next';
 import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
@@ -6,7 +7,7 @@ import React from 'react';
 
 export const metadata: Metadata = {
   title: 'NOVA Executive Club',
-  description: 'Plateforme exclusive des membres NOVA.',
+  description: 'Plateforme vidéo scolaire moderne et créative pour les talents de demain.',
 };
 
 export default function RootLayout({
