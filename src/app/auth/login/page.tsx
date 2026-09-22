@@ -73,7 +73,7 @@ export default function LoginPage() {
 
       toast({
         title: 'Connexion réussie',
-        description: 'Bienvenue dans votre espace NOVA Executive.',
+        description: 'Bienvenue dans votre espace NOVA.',
       });
 
       router.push(isOnboarded ? '/' : '/auth/onboarding');
@@ -100,7 +100,7 @@ export default function LoginPage() {
           <div className="w-16 h-16 p-2 rounded-2xl bg-primary/10 text-primary mb-2">
             <Logo />
           </div>
-          <h2 className="text-2xl font-bold tracking-tight">NOVA Executive Club</h2>
+          <h2 className="text-2xl font-bold tracking-tight">NOVA</h2>
         </div>
 
         <Card className="border-border/60 shadow-xl backdrop-blur-sm bg-card/90">

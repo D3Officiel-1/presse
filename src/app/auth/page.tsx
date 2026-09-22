@@ -5,8 +5,8 @@ import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { Logo } from '@/components/logo';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { LogIn, UserPlus, Sparkles, Film, Award, TrendingUp, Compass } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { LogIn, UserPlus, Sparkles, Film, Award } from 'lucide-react';
 
 export default function AuthGatewayPage() {
   return (
@@ -105,9 +105,6 @@ export default function AuthGatewayPage() {
               <CardTitle className="text-2xl font-black tracking-tight text-neutral-900 md:pr-12">
                 Bienvenue dans NOVA
               </CardTitle>
-              <CardDescription className="text-xs font-bold uppercase tracking-widest text-muted-foreground/60 mt-1">
-                Executive Club
-              </CardDescription>
             </CardHeader>
             
             <CardContent className="space-y-4 pt-4 pb-8">
@@ -137,7 +134,7 @@ export default function AuthGatewayPage() {
 
       {/* Footer minimaliste */}
       <div className="absolute bottom-6 flex items-center justify-center gap-2 text-[10px] font-black text-muted-foreground/50 uppercase tracking-widest select-none">
-        <span>NOVA Executive Club 2027</span>
+        <span>NOVA 2027</span>
       </div>
     </div>
   );

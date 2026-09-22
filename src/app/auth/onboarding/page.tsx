@@ -77,7 +77,7 @@ export default function OnboardingPage() {
 
       toast({
         title: 'Profil complété !',
-        description: 'Bienvenue officiellement sur la plateforme NOVA Executive.',
+        description: 'Bienvenue officiellement sur la plateforme NOVA.',
       });
       router.push('/');
     } catch (error: any) {
