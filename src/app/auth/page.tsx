@@ -11,7 +11,6 @@ import { LogIn, UserPlus, Sparkles, Film, Award } from 'lucide-react';
 export default function AuthGatewayPage() {
   return (
     <div className="flex min-h-screen flex-col items-center justify-center p-4 bg-gradient-to-br from-background via-background to-primary/5 overflow-hidden relative">
-      {/* Background decoration */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-[-20%] left-[-20%] w-[100%] h-[100%] bg-primary/10 blur-[120px] rounded-full opacity-60" />
         <div className="absolute bottom-[-20%] right-[-20%] w-[100%] h-[100%] bg-accent/10 blur-[120px] rounded-full opacity-40" />
@@ -33,9 +32,6 @@ export default function AuthGatewayPage() {
           <h2 className="text-4xl font-black tracking-tighter text-foreground leading-none">
             NOV<span className="text-primary italic">A</span>
           </h2>
-          <p className="text-xs font-bold uppercase tracking-[0.25em] text-muted-foreground mt-2">
-            Explosion de Talents
-          </p>
         </div>
 
         <Card className="border-border/60 shadow-2xl backdrop-blur-sm bg-card/90 rounded-[2.5rem]">

@@ -69,7 +69,6 @@ export default function Home() {
   if (showSplash || loading) {
     return (
       <div className="fixed inset-0 flex flex-col items-center justify-center bg-[#FDFDFD] overflow-hidden select-none z-[9999]">
-        {/* Dynamic Background Elements - Light Theme */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <motion.div
             animate={{
@@ -94,7 +93,6 @@ export default function Home() {
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,rgba(255,255,255,0.4)_100%)]" />
         </div>
 
-        {/* Main Icon Container */}
         <motion.div
           initial={{ opacity: 0, scale: 0.8, filter: "blur(30px)" }}
           animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
@@ -131,7 +129,6 @@ export default function Home() {
           </div>
         </motion.div>
 
-        {/* Monumental Title */}
         <motion.div
           initial={{ opacity: 0, y: 40, filter: "blur(20px)" }}
           animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
@@ -148,9 +145,6 @@ export default function Home() {
               />
             </span>
           </h1>
-          <p className="text-xs font-bold uppercase tracking-[0.25em] text-muted-foreground mt-4 opacity-60">
-            Explosion de Talents
-          </p>
         </motion.div>
       </div>
     );
