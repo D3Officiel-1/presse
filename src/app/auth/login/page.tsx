@@ -101,26 +101,24 @@ export default function LoginPage() {
           <div className="p-3 rounded-2xl bg-primary/10 text-primary mb-2">
             <Sparkles className="w-8 h-8" />
           </div>
-          <h1 className="text-2xl font-bold tracking-tight">Leaders Club</h1>
-          <p className="text-sm text-muted-foreground">Saint-Exupéry</p>
         </div>
 
         <Card className="border-border/60 shadow-xl backdrop-blur-sm bg-card/90">
           <CardHeader>
             <CardTitle className="text-xl text-center">Connexion</CardTitle>
             <CardDescription className="text-center">
-              Identifiez-vous avec votre matricule membre
+              Identifiez-vous avec votre matricule
             </CardDescription>
           </CardHeader>
           <form onSubmit={handleLogin}>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="matricule">Matricule</Label>
+                <Label htmlFor="matricule">Matricule !</Label>
                 <div className="relative">
                   <UserCircle className="absolute left-3 top-3.5 h-5 w-5 text-muted-foreground" />
                   <Input
                     id="matricule"
-                    placeholder="Ex: 20492945R"
+                    placeholder="Ex: 26882900A"
                     value={matricule}
                     onChange={(e) => setMatricule(e.target.value)}
                     className="pl-10 h-12"
@@ -130,7 +128,7 @@ export default function LoginPage() {
               </div>
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <Label htmlFor="password">Mot de passe</Label>
+                  <Label htmlFor="password">Mot de passe !</Label>
                   <Link
                     href="/auth/forgot-password"
                     className="text-xs text-primary hover:underline"
@@ -143,7 +141,7 @@ export default function LoginPage() {
                   <Input
                     id="password"
                     type="password"
-                    placeholder="••••••••"
+                    placeholder=".*********************************"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     className="pl-10 h-12"
@@ -157,7 +155,7 @@ export default function LoginPage() {
                 {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : 'Se connecter'}
               </Button>
               <div className="text-sm text-center text-muted-foreground">
-                Pas encore de matricule ?{' '}
+                Pas encore de Compte ?{' '}
                 <Link href="/auth/register" className="text-primary font-medium hover:underline">
                   Créer un compte
                 </Link>
