@@ -77,7 +77,7 @@ export default function OnboardingPage() {
 
       toast({
         title: 'Profil complété !',
-        description: 'Bienvenue officiellement sur la plateforme BACCI Executive.',
+        description: 'Bienvenue officiellement sur la plateforme NOVA Executive.',
       });
       router.push('/');
     } catch (error: any) {

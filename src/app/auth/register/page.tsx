@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useState } from 'react';
@@ -14,8 +13,9 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { UserPlus, Lock, Loader2, UserCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { Logo } from '@/components/logo';
 
-const AUTH_DOMAIN = "@leadersclub.ci";
+const AUTH_DOMAIN = "@nova.ci";
 
 export default function RegisterPage() {
   const [matricule, setMatricule] = useState('');
@@ -92,15 +92,21 @@ export default function RegisterPage() {
         transition={{ duration: 0.5 }}
         className="w-full max-w-md"
       >
+        <div className="flex flex-col items-center mb-4">
+          <div className="w-12 h-12 p-1.5 bg-primary/10 rounded-xl text-primary mb-2">
+            <Logo />
+          </div>
+        </div>
+
         <Card className="border-border/60 shadow-xl backdrop-blur-sm bg-card/90">
           <CardHeader>
             <div className="flex items-center justify-center gap-2 mb-2 text-primary">
               <UserPlus className="w-5 h-5" />
-              <span className="font-bold text-sm uppercase tracking-wider">Rejoindre le club</span>
+              <span className="font-bold text-sm uppercase tracking-wider">Rejoindre NOVA</span>
             </div>
             <CardTitle className="text-xl text-center">Créer un compte</CardTitle>
             <CardDescription className="text-center">
-              Enregistrez-vous avec votre matricule
+              Enregistrez-vous avec votre matricule unique
             </CardDescription>
           </CardHeader>
           <form onSubmit={handleRegister}>

@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { LogOut, Sparkles, User, Phone, BadgeCheck, ShieldAlert, Award, Briefcase } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { Logo } from '@/components/logo';
 
 export default function Home() {
   const router = useRouter();
@@ -23,7 +24,7 @@ export default function Home() {
     if (!uid) {
       const timer = setTimeout(() => {
         router.push('/auth/login');
-      }, 2500);
+      }, 3000);
       return () => clearTimeout(timer);
     }
 
@@ -47,7 +48,7 @@ export default function Home() {
         setTimeout(() => {
           setLoading(false);
           setShowSplash(false);
-        }, 2500);
+        }, 3000);
       }
     };
 
@@ -114,14 +115,9 @@ export default function Home() {
               className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent skew-x-12"
             />
             
-            <motion.div 
-              initial={{ scale: 0.8, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              transition={{ delay: 0.4, duration: 0.8, ease: "easeOut" }}
-              className="text-white"
-            >
-              <Sparkles className="w-16 h-16 animate-pulse-subtle" />
-            </motion.div>
+            <div className="w-20 h-20 p-2">
+              <Logo />
+            </div>
           </div>
         </motion.div>
 
@@ -132,10 +128,10 @@ export default function Home() {
           className="mt-12 text-center"
         >
           <h1 className="text-6xl font-black tracking-tighter leading-none text-transparent bg-clip-text bg-gradient-to-b from-foreground via-foreground/90 to-muted-foreground">
-            BAC<span className="text-primary italic ml-1">CI</span>
+            NOV<span className="text-primary italic ml-1">A</span>
           </h1>
           <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground/60 mt-3">
-            BACCI Executive Club
+            NOVA Executive Club
           </p>
         </motion.div>
       </div>
@@ -145,12 +141,12 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-secondary/20 p-4 sm:p-6 flex flex-col items-center">
       <header className="w-full max-w-4xl flex items-center justify-between mb-8 pb-4 border-b border-border/40">
-        <div className="flex items-center gap-2">
-          <div className="p-2 bg-primary/10 rounded-xl text-primary">
-            <Sparkles className="w-5 h-5" />
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 p-1 bg-primary/10 rounded-xl">
+            <Logo />
           </div>
           <div>
-            <h1 className="text-lg font-bold tracking-tight">BACCI Executive</h1>
+            <h1 className="text-lg font-bold tracking-tight">NOVA Executive</h1>
             <p className="text-xs text-muted-foreground">Club d'Excellence Affaires</p>
           </div>
         </div>
@@ -218,7 +214,7 @@ export default function Home() {
           <Card className="border-border/60 bg-primary/5 shadow-md h-full">
             <CardHeader>
               <CardTitle className="text-xs uppercase tracking-wider font-bold text-muted-foreground flex items-center gap-2">
-                <ShieldAlert className="w-4 h-4 text-primary" /> Club Info
+                <ShieldAlert className="w-4 h-4 text-primary" /> NOVA Info
               </CardTitle>
             </CardHeader>
             <CardContent className="text-sm text-muted-foreground space-y-4">

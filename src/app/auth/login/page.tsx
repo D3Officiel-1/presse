@@ -11,10 +11,11 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { UserCircle, Lock, Loader2, Sparkles } from 'lucide-react';
+import { UserCircle, Lock, Loader2 } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { Logo } from '@/components/logo';
 
-const AUTH_DOMAIN = "@leadersclub.ci";
+const AUTH_DOMAIN = "@nova.ci";
 
 export default function LoginPage() {
   const [matricule, setMatricule] = useState('');
@@ -72,7 +73,7 @@ export default function LoginPage() {
 
       toast({
         title: 'Connexion réussie',
-        description: 'Bienvenue dans votre espace BACCI Executive.',
+        description: 'Bienvenue dans votre espace NOVA Executive.',
       });
 
       router.push(isOnboarded ? '/' : '/auth/onboarding');
@@ -96,9 +97,10 @@ export default function LoginPage() {
         className="w-full max-w-md"
       >
         <div className="flex flex-col items-center mb-6 text-center">
-          <div className="p-3 rounded-2xl bg-primary/10 text-primary mb-2">
-            <Sparkles className="w-8 h-8" />
+          <div className="w-16 h-16 p-2 rounded-2xl bg-primary/10 text-primary mb-2">
+            <Logo />
           </div>
+          <h2 className="text-2xl font-bold tracking-tight">NOVA Executive Club</h2>
         </div>
 
         <Card className="border-border/60 shadow-xl backdrop-blur-sm bg-card/90">
@@ -153,7 +155,7 @@ export default function LoginPage() {
                 {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : 'Se connecter'}
               </Button>
               <div className="text-sm text-center text-muted-foreground">
-                Pas encore de Compte ?{' '}
+                Pas encore de compte ?{' '}
                 <Link href="/auth/register" className="text-primary font-medium hover:underline">
                   Créer un compte
                 </Link>

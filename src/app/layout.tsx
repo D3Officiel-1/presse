@@ -5,8 +5,8 @@ import { FirebaseClientProvider } from '@/firebase/client-provider';
 import React from 'react';
 
 export const metadata: Metadata = {
-  title: 'BACCI Executive Club',
-  description: 'Plateforme exclusive des membres BACCI.',
+  title: 'NOVA Executive Club',
+  description: 'Plateforme exclusive des membres NOVA.',
 };
 
 export default function RootLayout({
