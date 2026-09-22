@@ -69,48 +69,52 @@ export default function Home() {
   if (showSplash || loading) {
     return (
       <div className="fixed inset-0 flex flex-col items-center justify-center bg-[#09090B] overflow-hidden select-none z-[9999]">
+        {/* Dynamic Background Elements */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <motion.div
             animate={{
-              scale: [1, 1.3, 1],
-              opacity: [0.1, 0.2, 0.1],
-              rotate: [0, 90, 0]
+              x: [-60, 60, -60],
+              y: [-30, 30, -30],
+              scale: [1, 1.25, 1],
+              opacity: [0.15, 0.25, 0.15],
             }}
             transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
-            className="absolute -top-[20%] -left-[20%] w-[100%] h-[100%] bg-primary/20 blur-[150px] rounded-full"
+            className="absolute -top-[20%] -left-[20%] w-[90%] h-[90%] bg-primary/20 blur-[140px] rounded-full"
           />
           <motion.div
             animate={{
-              scale: [1.3, 1, 1.3],
-              opacity: [0.05, 0.15, 0.05],
-              rotate: [0, -90, 0]
+              x: [60, -60, 60],
+              y: [30, -30, 30],
+              scale: [1.2, 0.95, 1.2],
+              opacity: [0.1, 0.2, 0.1],
             }}
-            transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-            className="absolute -bottom-[20%] -right-[20%] w-[100%] h-[100%] bg-accent/30 blur-[150px] rounded-full"
+            transition={{ duration: 18, repeat: Infinity, ease: "linear" }}
+            className="absolute -bottom-[20%] -right-[20%] w-[90%] h-[90%] bg-accent/20 blur-[140px] rounded-full"
           />
         </div>
 
+        {/* Main Logo Container */}
         <motion.div
-          initial={{ opacity: 0, scale: 0.5, rotate: -20, filter: "blur(20px)" }}
-          animate={{ opacity: 1, scale: 1, rotate: 0, filter: "blur(0px)" }}
-          transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
+          initial={{ opacity: 0, scale: 0.8, filter: "blur(20px)" }}
+          animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
+          transition={{ duration: 1.4, ease: [0.22, 1, 0.36, 1] }}
           className="relative"
         >
           <motion.div
             animate={{
-              scale: [1, 1.2, 1],
+              scale: [1, 1.15, 1],
               opacity: [0.2, 0.4, 0.2],
             }}
-            transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+            transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut" }}
             className="absolute -inset-24 bg-primary/20 blur-[80px] rounded-full pointer-events-none"
           />
 
-          <div className="w-40 h-40 bg-[#18181B] rounded-[3rem] flex items-center justify-center shadow-2xl relative overflow-hidden border border-white/10">
+          <div className="w-40 h-40 bg-[#141417] rounded-[2.5rem] flex items-center justify-center shadow-2xl relative overflow-hidden border border-white/10">
             <motion.div
-              initial={{ x: "-100%" }}
-              animate={{ x: "200%" }}
-              transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-              className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent skew-x-12"
+              initial={{ x: "-120%" }}
+              animate={{ x: "220%" }}
+              transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
+              className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent skew-x-12"
             />
             
             <div className="w-28 h-28 p-2">
@@ -119,16 +123,17 @@ export default function Home() {
           </div>
         </motion.div>
 
+        {/* Title and Tagline */}
         <motion.div
           initial={{ opacity: 0, y: 30, filter: "blur(10px)" }}
           animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-          transition={{ delay: 0.6, duration: 1, ease: [0.22, 1, 0.36, 1] }}
+          transition={{ delay: 0.5, duration: 1, ease: [0.22, 1, 0.36, 1] }}
           className="mt-12 text-center"
         >
           <h1 className="text-7xl font-black tracking-tighter leading-none text-white">
             NOV<span className="text-primary italic">A</span>
           </h1>
-          <p className="text-sm font-medium uppercase tracking-[0.3em] text-muted-foreground mt-4 opacity-70">
+          <p className="text-sm font-bold uppercase tracking-[0.3em] text-muted-foreground mt-4 opacity-75">
             Explosion de Talents
           </p>
         </motion.div>
