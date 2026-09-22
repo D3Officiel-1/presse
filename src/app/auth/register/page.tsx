@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState } from 'react';
@@ -11,11 +12,13 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Mail, Lock, Loader2, UserPlus } from 'lucide-react';
+import { UserPlus, Lock, Loader2, UserCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
 
+const AUTH_DOMAIN = "@leadersclub.ci";
+
 export default function RegisterPage() {
-  const [email, setEmail] = useState('');
+  const [matricule, setMatricule] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -26,36 +29,21 @@ export default function RegisterPage() {
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email || !password || !confirmPassword) {
-      toast({
-        variant: 'destructive',
-        title: 'Erreur',
-        description: 'Veuillez remplir tous les champs.',
-      });
+    if (!matricule || !password || !confirmPassword) {
+      toast({ variant: 'destructive', title: 'Erreur', description: 'Veuillez remplir tous les champs.' });
       return;
     }
 
     if (password !== confirmPassword) {
-      toast({
-        variant: 'destructive',
-        title: 'Erreur',
-        description: 'Les mots de passe ne correspondent pas.',
-      });
-      return;
-    }
-
-    if (password.length < 6) {
-      toast({
-        variant: 'destructive',
-        title: 'Erreur',
-        description: 'Le mot de passe doit contenir au moins 6 caractères.',
-      });
+      toast({ variant: 'destructive', title: 'Erreur', description: 'Les mots de passe ne correspondent pas.' });
       return;
     }
 
     setLoading(true);
     try {
-      const userCredential = await createUserWithEmailAndPassword(authInstance, email, password);
+      const technicalEmail = `${matricule.trim().toLowerCase()}${AUTH_DOMAIN}`;
+      
+      const userCredential = await createUserWithEmailAndPassword(authInstance, technicalEmail, password);
       const firebaseUser = userCredential.user;
 
       const deviceId = Math.random().toString(36).substring(2, 15);
@@ -63,7 +51,8 @@ export default function RegisterPage() {
 
       await setDoc(userDocRef, {
         uid: firebaseUser.uid,
-        email: firebaseUser.email,
+        matricule: matricule.trim().toUpperCase(),
+        email: technicalEmail,
         deviceId: deviceId,
         onboarded: false,
         online: true,
@@ -74,21 +63,21 @@ export default function RegisterPage() {
       localStorage.setItem('deviceId', deviceId);
       localStorage.setItem('user', JSON.stringify({
         uid: firebaseUser.uid,
-        email: firebaseUser.email,
+        matricule: matricule.trim().toUpperCase(),
         name: ''
       }));
 
       toast({
         title: 'Inscription réussie',
-        description: 'Bienvenue au club ! Configurons votre profil.',
+        description: 'Bienvenue au club ! Complétez votre profil.',
       });
 
       router.push('/auth/onboarding');
     } catch (error: any) {
       toast({
         variant: 'destructive',
-        title: 'Erreur d\'inscription',
-        description: error.message || 'Impossible de créer le compte.',
+        title: 'Erreur',
+        description: error.code === 'auth/email-already-in-use' ? 'Ce matricule est déjà utilisé.' : error.message,
       });
     } finally {
       setLoading(false);
@@ -111,22 +100,21 @@ export default function RegisterPage() {
             </div>
             <CardTitle className="text-xl text-center">Créer un compte</CardTitle>
             <CardDescription className="text-center">
-              Rejoignez le réseau d'excellence Saint-Exupéry
+              Enregistrez-vous avec votre matricule
             </CardDescription>
           </CardHeader>
           <form onSubmit={handleRegister}>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="email">Adresse Email</Label>
+                <Label htmlFor="matricule">Matricule</Label>
                 <div className="relative">
-                  <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <UserCircle className="absolute left-3 top-3.5 h-5 w-5 text-muted-foreground" />
                   <Input
-                    id="email"
-                    type="email"
-                    placeholder="exemple@domaine.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="pl-10"
+                    id="matricule"
+                    placeholder="Ex: 20492945R"
+                    value={matricule}
+                    onChange={(e) => setMatricule(e.target.value)}
+                    className="pl-10 h-12"
                     disabled={loading}
                   />
                 </div>
@@ -134,14 +122,14 @@ export default function RegisterPage() {
               <div className="space-y-2">
                 <Label htmlFor="password">Mot de passe</Label>
                 <div className="relative">
-                  <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <Lock className="absolute left-3 top-3.5 h-5 w-5 text-muted-foreground" />
                   <Input
                     id="password"
                     type="password"
                     placeholder="••••••••"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="pl-10"
+                    className="pl-10 h-12"
                     disabled={loading}
                   />
                 </div>
@@ -149,14 +137,14 @@ export default function RegisterPage() {
               <div className="space-y-2">
                 <Label htmlFor="confirmPassword">Confirmer le mot de passe</Label>
                 <div className="relative">
-                  <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <Lock className="absolute left-3 top-3.5 h-5 w-5 text-muted-foreground" />
                   <Input
                     id="confirmPassword"
                     type="password"
                     placeholder="••••••••"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
-                    className="pl-10"
+                    className="pl-10 h-12"
                     disabled={loading}
                   />
                 </div>
@@ -164,14 +152,7 @@ export default function RegisterPage() {
             </CardContent>
             <CardFooter className="flex flex-col space-y-4">
               <Button type="submit" className="w-full" disabled={loading}>
-                {loading ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Création du compte...
-                  </>
-                ) : (
-                  'S\'inscrire'
-                )}
+                {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : 'S\'inscrire'}
               </Button>
               <div className="text-sm text-center text-muted-foreground">
                 Déjà inscrit ?{' '}

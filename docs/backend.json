@@ -1,0 +1,33 @@
+
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "Profil d'un membre du club",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "matricule": { "type": "string", "description": "Identifiant unique du membre" },
+        "email": { "type": "string", "format": "email" },
+        "name": { "type": "string" },
+        "role": { "type": "string", "enum": ["leader", "partner", "guest"] },
+        "phone": { "type": "string" },
+        "company": { "type": "string" },
+        "onboarded": { "type": "boolean" },
+        "deviceId": { "type": "string" },
+        "online": { "type": "boolean" },
+        "lastSeen": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "matricule"]
+    }
+  },
+  "auth": {
+    "providers": ["password"]
+  },
+  "firestore": {
+    "users/{userId}": {
+      "schema": "User",
+      "description": "Données de profil utilisateur"
+    }
+  }
+}

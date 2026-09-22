@@ -1,13 +1,14 @@
+
 'use client';
 
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { doc, getDoc, getFirestore } from 'firebase/firestore';
-import { useAuth, useFirestore } from '@/firebase/provider';
+import { doc, getDoc } from 'firebase/firestore';
+import { useFirestore } from '@/firebase/provider';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { LogOut, Sparkles, User, Building, Phone, Mail, ShieldAlert } from 'lucide-react';
+import { LogOut, Sparkles, User, Building, Phone, BadgeCheck, ShieldAlert } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 export default function Home() {
@@ -54,7 +55,7 @@ export default function Home() {
     localStorage.removeItem('user');
     toast({
       title: 'Déconnexion',
-      description: 'Vous avez été déconnecté avec succès.',
+      description: 'Session terminée.',
     });
     router.push('/auth/login');
   };
@@ -64,7 +65,7 @@ export default function Home() {
       <div className="flex min-h-screen items-center justify-center bg-background">
         <div className="text-center space-y-2">
           <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto" />
-          <p className="text-sm text-muted-foreground font-medium">Chargement de votre espace...</p>
+          <p className="text-sm text-muted-foreground font-medium">Chargement...</p>
         </div>
       </div>
     );
@@ -77,7 +78,7 @@ export default function Home() {
           <Sparkles className="w-6 h-6 text-primary" />
           <div>
             <h1 className="text-lg font-bold tracking-tight">Leaders Club</h1>
-            <p className="text-xs text-muted-foreground">Espace Excellence</p>
+            <p className="text-xs text-muted-foreground">Excellence Saint-Exupéry</p>
           </div>
         </div>
         <Button variant="ghost" size="sm" onClick={handleLogout} className="text-muted-foreground hover:text-destructive">
@@ -91,33 +92,34 @@ export default function Home() {
           animate={{ opacity: 1, y: 0 }}
           className="md:col-span-2 space-y-6"
         >
-          <Card className="border-border/60 shadow-lg">
-            <CardHeader className="bg-primary/5 rounded-t-lg">
-              <div className="flex items-center gap-3">
-                <div className="p-3 bg-card rounded-xl border text-primary">
-                  <User className="w-6 h-6" />
+          <Card className="border-border/60 shadow-lg" variant="premium">
+            <CardHeader className="bg-primary/5">
+              <div className="flex items-center gap-4">
+                <div className="p-4 bg-card rounded-2xl border-2 border-primary/20 text-primary shadow-inner">
+                  <User className="w-8 h-8" />
                 </div>
                 <div>
-                  <CardTitle className="text-xl">{profile?.name || 'Cher Membre'}</CardTitle>
-                  <CardDescription className="capitalize font-semibold text-primary/80 mt-0.5">
-                    Statut : {profile?.role || 'Membre'}
+                  <CardTitle className="text-2xl">{profile?.name || 'Membre'}</CardTitle>
+                  <CardDescription className="flex items-center gap-2 mt-1">
+                    <BadgeCheck className="w-4 h-4 text-primary" />
+                    Matricule : <span className="text-foreground font-bold">{profile?.matricule}</span>
                   </CardDescription>
                 </div>
               </div>
             </CardHeader>
-            <CardContent className="pt-6 space-y-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
-                <div className="flex items-center gap-2.5 p-3 rounded-lg bg-secondary/30 border border-border/30">
-                  <Mail className="w-4 h-4 text-muted-foreground" />
-                  <span className="truncate">{profile?.email}</span>
+            <CardContent className="pt-8 space-y-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="flex flex-col gap-1 p-4 rounded-2xl bg-secondary/30 border border-border/30">
+                  <span className="text-xs text-muted-foreground uppercase font-bold tracking-tighter">Statut Club</span>
+                  <span className="font-semibold text-primary">{profile?.role || 'Membre Actif'}</span>
                 </div>
-                <div className="flex items-center gap-2.5 p-3 rounded-lg bg-secondary/30 border border-border/30">
-                  <Building className="w-4 h-4 text-muted-foreground" />
-                  <span>{profile?.company || 'Non renseigné'}</span>
+                <div className="flex flex-col gap-1 p-4 rounded-2xl bg-secondary/30 border border-border/30">
+                  <span className="text-xs text-muted-foreground uppercase font-bold tracking-tighter">Entreprise</span>
+                  <span className="font-semibold truncate">{profile?.company || 'Non renseignée'}</span>
                 </div>
-                <div className="flex items-center gap-2.5 p-3 rounded-lg bg-secondary/30 border border-border/30 sm:col-span-2">
-                  <Phone className="w-4 h-4 text-muted-foreground" />
-                  <span>{profile?.phone || 'Aucun numéro de téléphone rattaché'}</span>
+                <div className="flex items-center gap-3 p-4 rounded-2xl bg-secondary/30 border border-border/30 sm:col-span-2">
+                  <Phone className="w-5 h-5 text-muted-foreground" />
+                  <span className="font-medium">{profile?.phone || 'Pas de numéro enregistré'}</span>
                 </div>
               </div>
             </CardContent>
@@ -135,9 +137,15 @@ export default function Home() {
                 <ShieldAlert className="w-4 h-4 text-primary" /> Club Info
               </CardTitle>
             </CardHeader>
-            <CardContent className="text-sm text-muted-foreground space-y-3">
-              <p>Bienvenue dans votre module d'accès premium.</p>
-              <p>Les fonctionnalités de messagerie, d'annuaire et d'événements exclusifs de la V1 se chargeront au fur et à mesure de l'activation des modules.</p>
+            <CardContent className="text-sm text-muted-foreground space-y-4">
+              <p>Votre badge digital est lié au matricule <strong>{profile?.matricule}</strong>.</p>
+              <p>En cas de perte d'accès, veuillez fournir ce matricule au support technique du club.</p>
+              <div className="pt-4 border-t border-primary/10">
+                <p className="text-[10px] text-muted-foreground/60 italic leading-tight">
+                  Identifiant technique :<br />
+                  {profile?.email}
+                </p>
+              </div>
             </CardContent>
           </Card>
         </motion.div>

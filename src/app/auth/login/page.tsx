@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState } from 'react';
@@ -11,11 +12,13 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Mail, Lock, Loader2, Sparkles } from 'lucide-react';
+import { UserCircle, Lock, Loader2, Sparkles } from 'lucide-react';
 import { motion } from 'framer-motion';
 
+const AUTH_DOMAIN = "@leadersclub.ci";
+
 export default function LoginPage() {
-  const [email, setEmail] = useState('');
+  const [matricule, setMatricule] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const authInstance = useAuth();
@@ -25,18 +28,21 @@ export default function LoginPage() {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email || !password) {
+    if (!matricule || !password) {
       toast({
         variant: 'destructive',
         title: 'Erreur',
-        description: 'Veuillez remplir tous les champs.',
+        description: 'Veuillez remplir votre matricule et mot de passe.',
       });
       return;
     }
 
     setLoading(true);
     try {
-      const userCredential = await signInWithEmailAndPassword(authInstance, email, password);
+      // Transformation matricule -> email technique
+      const technicalEmail = `${matricule.trim().toLowerCase()}${AUTH_DOMAIN}`;
+      
+      const userCredential = await signInWithEmailAndPassword(authInstance, technicalEmail, password);
       const firebaseUser = userCredential.user;
 
       const deviceId = Math.random().toString(36).substring(2, 15);
@@ -51,7 +57,8 @@ export default function LoginPage() {
 
       await setDoc(userDocRef, {
         uid: firebaseUser.uid,
-        email: firebaseUser.email,
+        matricule: matricule.trim().toUpperCase(),
+        email: technicalEmail,
         deviceId: deviceId,
         online: true,
         lastSeen: new Date()
@@ -61,25 +68,21 @@ export default function LoginPage() {
       localStorage.setItem('deviceId', deviceId);
       localStorage.setItem('user', JSON.stringify({
         uid: firebaseUser.uid,
-        email: firebaseUser.email,
+        matricule: matricule.trim().toUpperCase(),
         name: userDoc.exists() ? userDoc.data()?.name : ''
       }));
 
       toast({
         title: 'Connexion réussie',
-        description: 'Ravi de vous revoir !',
+        description: 'Bienvenue dans votre espace Leader.',
       });
 
-      if (isOnboarded) {
-        router.push('/');
-      } else {
-        router.push('/auth/onboarding');
-      }
+      router.push(isOnboarded ? '/' : '/auth/onboarding');
     } catch (error: any) {
       toast({
         variant: 'destructive',
-        title: 'Erreur d\'authentification',
-        description: error.message || 'Identifiants invalides.',
+        title: 'Erreur d\'accès',
+        description: 'Matricule ou mot de passe incorrect.',
       });
     } finally {
       setLoading(false);
@@ -106,22 +109,21 @@ export default function LoginPage() {
           <CardHeader>
             <CardTitle className="text-xl text-center">Connexion</CardTitle>
             <CardDescription className="text-center">
-              Accédez à votre espace membre sécurisé
+              Identifiez-vous avec votre matricule membre
             </CardDescription>
           </CardHeader>
           <form onSubmit={handleLogin}>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="email">Adresse Email</Label>
+                <Label htmlFor="matricule">Matricule</Label>
                 <div className="relative">
-                  <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <UserCircle className="absolute left-3 top-3.5 h-5 w-5 text-muted-foreground" />
                   <Input
-                    id="email"
-                    type="email"
-                    placeholder="exemple@domaine.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="pl-10"
+                    id="matricule"
+                    placeholder="Ex: 20492945R"
+                    value={matricule}
+                    onChange={(e) => setMatricule(e.target.value)}
+                    className="pl-10 h-12"
                     disabled={loading}
                   />
                 </div>
@@ -133,18 +135,18 @@ export default function LoginPage() {
                     href="/auth/forgot-password"
                     className="text-xs text-primary hover:underline"
                   >
-                    Mot de passe oublié ?
+                    Oublié ?
                   </Link>
                 </div>
                 <div className="relative">
-                  <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <Lock className="absolute left-3 top-3.5 h-5 w-5 text-muted-foreground" />
                   <Input
                     id="password"
                     type="password"
                     placeholder="••••••••"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="pl-10"
+                    className="pl-10 h-12"
                     disabled={loading}
                   />
                 </div>
@@ -152,17 +154,10 @@ export default function LoginPage() {
             </CardContent>
             <CardFooter className="flex flex-col space-y-4">
               <Button type="submit" className="w-full" disabled={loading}>
-                {loading ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Connexion en cours...
-                  </>
-                ) : (
-                  'Se connecter'
-                )}
+                {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : 'Se connecter'}
               </Button>
               <div className="text-sm text-center text-muted-foreground">
-                Pas encore de compte ?{' '}
+                Pas encore de matricule ?{' '}
                 <Link href="/auth/register" className="text-primary font-medium hover:underline">
                   Créer un compte
                 </Link>
