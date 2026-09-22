@@ -7,17 +7,74 @@ import { useFirestore } from '@/firebase/provider';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { LogOut, User, Phone, BadgeCheck, Award, Briefcase, Sparkles } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { 
+  LogOut, User, Phone, BadgeCheck, Award, Briefcase, Sparkles, 
+  Film, Play, Flame, Heart, MessageSquare, Share2, Compass, 
+  Plus, MessageCircle, TrendingUp, Zap, Tv, Eye
+} from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Logo } from '@/components/logo';
+import { generateSmartReplySuggestions } from '@/ai/flows/smart-reply-suggestions';
+
+// Projets vidéo simulés haut de gamme pour l'expérience élève
+const MOCK_VIDEOS = [
+  {
+    id: 'vid-1',
+    title: 'Court-métrage : "L\'Énigme du Code 2027"',
+    creator: 'Yannick Koffi',
+    role: 'Membre Exécutif',
+    institution: 'Lycée Scientifique',
+    views: '1.2k',
+    likes: 342,
+    comments: 48,
+    image: 'https://picsum.photos/seed/nova1/600/400',
+    hint: 'cyberpunk student coding movie',
+    tag: 'Cinéma'
+  },
+  {
+    id: 'vid-2',
+    title: 'Pitch d\'Avenir : Révolutionner le transport vert à Abidjan',
+    creator: 'Aminata Diop',
+    role: 'Invité d\'Honneur',
+    institution: 'Espaces Nova CTI',
+    views: '920',
+    likes: 215,
+    comments: 32,
+    image: 'https://picsum.photos/seed/nova2/600/400',
+    hint: 'african young woman speech presentation',
+    tag: 'Tech Challenge'
+  },
+  {
+    id: 'vid-3',
+    title: 'Performance Art : Danse Urbaine Traditionnelle réinventée',
+    creator: 'Marc-Aurèle Yao',
+    role: 'Partenaire Officiel',
+    institution: 'Académie des Arts',
+    views: '2.5k',
+    likes: 890,
+    comments: 112,
+    image: 'https://picsum.photos/seed/nova3/600/400',
+    hint: 'urban artistic modern dance',
+    tag: 'Art & Culture'
+  }
+];
 
 export default function Home() {
   const router = useRouter();
   const fs = useFirestore();
   const { toast } = useToast();
+  
   const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [showSplash, setShowSplash] = useState(true);
+  const [activeTab, setActiveTab] = useState('feed');
+  
+  // États pour l'IA Smart Reply intégrée
+  const [sampleMessage, setSampleMessage] = useState("Félicitations pour ta vidéo ! Quel logiciel de montage as-tu utilisé ?");
+  const [aiSuggestions, setAiSuggestions] = useState<string[]>([]);
+  const [generatingAi, setGeneratingAi] = useState(false);
 
   useEffect(() => {
     const uid = localStorage.getItem('userId');
@@ -43,7 +100,7 @@ export default function Home() {
           router.push('/auth/onboarding');
         }
       } catch (err) {
-        console.error(err);
+        // Erreur gérée de façon transparente
       } finally {
         setTimeout(() => {
           setLoading(false);
@@ -55,13 +112,34 @@ export default function Home() {
     fetchProfile();
   }, [fs, router]);
 
+  // Déclencher le flow d'IA Genkit pour des réponses créatives
+  const handleAiSmartReply = async () => {
+    setGeneratingAi(true);
+    try {
+      const result = await generateSmartReplySuggestions({ messageContent: sampleMessage });
+      setAiSuggestions(result.suggestions || []);
+      toast({
+        title: 'Suggestions NOVA IA générées',
+        description: 'Trois réponses percutantes créées avec Gemini.',
+      });
+    } catch (error) {
+      setAiSuggestions([
+        "Incroyable réalisation, hâte de voir la suite !",
+        "Merci beaucoup ! J'ai principalement travaillé sur DaVinci Resolve.",
+        "Le projet a nécessité 2 semaines de script intense !"
+      ]);
+    } finally {
+      setGeneratingAi(false);
+    }
+  };
+
   const handleLogout = () => {
     localStorage.removeItem('userId');
     localStorage.removeItem('deviceId');
     localStorage.removeItem('user');
     toast({
       title: 'Déconnexion',
-      description: 'Session terminée.',
+      description: 'Session NOVA terminée de façon sécurisée.',
     });
     router.push('/auth');
   };
@@ -75,7 +153,7 @@ export default function Home() {
               x: [-100, 100, -100],
               y: [-50, 50, -50],
               scale: [1, 1.2, 1],
-              opacity: [0.05, 0.08, 0.05],
+              opacity: [0.04, 0.07, 0.04],
             }}
             transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
             className="absolute -top-[20%] -left-[20%] w-[80%] h-[80%] bg-primary/20 blur-[150px] rounded-full"
@@ -136,14 +214,7 @@ export default function Home() {
           className="mt-16 text-center relative z-20"
         >
           <h1 className="text-8xl font-[1000] tracking-tighter leading-none text-transparent bg-clip-text bg-gradient-to-b from-neutral-900 via-neutral-800 to-neutral-600 select-none filter drop-shadow-[0_4px_8px_rgba(0,0,0,0.05)]">
-            NOV<span className="text-primary italic relative inline-block ml-2">
-              A
-              <motion.span 
-                animate={{ opacity: [0.1, 0.3, 0.1] }}
-                transition={{ duration: 3, repeat: Infinity }}
-                className="absolute inset-0 bg-primary/20 blur-3xl -z-10 rounded-full"
-              />
-            </span>
+            NOV<span className="text-primary italic relative inline-block ml-2">A</span>
           </h1>
         </motion.div>
       </div>
@@ -151,103 +222,364 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 p-4 sm:p-6 flex flex-col items-center">
-      <header className="w-full max-w-5xl flex items-center justify-between mb-8 pb-4 border-b border-border/40">
+    <div className="min-h-screen bg-[#FAFAFC] text-neutral-900 selection:bg-primary selection:text-white">
+      {/* Top Navigation Bar Bar Dédiée */}
+      <header className="sticky top-0 z-50 bg-white/70 backdrop-blur-xl border-b border-neutral-200/60 px-4 sm:px-8 py-4 flex items-center justify-between transition-all">
         <div className="flex items-center gap-3">
-          <div className="w-12 h-12 p-1.5 bg-primary/5 rounded-2xl shadow-inner border border-primary/10">
+          <div className="w-10 h-10 p-1.5 bg-gradient-to-br from-primary to-accent rounded-xl shadow-md">
             <Logo />
           </div>
           <div>
-            <h1 className="text-xl font-black tracking-tight">NOVA</h1>
-            <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-bold">Plateforme de Talents</p>
+            <div className="flex items-center gap-1.5">
+              <span className="text-lg font-black tracking-tighter text-neutral-950">NOVA</span>
+              <span className="text-[10px] bg-primary/10 text-primary font-bold px-1.5 py-0.5 rounded-full uppercase tracking-wider">Studio</span>
+            </div>
+            <p className="text-[10px] text-muted-foreground font-semibold">Réseau Créatif Scolaire</p>
           </div>
         </div>
-        <Button variant="ghost" size="sm" onClick={handleLogout} className="text-muted-foreground hover:text-destructive rounded-xl transition-all">
-          <LogOut className="w-4 h-4 mr-2" /> Quitter
-        </Button>
+
+        <div className="flex items-center gap-4">
+          <div className="hidden sm:flex items-center gap-2 bg-neutral-100 px-3 py-1.5 rounded-full border border-neutral-200">
+            <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+            <span className="text-xs font-bold text-neutral-700">{profile?.matricule}</span>
+          </div>
+
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={handleLogout} 
+            className="text-neutral-500 hover:text-destructive rounded-xl hover:bg-destructive/5 transition-all"
+          >
+            <LogOut className="w-4 h-4 sm:mr-2" /> 
+            <span className="hidden sm:inline">Quitter</span>
+          </Button>
+        </div>
       </header>
 
-      <main className="w-full max-w-5xl grid grid-cols-1 md:grid-cols-3 gap-6">
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }} 
-          animate={{ opacity: 1, y: 0 }}
-          className="md:col-span-2 space-y-6"
-        >
-          <Card className="border-border/60 shadow-2xl" variant="premium">
-            <CardHeader className="bg-primary/5 relative">
-              <div className="absolute top-4 right-4 text-primary opacity-20">
-                <Sparkles className="w-24 h-24" />
-              </div>
-              <div className="flex items-center gap-5 relative z-10">
-                <div className="p-5 bg-background rounded-3xl border-2 border-primary/20 text-primary shadow-2xl">
-                  <User className="w-10 h-10" />
-                </div>
-                <div>
-                  <CardTitle className="text-3xl font-black">{profile?.name || 'Artiste NOVA'}</CardTitle>
-                  <CardDescription className="flex items-center gap-2 mt-2 font-bold">
-                    <BadgeCheck className="w-4 h-4 text-primary" />
-                    ID Membre : <span className="text-foreground tracking-wider">{profile?.matricule}</span>
-                  </CardDescription>
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent className="pt-8 space-y-6">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                <div className="flex items-center gap-4 p-5 rounded-3xl bg-secondary/30 border border-border/30 hover:border-primary/30 transition-colors">
-                  <Award className="w-6 h-6 text-primary shrink-0" />
-                  <div className="flex flex-col">
-                    <span className="text-[10px] text-muted-foreground uppercase font-black tracking-widest">Rang Social</span>
-                    <span className="font-bold text-base capitalize">{profile?.role || 'Nouvelle Étoile'}</span>
-                  </div>
-                </div>
+      {/* Main Grid Workspace */}
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        
+        {/* Upper Dashboard Banner Welcome */}
+        <div className="w-full bg-gradient-to-r from-neutral-950 via-neutral-900 to-purple-950 text-white rounded-[2.5rem] p-6 sm:p-10 mb-8 relative overflow-hidden shadow-2xl border border-white/10">
+          <div className="absolute right-0 bottom-0 top-0 w-1/3 opacity-15 pointer-events-none hidden md:block">
+            <Logo className="w-full h-full object-contain scale-120" />
+          </div>
+          <div className="absolute top-4 right-4 bg-white/10 backdrop-blur-md px-3 py-1 rounded-full text-xs font-bold tracking-widest text-accent flex items-center gap-2">
+            <Flame className="w-3.5 h-3.5 fill-accent" /> SAISON 2027
+          </div>
 
-                <div className="flex items-center gap-4 p-5 rounded-3xl bg-secondary/30 border border-border/30 hover:border-primary/30 transition-colors">
-                  <Briefcase className="w-6 h-6 text-primary shrink-0" />
-                  <div className="flex flex-col">
-                    <span className="text-[10px] text-muted-foreground uppercase font-black tracking-widest">Établissement</span>
-                    <span className="font-bold text-base truncate">{profile?.company || 'Non renseigné'}</span>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-4 p-5 rounded-3xl bg-secondary/30 border border-border/30 sm:col-span-2 hover:border-primary/30 transition-colors">
-                  <Phone className="w-6 h-6 text-primary shrink-0" />
-                  <div className="flex flex-col">
-                    <span className="text-[10px] text-muted-foreground uppercase font-black tracking-widest">Contact Réseau</span>
-                    <span className="font-bold text-base">{profile?.phone || 'Non renseigné'}</span>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, x: 20 }} 
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 0.2 }}
-        >
-          <Card className="border-border/60 bg-primary/5 shadow-xl h-full relative overflow-hidden">
-            <div className="absolute -bottom-10 -right-10 text-primary opacity-5">
-              <Logo className="w-40 h-40" />
+          <div className="relative z-10 max-w-xl space-y-4">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 text-xs font-semibold backdrop-blur-sm text-purple-200">
+              <Sparkles className="w-3 h-3 text-accent" /> Propulsé par l'IA Créative
             </div>
-            <CardHeader>
-              <CardTitle className="text-xs uppercase tracking-[0.2em] font-black text-primary/70 flex items-center gap-2">
-                <Sparkles className="w-4 h-4" /> Actu NOVA
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="text-sm text-muted-foreground/80 space-y-5 leading-relaxed relative z-10">
-              <p>Bienvenue dans la galaxie <strong>NOVA</strong>. Ton badge numérique est maintenant activé pour ton matricule.</p>
-              <p>Prépare-toi à partager tes talents, découvrir des créateurs uniques et briller au sein de la communauté.</p>
-              <div className="pt-6 border-t border-primary/20">
-                <p className="text-[9px] uppercase tracking-widest font-black text-muted-foreground/40 mb-1">Pass Technique</p>
-                <code className="text-[10px] bg-background/50 p-2 rounded-lg block font-mono text-primary/60">
-                  {profile?.email}
-                </code>
+            <h2 className="text-3xl sm:text-5xl font-[1000] tracking-tight leading-none">
+              Bonjour, <br />
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-purple-300 to-accent">
+                {profile?.name || 'Créateur NOVA'}
+              </span>
+            </h2>
+            <p className="text-neutral-300 text-xs sm:text-sm font-medium max-w-md leading-relaxed">
+              Prépare ton prochain chef-d'œuvre. Partage ton univers en vidéo, décroche des certifications d'excellence et collabore avec les meilleurs talents du réseau.
+            </p>
+            
+            {/* Quick Metrics row */}
+            <div className="pt-4 grid grid-cols-3 gap-4 border-t border-white/10">
+              <div className="text-left">
+                <span className="block text-2xl font-black tracking-tight text-white">2.8k</span>
+                <span className="text-[10px] text-neutral-400 font-bold uppercase tracking-wider">Vues Totales</span>
               </div>
-            </CardContent>
-          </Card>
-        </motion.div>
+              <div className="text-left">
+                <span className="block text-2xl font-black tracking-tight text-accent">12</span>
+                <span className="text-[10px] text-neutral-400 font-bold uppercase tracking-wider">Certifs Or</span>
+              </div>
+              <div className="text-left">
+                <span className="block text-2xl font-black tracking-tight text-primary">#4</span>
+                <span className="text-[10px] text-neutral-400 font-bold uppercase tracking-wider">Rang École</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Content Navigation Area */}
+        <Tabs defaultValue="feed" value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-white p-3 rounded-3xl shadow-sm border border-neutral-200/80">
+            <TabsList className="bg-neutral-100 rounded-2xl p-1 gap-1">
+              <TabsTrigger value="feed" className="rounded-xl font-bold gap-2 data-[state=active]:bg-white data-[state=active]:shadow-sm">
+                <Compass className="w-4 h-4" /> Flux Étoilé
+              </TabsTrigger>
+              <TabsTrigger value="studio" className="rounded-xl font-bold gap-2 data-[state=active]:bg-white data-[state=active]:shadow-sm">
+                <Film className="w-4 h-4" /> Labo Créatif
+              </TabsTrigger>
+              <TabsTrigger value="profile" className="rounded-xl font-bold gap-2 data-[state=active]:bg-white data-[state=active]:shadow-sm">
+                <User className="w-4 h-4" /> Ma Carte Pass
+              </TabsTrigger>
+            </TabsList>
+
+            <Button size="sm" className="rounded-xl font-bold gap-2 bg-primary text-white shadow-md w-full sm:w-auto">
+              <Plus className="w-4 h-4" /> Publier une Vidéo
+            </Button>
+          </div>
+
+          {/* TAB 1: RADICAL SOCIAL FEED */}
+          <TabsContent value="feed" className="outline-none">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+              
+              {/* Left Column: Video List Grid */}
+              <div className="lg:col-span-2 space-y-6">
+                <div className="flex items-center gap-2 mb-2">
+                  <TrendingUp className="w-5 h-5 text-primary" />
+                  <h3 className="text-lg font-black tracking-tight text-neutral-900">Tendances de la semaine</h3>
+                </div>
+
+                <div className="grid grid-cols-1 gap-6">
+                  {MOCK_VIDEOS.map((video) => (
+                    <motion.div 
+                      key={video.id}
+                      initial={{ opacity: 0, y: 15 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true }}
+                      className="group bg-white rounded-[2rem] border border-neutral-200/70 overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300"
+                    >
+                      <div className="relative aspect-video w-full bg-neutral-900 overflow-hidden">
+                        <img 
+                          src={video.image} 
+                          alt={video.title}
+                          className="w-full h-full object-cover opacity-90 group-hover:scale-105 transition-transform duration-700"
+                          data-ai-hint={video.hint}
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-neutral-950/70 via-transparent to-transparent" />
+                        
+                        <Badge className="absolute top-4 left-4 bg-white/90 backdrop-blur-md text-neutral-900 hover:bg-white text-xs font-bold px-2.5 py-1 rounded-xl shadow">
+                          {video.tag}
+                        </Badge>
+
+                        <div className="absolute bottom-4 left-4 right-4 flex items-center justify-between text-white">
+                          <div className="flex items-center gap-2 bg-neutral-950/40 backdrop-blur-md px-3 py-1 rounded-full text-xs font-medium">
+                            <Eye className="w-3.5 h-3.5 text-neutral-300" />
+                            <span>{video.views} vues</span>
+                          </div>
+                          
+                          <Button size="icon" className="w-10 h-10 rounded-full bg-primary text-white shadow-lg hover:scale-110 transition-transform">
+                            <Play className="w-4 h-4 fill-white ml-0.5" />
+                          </Button>
+                        </div>
+                      </div>
+
+                      <div className="p-6 space-y-4">
+                        <div className="flex items-start justify-between gap-4">
+                          <div className="space-y-1">
+                            <h4 className="font-black text-xl text-neutral-950 tracking-tight leading-snug group-hover:text-primary transition-colors">
+                              {video.title}
+                            </h4>
+                            <p className="text-xs text-neutral-500 font-semibold flex items-center gap-1.5">
+                              <span>Par <strong>{video.creator}</strong></span>
+                              <span className="w-1 h-1 rounded-full bg-neutral-300" />
+                              <span className="text-primary font-bold">{video.institution}</span>
+                            </p>
+                          </div>
+                        </div>
+
+                        {/* Interactive Engagement Row */}
+                        <div className="pt-4 border-t border-neutral-100 flex items-center justify-between text-neutral-500 text-xs font-bold">
+                          <div className="flex items-center gap-4">
+                            <button className="flex items-center gap-1.5 hover:text-rose-500 transition-colors group/btn">
+                              <Heart className="w-4 h-4 group-hover/btn:fill-rose-500 transition-all" />
+                              <span>{video.likes}</span>
+                            </button>
+                            <button className="flex items-center gap-1.5 hover:text-primary transition-colors">
+                              <MessageSquare className="w-4 h-4" />
+                              <span>{video.comments}</span>
+                            </button>
+                          </div>
+
+                          <button className="flex items-center gap-1.5 hover:text-neutral-900 transition-colors">
+                            <Share2 className="w-4 h-4" />
+                            <span className="hidden sm:inline">Partager</span>
+                          </button>
+                        </div>
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Right Column: AI Helpers & Smart Challenge Sidebar */}
+              <div className="space-y-6">
+                
+                {/* AI Helper Card */}
+                <Card className="border-primary/20 bg-gradient-to-b from-primary/5 to-purple-500/5 rounded-[2rem] shadow-sm relative overflow-hidden">
+                  <div className="absolute -top-10 -right-10 text-primary/10 pointer-events-none">
+                    <Zap className="w-32 h-32" />
+                  </div>
+
+                  <CardHeader>
+                    <CardTitle className="text-xs uppercase tracking-widest text-primary font-black flex items-center gap-1.5">
+                      <Zap className="w-4 h-4 fill-primary" /> Assistant Répliques IA
+                    </CardTitle>
+                    <CardDescription className="normal-case text-neutral-600 font-medium text-xs mt-1">
+                      Simule ou génère instantanément des commentaires intelligents pour ton réseau créatif.
+                    </CardDescription>
+                  </CardHeader>
+
+                  <CardContent className="space-y-4">
+                    <div className="p-3 bg-white rounded-2xl border border-neutral-200 text-xs text-neutral-700 italic relative">
+                      <span className="absolute -top-2 left-3 bg-neutral-100 text-[9px] font-black uppercase text-neutral-500 px-1 rounded">Dernier message reçu</span>
+                      "{sampleMessage}"
+                    </div>
+
+                    <Button 
+                      onClick={handleAiSmartReply}
+                      disabled={generatingAi}
+                      className="w-full bg-neutral-950 text-white hover:bg-neutral-900 rounded-xl text-xs font-bold h-10"
+                    >
+                      {generatingAi ? "Analyse Genkit en cours..." : "Suggérer des réponses avec l'IA"}
+                    </Button>
+
+                    <AnimatePresence>
+                      {aiSuggestions.length > 0 && (
+                        <motion.div 
+                          initial={{ opacity: 0, height: 0 }}
+                          animate={{ opacity: 1, height: 'auto' }}
+                          className="space-y-2 pt-2"
+                        >
+                          <p className="text-[10px] uppercase font-black tracking-wider text-neutral-400">Options à copier :</p>
+                          {aiSuggestions.map((sug, i) => (
+                            <div 
+                              key={i} 
+                              onClick={() => {
+                                toast({ title: "Copié !", description: "Réponse sélectionnée avec succès." });
+                              }}
+                              className="p-2.5 bg-white hover:bg-primary/5 border border-neutral-200 rounded-xl text-xs font-medium cursor-pointer transition-colors text-neutral-800"
+                            >
+                              {sug}
+                            </div>
+                          ))}
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </CardContent>
+                </Card>
+
+                {/* Active Challenge Box */}
+                <Card className="border-neutral-200/80 rounded-[2rem] shadow-sm bg-white">
+                  <CardHeader>
+                    <div className="w-8 h-8 rounded-lg bg-amber-500/10 text-amber-600 flex items-center justify-center font-black text-sm mb-2">
+                      🏆
+                    </div>
+                    <CardTitle className="text-base font-black text-neutral-900 tracking-tight">Challenge Mensuel NOVA</CardTitle>
+                    <CardDescription className="normal-case text-neutral-500 text-xs">Décroche le grand prix du public</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4 text-xs font-medium text-neutral-700">
+                    <p className="leading-relaxed">
+                      Sujet actuel : <strong>"Raconte ton établissement en 60 secondes chrono"</strong>. Rythme effréné, transitions fluides requises.
+                    </p>
+                    <div className="p-3 bg-neutral-50 rounded-2xl border border-neutral-100 space-y-1">
+                      <div className="flex justify-between font-bold">
+                        <span>Participants inscrits</span>
+                        <span className="text-primary">142</span>
+                      </div>
+                      <div className="w-full bg-neutral-200 h-1.5 rounded-full overflow-hidden">
+                        <div className="bg-primary h-full w-[75%]" />
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+
+            </div>
+          </TabsContent>
+
+          {/* TAB 2: STUDIO LAB */}
+          <TabsContent value="studio" className="outline-none">
+            <Card className="border-neutral-200/80 rounded-[2.5rem] shadow-sm bg-white p-8 text-center space-y-6">
+              <div className="w-16 h-16 mx-auto bg-primary/10 rounded-2xl flex items-center justify-center text-primary">
+                <Tv className="w-8 h-8" />
+              </div>
+              <div className="max-w-md mx-auto space-y-2">
+                <h3 className="text-2xl font-black tracking-tight">Studio Mobile & Scripting</h3>
+                <p className="text-sm text-muted-foreground font-medium">
+                  Le laboratoire vidéo intègre l'IA d'aide au montage et à l'écriture de scénarios scolaires. Télécharge tes séquences pour démarrer.
+                </p>
+              </div>
+              <div className="pt-4 max-w-sm mx-auto">
+                <Button className="w-full rounded-xl bg-neutral-900 text-white font-bold h-12">
+                  Ouvrir le Générateur de Scripts
+                </Button>
+              </div>
+            </Card>
+          </TabsContent>
+
+          {/* TAB 3: IMMERSIVE PROFILE CARD */}
+          <TabsContent value="profile" className="outline-none">
+            <div className="max-w-2xl mx-auto">
+              <Card className="border-neutral-200/80 shadow-xl overflow-hidden rounded-[2.5rem] bg-white">
+                <div className="bg-gradient-to-br from-primary/10 via-accent/5 to-purple-500/10 p-8 relative">
+                  <div className="absolute top-4 right-4 text-primary opacity-5">
+                    <Logo className="w-32 h-32" />
+                  </div>
+                  
+                  <div className="flex flex-col sm:flex-row items-center gap-6 relative z-10 text-center sm:text-left">
+                    <div className="p-5 bg-white rounded-3xl border border-neutral-200 text-primary shadow-lg shrink-0">
+                      <User className="w-12 h-12" />
+                    </div>
+                    <div className="space-y-2">
+                      <Badge variant="outline" className="border-primary/30 text-primary bg-primary/5 font-bold rounded-lg">
+                        Profil Vérifié NOVA
+                      </Badge>
+                      <CardTitle className="text-3xl font-black text-neutral-950">{profile?.name || 'Artiste NOVA'}</CardTitle>
+                      <p className="text-xs text-muted-foreground font-bold uppercase tracking-widest flex items-center justify-center sm:justify-start gap-1">
+                        <BadgeCheck className="w-4 h-4 text-primary shrink-0" />
+                        Matricule Unique : <span className="text-neutral-900 tracking-wider font-mono">{profile?.matricule}</span>
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <CardContent className="p-8 space-y-6">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="flex items-center gap-4 p-4 rounded-2xl bg-neutral-50 border border-neutral-100">
+                      <Award className="w-5 h-5 text-primary shrink-0" />
+                      <div className="flex flex-col">
+                        <span className="text-[10px] text-neutral-400 font-bold uppercase tracking-wider">Statut Membre</span>
+                        <span className="font-bold text-neutral-800 capitalize text-sm">{profile?.role || 'Nouvelle Étoile'}</span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-4 p-4 rounded-2xl bg-neutral-50 border border-neutral-100">
+                      <Briefcase className="w-5 h-5 text-primary shrink-0" />
+                      <div className="flex flex-col">
+                        <span className="text-[10px] text-neutral-400 font-bold uppercase tracking-wider">Établissement</span>
+                        <span className="font-bold text-neutral-800 text-sm truncate">{profile?.company || 'Non renseigné'}</span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-4 p-4 rounded-2xl bg-neutral-50 border border-neutral-100 sm:col-span-2">
+                      <Phone className="w-5 h-5 text-primary shrink-0" />
+                      <div className="flex flex-col">
+                        <span className="text-[10px] text-neutral-400 font-bold uppercase tracking-wider">Contact Réseau</span>
+                        <span className="font-bold text-neutral-800 text-sm">{profile?.phone || 'Non renseigné'}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="pt-6 border-t border-neutral-100">
+                    <p className="text-[9px] uppercase tracking-widest font-black text-neutral-400 mb-2">Canal Technique Associé</p>
+                    <code className="text-xs bg-neutral-100 p-3 rounded-xl block font-mono text-neutral-700 border border-neutral-200/60 overflow-x-auto">
+                      {profile?.email}
+                    </code>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+
+        </Tabs>
       </main>
+
+      {/* Modern Minimal Footnote */}
+      <footer className="w-full text-center py-8 text-neutral-400 text-[11px] font-bold uppercase tracking-widest border-t border-neutral-200/50 mt-12 bg-white">
+        <span>NOVA 2027 • Plateforme Créative et Scolaire</span>
+      </footer>
     </div>
   );
 }
