@@ -7,8 +7,8 @@ import { useFirestore } from '@/firebase/provider';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { LogOut, Sparkles, User, Phone, BadgeCheck, ShieldAlert, Users, Award, Briefcase } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { LogOut, Sparkles, User, Phone, BadgeCheck, ShieldAlert, Award, Briefcase } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 export default function Home() {
   const router = useRouter();
@@ -21,7 +21,6 @@ export default function Home() {
   useEffect(() => {
     const uid = localStorage.getItem('userId');
     if (!uid) {
-      // Maintenir le splash un moment avant de rediriger
       const timer = setTimeout(() => {
         router.push('/auth/login');
       }, 2500);
@@ -45,7 +44,6 @@ export default function Home() {
       } catch (err) {
         console.error(err);
       } finally {
-        // Garantir un temps minimum de 2.5 secondes pour l'effet d'immersion du Splash Screen
         setTimeout(() => {
           setLoading(false);
           setShowSplash(false);
@@ -70,7 +68,6 @@ export default function Home() {
   if (showSplash || loading) {
     return (
       <div className="fixed inset-0 flex flex-col items-center justify-center bg-background overflow-hidden select-none z-[9999]">
-        {/* Dynamic Background Elements - Light Theme */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <motion.div
             animate={{
@@ -94,7 +91,6 @@ export default function Home() {
           />
         </div>
 
-        {/* Main Icon Container */}
         <motion.div
           initial={{ opacity: 0, scale: 0.8, filter: "blur(20px)" }}
           animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
@@ -129,7 +125,6 @@ export default function Home() {
           </div>
         </motion.div>
 
-        {/* Monumental Title */}
         <motion.div
           initial={{ opacity: 0, y: 30, filter: "blur(10px)" }}
           animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
@@ -140,7 +135,7 @@ export default function Home() {
             BAC<span className="text-primary italic ml-1">CI</span>
           </h1>
           <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground/60 mt-3">
-            Leaders Club Excellence
+            BACCI Executive Club
           </p>
         </motion.div>
       </div>
@@ -155,8 +150,8 @@ export default function Home() {
             <Sparkles className="w-5 h-5" />
           </div>
           <div>
-            <h1 className="text-lg font-bold tracking-tight">Leaders Club</h1>
-            <p className="text-xs text-muted-foreground">Excellence Saint-Exupéry</p>
+            <h1 className="text-lg font-bold tracking-tight">BACCI Executive</h1>
+            <p className="text-xs text-muted-foreground">Club d'Excellence Affaires</p>
           </div>
         </div>
         <Button variant="ghost" size="sm" onClick={handleLogout} className="text-muted-foreground hover:text-destructive rounded-xl">
@@ -228,7 +223,7 @@ export default function Home() {
             </CardHeader>
             <CardContent className="text-sm text-muted-foreground space-y-4">
               <p>Votre badge digital de membre d'excellence est officiellement lié au matricule <strong>{profile?.matricule}</strong>.</p>
-              <p>En cas de perte d'accès ou pour modifier vos coordonnées de membre, veuillez fournir ce matricule aux administrateurs du club.</p>
+              <p>En cas de perte d'accès ou pour modifier vos coordonnées de membre, veuillez fournir ce matricule aux administrateurs de la plateforme.</p>
               <div className="pt-4 border-t border-primary/10">
                 <p className="text-[10px] text-muted-foreground/60 italic leading-tight">
                   Identifiant technique sécurisé :<br />

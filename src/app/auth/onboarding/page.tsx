@@ -2,22 +2,21 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { doc, setDoc, getDoc } from 'firebase/firestore';
-import { useAuth, useFirestore } from '@/firebase/provider';
+import { doc, setDoc } from 'firebase/firestore';
+import { useFirestore } from '@/firebase/provider';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { useUser } from '@/firebase/auth/use-user';
 import { ChevronRight, ChevronLeft, Loader2, Sparkles, Check, User } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const ROLES = [
-  { id: 'leader', title: 'Leader Club', description: 'Membre actif participant aux décisions stratégiques.' },
-  { id: 'partner', title: 'Partenaire Officiel', description: 'Soutien et partenaire du réseau d\'excellence.' },
-  { id: 'guest', title: 'Invité d\'Honneur', description: 'Observateur ou contributeur ponctuel.' },
+  { id: 'leader', title: 'Membre Exécutif', description: 'Membre actif participant aux décisions stratégiques et commissions.' },
+  { id: 'partner', title: 'Partenaire Officiel', description: 'Soutien et partenaire du réseau d\'excellence commerciale.' },
+  { id: 'guest', title: 'Invité d\'Honneur', description: 'Observateur, conférencier ou contributeur ponctuel.' },
 ];
 
 export default function OnboardingPage() {
@@ -28,9 +27,7 @@ export default function OnboardingPage() {
   const [company, setCompany] = useState('');
   const [loading, setLoading] = useState(false);
   
-  const authInstance = useAuth();
   const firestoreInstance = useFirestore();
-  const { user } = useUser();
   const { toast } = useToast();
   const router = useRouter();
 
@@ -46,7 +43,7 @@ export default function OnboardingPage() {
       return;
     }
     if (step === 2 && !selectedRole) {
-      toast({ variant: 'destructive', title: 'Champs requis', description: 'Veuillez sélectionner un rôle au sein du club.' });
+      toast({ variant: 'destructive', title: 'Champs requis', description: 'Veuillez sélectionner un statut.' });
       return;
     }
     setStep((prev) => prev + 1);
@@ -80,7 +77,7 @@ export default function OnboardingPage() {
 
       toast({
         title: 'Profil complété !',
-        description: 'Bienvenue officiellement sur la plateforme du Leaders Club.',
+        description: 'Bienvenue officiellement sur la plateforme BACCI Executive.',
       });
       router.push('/');
     } catch (error: any) {
@@ -111,13 +108,13 @@ export default function OnboardingPage() {
           </div>
           <CardTitle className="text-xl">
             {step === 1 && 'Faisons connaissance'}
-            {step === 2 && 'Votre rôle au sein du club'}
+            {step === 2 && 'Votre statut au sein du club'}
             {step === 3 && 'Informations professionnelles'}
           </CardTitle>
           <CardDescription>
-            {step === 1 && 'Entrez vos informations de base pour votre badge de membre.'}
-            {step === 2 && 'Sélectionnez le statut qui correspond le mieux à votre adhésion.'}
-            {step === 3 && 'Ces détails aideront les autres leaders à vous contacter.'}
+            {step === 1 && 'Entrez vos informations de base pour votre badge numérique de membre.'}
+            {step === 2 && 'Sélectionnez le statut qui correspond le mieux à votre profil.'}
+            {step === 3 && 'Ces détails aideront les autres membres à vous contacter.'}
           </CardDescription>
         </CardHeader>
 
@@ -197,11 +194,11 @@ export default function OnboardingPage() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="phone">Numéro de téléphone (Optionnel)</Label>
+                  <Label htmlFor="phone">Numéro de téléphone</Label>
                   <Input
                     id="phone"
                     type="tel"
-                    placeholder="+33 6 12 34 56 78"
+                    placeholder="+225 07 00 00 00 00"
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
                   />
@@ -232,7 +229,7 @@ export default function OnboardingPage() {
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" /> Finalisation...
                 </>
               ) : (
-                'Accéder au Club'
+                'Accéder à la Plateforme'
               )}
             </Button>
           )}

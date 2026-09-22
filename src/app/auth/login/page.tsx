@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useState } from 'react';
@@ -39,7 +38,6 @@ export default function LoginPage() {
 
     setLoading(true);
     try {
-      // Transformation matricule -> email technique
       const technicalEmail = `${matricule.trim().toLowerCase()}${AUTH_DOMAIN}`;
       
       const userCredential = await signInWithEmailAndPassword(authInstance, technicalEmail, password);
@@ -74,7 +72,7 @@ export default function LoginPage() {
 
       toast({
         title: 'Connexion réussie',
-        description: 'Bienvenue dans votre espace Leader.',
+        description: 'Bienvenue dans votre espace BACCI Executive.',
       });
 
       router.push(isOnboarded ? '/' : '/auth/onboarding');
@@ -113,7 +111,7 @@ export default function LoginPage() {
           <form onSubmit={handleLogin}>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="matricule">Matricule !</Label>
+                <Label htmlFor="matricule">Matricule</Label>
                 <div className="relative">
                   <UserCircle className="absolute left-3 top-3.5 h-5 w-5 text-muted-foreground" />
                   <Input
@@ -128,7 +126,7 @@ export default function LoginPage() {
               </div>
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <Label htmlFor="password">Mot de passe !</Label>
+                  <Label htmlFor="password">Mot de passe</Label>
                   <Link
                     href="/auth/forgot-password"
                     className="text-xs text-primary hover:underline"
@@ -141,7 +139,7 @@ export default function LoginPage() {
                   <Input
                     id="password"
                     type="password"
-                    placeholder=".*********************************"
+                    placeholder="••••••••"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     className="pl-10 h-12"
