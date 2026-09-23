@@ -14,9 +14,9 @@ import { ChevronRight, ChevronLeft, Loader2, Sparkles, Check, User } from 'lucid
 import { motion, AnimatePresence } from 'framer-motion';
 
 const ROLES = [
-  { id: 'leader', title: 'Membre Exécutif', description: 'Membre actif participant aux décisions stratégiques et commissions.' },
-  { id: 'partner', title: 'Partenaire Officiel', description: 'Soutien et partenaire du réseau d\'excellence commerciale.' },
-  { id: 'guest', title: 'Invité d\'Honneur', description: 'Observateur, conférencier ou contributeur ponctuel.' },
+  { id: 'leader', title: 'Créateur Étoile', description: 'Élève actif publiant des projets, courts-métrages et tutoriels.' },
+  { id: 'partner', title: 'Partenaire Club', description: 'Établissement scolaire, encadrant ou mentor créatif.' },
+  { id: 'guest', title: 'Visiteur Inspiré', description: 'Observateur, juré des challenges ou contributeur ponctuel.' },
 ];
 
 export default function OnboardingPage() {
@@ -77,7 +77,7 @@ export default function OnboardingPage() {
 
       toast({
         title: 'Profil complété !',
-        description: 'Bienvenue officiellement sur la plateforme NOVA.',
+        description: 'Bienvenue officiellement sur la plateforme ZAP.',
       });
       router.push('/');
     } catch (error: any) {
@@ -108,13 +108,13 @@ export default function OnboardingPage() {
           </div>
           <CardTitle className="text-xl">
             {step === 1 && 'Faisons connaissance'}
-            {step === 2 && 'Votre statut au sein du club'}
-            {step === 3 && 'Informations professionnelles'}
+            {step === 2 && 'Votre rôle au sein de l\'app'}
+            {step === 3 && 'Informations scolaires'}
           </CardTitle>
           <CardDescription>
-            {step === 1 && 'Entrez vos informations de base pour votre badge numérique de membre.'}
+            {step === 1 && 'Entrez vos informations de base pour votre pass de créateur ZAP.'}
             {step === 2 && 'Sélectionnez le statut qui correspond le mieux à votre profil.'}
-            {step === 3 && 'Ces détails aideront les autres membres à vous contacter.'}
+            {step === 3 && 'Ces détails aideront les autres élèves à vous découvrir.'}
           </CardDescription>
         </CardHeader>
 
@@ -185,16 +185,16 @@ export default function OnboardingPage() {
                 className="space-y-4"
               >
                 <div className="space-y-2">
-                  <Label htmlFor="company">Entreprise / Organisation</Label>
+                  <Label htmlFor="company">Établissement Scolaire / Lycée</Label>
                   <Input
                     id="company"
-                    placeholder="Ex: Innovate Corp"
+                    placeholder="Ex: Lycée Classique d'Abidjan"
                     value={company}
                     onChange={(e) => setCompany(e.target.value)}
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="phone">Numéro de téléphone</Label>
+                  <Label htmlFor="phone">Numéro de téléphone WhatsApp</Label>
                   <Input
                     id="phone"
                     type="tel"

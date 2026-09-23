@@ -15,7 +15,7 @@ import { UserPlus, Lock, Loader2, UserCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Logo } from '@/components/logo';
 
-const AUTH_DOMAIN = "@nova.ci";
+const AUTH_DOMAIN = "@zap.ci";
 
 export default function RegisterPage() {
   const [matricule, setMatricule] = useState('');
@@ -69,7 +69,7 @@ export default function RegisterPage() {
 
       toast({
         title: 'Inscription réussie',
-        description: 'Bienvenue au club ! Complétez votre profil.',
+        description: 'Bienvenue sur ZAP ! Complétez votre profil.',
       });
 
       router.push('/auth/onboarding');
@@ -102,7 +102,7 @@ export default function RegisterPage() {
           <CardHeader>
             <div className="flex items-center justify-center gap-2 mb-2 text-primary">
               <UserPlus className="w-5 h-5" />
-              <span className="font-bold text-sm uppercase tracking-wider">Rejoindre NOVA</span>
+              <span className="font-bold text-sm uppercase tracking-wider">Rejoindre ZAP</span>
             </div>
             <CardTitle className="text-xl text-center">Créer un compte</CardTitle>
             <CardDescription className="text-center">

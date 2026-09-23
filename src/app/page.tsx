@@ -12,7 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   LogOut, User, Phone, BadgeCheck, Award, Briefcase, Sparkles, 
   Film, Play, Flame, Heart, MessageSquare, Share2, Compass, 
-  Plus, MessageCircle, TrendingUp, Zap, Tv, Eye
+  Plus, TrendingUp, Zap, Tv, Eye
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Logo } from '@/components/logo';
@@ -24,12 +24,12 @@ const MOCK_VIDEOS = [
     id: 'vid-1',
     title: 'Court-métrage : "L\'Énigme du Code 2027"',
     creator: 'Yannick Koffi',
-    role: 'Membre Exécutif',
+    role: 'Créateur Étoile',
     institution: 'Lycée Scientifique',
     views: '1.2k',
     likes: 342,
     comments: 48,
-    image: 'https://picsum.photos/seed/nova1/600/400',
+    image: 'https://picsum.photos/seed/zap1/600/400',
     hint: 'cyberpunk student coding movie',
     tag: 'Cinéma'
   },
@@ -37,12 +37,12 @@ const MOCK_VIDEOS = [
     id: 'vid-2',
     title: 'Pitch d\'Avenir : Révolutionner le transport vert à Abidjan',
     creator: 'Aminata Diop',
-    role: 'Invité d\'Honneur',
-    institution: 'Espaces Nova CTI',
+    role: 'Visiteur Inspiré',
+    institution: 'Espaces Créatifs CTI',
     views: '920',
     likes: 215,
     comments: 32,
-    image: 'https://picsum.photos/seed/nova2/600/400',
+    image: 'https://picsum.photos/seed/zap2/600/400',
     hint: 'african young woman speech presentation',
     tag: 'Tech Challenge'
   },
@@ -50,12 +50,12 @@ const MOCK_VIDEOS = [
     id: 'vid-3',
     title: 'Performance Art : Danse Urbaine Traditionnelle réinventée',
     creator: 'Marc-Aurèle Yao',
-    role: 'Partenaire Officiel',
+    role: 'Partenaire Club',
     institution: 'Académie des Arts',
     views: '2.5k',
     likes: 890,
     comments: 112,
-    image: 'https://picsum.photos/seed/nova3/600/400',
+    image: 'https://picsum.photos/seed/zap3/600/400',
     hint: 'urban artistic modern dance',
     tag: 'Art & Culture'
   }
@@ -100,7 +100,7 @@ export default function Home() {
           router.push('/auth/onboarding');
         }
       } catch (err) {
-        // Erreur gérée de façon transparente
+        console.error(err);
       } finally {
         setTimeout(() => {
           setLoading(false);
@@ -119,7 +119,7 @@ export default function Home() {
       const result = await generateSmartReplySuggestions({ messageContent: sampleMessage });
       setAiSuggestions(result.suggestions || []);
       toast({
-        title: 'Suggestions NOVA IA générées',
+        title: 'Suggestions ZAP IA générées',
         description: 'Trois réponses percutantes créées avec Gemini.',
       });
     } catch (error) {
@@ -139,7 +139,7 @@ export default function Home() {
     localStorage.removeItem('user');
     toast({
       title: 'Déconnexion',
-      description: 'Session NOVA terminée de façon sécurisée.',
+      description: 'Session ZAP terminée de façon sécurisée.',
     });
     router.push('/auth');
   };
@@ -214,7 +214,7 @@ export default function Home() {
           className="mt-16 text-center relative z-20"
         >
           <h1 className="text-8xl font-[1000] tracking-tighter leading-none text-transparent bg-clip-text bg-gradient-to-b from-neutral-900 via-neutral-800 to-neutral-600 select-none filter drop-shadow-[0_4px_8px_rgba(0,0,0,0.05)]">
-            NOV<span className="text-primary italic relative inline-block ml-2">A</span>
+            ZAP<span className="text-primary italic relative inline-block ml-2">!</span>
           </h1>
         </motion.div>
       </div>
@@ -231,7 +231,7 @@ export default function Home() {
           </div>
           <div>
             <div className="flex items-center gap-1.5">
-              <span className="text-lg font-black tracking-tighter text-neutral-950">NOVA</span>
+              <span className="text-lg font-black tracking-tighter text-neutral-950">ZAP</span>
               <span className="text-[10px] bg-primary/10 text-primary font-bold px-1.5 py-0.5 rounded-full uppercase tracking-wider">Studio</span>
             </div>
             <p className="text-[10px] text-muted-foreground font-semibold">Réseau Créatif Scolaire</p>
@@ -275,26 +275,26 @@ export default function Home() {
             <h2 className="text-3xl sm:text-5xl font-[1000] tracking-tight leading-none">
               Bonjour, <br />
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-purple-300 to-accent">
-                {profile?.name || 'Créateur NOVA'}
+                {profile?.name || 'Créateur ZAP'}
               </span>
             </h2>
             <p className="text-neutral-300 text-xs sm:text-sm font-medium max-w-md leading-relaxed">
-              Prépare ton prochain chef-d'œuvre. Partage ton univers en vidéo, décroche des certifications d'excellence et collabore avec les meilleurs talents du réseau.
+              Prépare ton prochain chef-d'œuvre. Partage ton univers en vidéo courte, décroche des certifications d'excellence et collabore avec les meilleurs talents du réseau.
             </p>
             
             {/* Quick Metrics row */}
             <div className="pt-4 grid grid-cols-3 gap-4 border-t border-white/10">
               <div className="text-left">
-                <span className="block text-2xl font-black tracking-tight text-white">2.8k</span>
+                <span className="block text-2xl font-black tracking-tight text-white">3.4k</span>
                 <span className="text-[10px] text-neutral-400 font-bold uppercase tracking-wider">Vues Totales</span>
               </div>
               <div className="text-left">
-                <span className="block text-2xl font-black tracking-tight text-accent">12</span>
-                <span className="text-[10px] text-neutral-400 font-bold uppercase tracking-wider">Certifs Or</span>
+                <span className="block text-2xl font-black tracking-tight text-accent">18</span>
+                <span className="text-[10px] text-neutral-400 font-bold uppercase tracking-wider">Zaps d'Or</span>
               </div>
               <div className="text-left">
-                <span className="block text-2xl font-black tracking-tight text-primary">#4</span>
-                <span className="text-[10px] text-neutral-400 font-bold uppercase tracking-wider">Rang École</span>
+                <span className="block text-2xl font-black tracking-tight text-primary">#1</span>
+                <span className="text-[10px] text-neutral-400 font-bold uppercase tracking-wider">Rang Établissement</span>
               </div>
             </div>
           </div>
@@ -316,7 +316,7 @@ export default function Home() {
             </TabsList>
 
             <Button size="sm" className="rounded-xl font-bold gap-2 bg-primary text-white shadow-md w-full sm:w-auto">
-              <Plus className="w-4 h-4" /> Publier une Vidéo
+              <Plus className="w-4 h-4" /> Publier un Zap
             </Button>
           </div>
 
@@ -466,7 +466,7 @@ export default function Home() {
                     <div className="w-8 h-8 rounded-lg bg-amber-500/10 text-amber-600 flex items-center justify-center font-black text-sm mb-2">
                       🏆
                     </div>
-                    <CardTitle className="text-base font-black text-neutral-900 tracking-tight">Challenge Mensuel NOVA</CardTitle>
+                    <CardTitle className="text-base font-black text-neutral-900 tracking-tight">Challenge Mensuel ZAP</CardTitle>
                     <CardDescription className="normal-case text-neutral-500 text-xs">Décroche le grand prix du public</CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4 text-xs font-medium text-neutral-700">
@@ -498,7 +498,7 @@ export default function Home() {
               <div className="max-w-md mx-auto space-y-2">
                 <h3 className="text-2xl font-black tracking-tight">Studio Mobile & Scripting</h3>
                 <p className="text-sm text-muted-foreground font-medium">
-                  Le laboratoire vidéo intègre l'IA d'aide au montage et à l'écriture de scénarios scolaires. Télécharge tes séquences pour démarrer.
+                  Le laboratoire vidéo intègre l'IA d'aide au montage et à l'écriture de scénarios scolaires. Télécharge tes séquences pour démarrer ton ZAP.
                 </p>
               </div>
               <div className="pt-4 max-w-sm mx-auto">
@@ -524,9 +524,9 @@ export default function Home() {
                     </div>
                     <div className="space-y-2">
                       <Badge variant="outline" className="border-primary/30 text-primary bg-primary/5 font-bold rounded-lg">
-                        Profil Vérifié NOVA
+                        Pass Vérifié ZAP
                       </Badge>
-                      <CardTitle className="text-3xl font-black text-neutral-950">{profile?.name || 'Artiste NOVA'}</CardTitle>
+                      <CardTitle className="text-3xl font-black text-neutral-950">{profile?.name || 'Artiste ZAP'}</CardTitle>
                       <p className="text-xs text-muted-foreground font-bold uppercase tracking-widest flex items-center justify-center sm:justify-start gap-1">
                         <BadgeCheck className="w-4 h-4 text-primary shrink-0" />
                         Matricule Unique : <span className="text-neutral-900 tracking-wider font-mono">{profile?.matricule}</span>
@@ -540,7 +540,7 @@ export default function Home() {
                     <div className="flex items-center gap-4 p-4 rounded-2xl bg-neutral-50 border border-neutral-100">
                       <Award className="w-5 h-5 text-primary shrink-0" />
                       <div className="flex flex-col">
-                        <span className="text-[10px] text-neutral-400 font-bold uppercase tracking-wider">Statut Membre</span>
+                        <span className="text-[10px] text-neutral-400 font-bold uppercase tracking-wider">Statut</span>
                         <span className="font-bold text-neutral-800 capitalize text-sm">{profile?.role || 'Nouvelle Étoile'}</span>
                       </div>
                     </div>
@@ -548,7 +548,7 @@ export default function Home() {
                     <div className="flex items-center gap-4 p-4 rounded-2xl bg-neutral-50 border border-neutral-100">
                       <Briefcase className="w-5 h-5 text-primary shrink-0" />
                       <div className="flex flex-col">
-                        <span className="text-[10px] text-neutral-400 font-bold uppercase tracking-wider">Établissement</span>
+                        <span className="text-[10px] text-neutral-400 font-bold uppercase tracking-wider">Lycée / Établissement</span>
                         <span className="font-bold text-neutral-800 text-sm truncate">{profile?.company || 'Non renseigné'}</span>
                       </div>
                     </div>
@@ -578,7 +578,7 @@ export default function Home() {
 
       {/* Modern Minimal Footnote */}
       <footer className="w-full text-center py-8 text-neutral-400 text-[11px] font-bold uppercase tracking-widest border-t border-neutral-200/50 mt-12 bg-white">
-        <span>NOVA 2027 • Plateforme Créative et Scolaire</span>
+        <span>ZAP 2027 • Plateforme Créative et Scolaire</span>
       </footer>
     </div>
   );

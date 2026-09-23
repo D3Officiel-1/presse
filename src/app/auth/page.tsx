@@ -56,7 +56,7 @@ export default function AuthGatewayPage() {
           </h2>
           
           <p className="text-muted-foreground font-medium text-base leading-relaxed max-w-md">
-            Rejoignez la communauté sélective des talents scolaires de demain. Partagez, découvrez et brillez en vidéo.
+            Rejoignez la communauté sélective des talents scolaires de demain. Partagez, découvrez et brillez en vidéo courte.
           </p>
 
           <div className="grid grid-cols-2 gap-4 pt-4">
@@ -90,7 +90,7 @@ export default function AuthGatewayPage() {
               <Logo />
             </div>
             <h1 className="text-4xl font-[1000] tracking-tighter text-foreground">
-              NOV<span className="text-primary italic">A</span>
+              ZAP
             </h1>
             <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground/60 mt-1">
               Réseau Créatif Scolaire
@@ -103,7 +103,7 @@ export default function AuthGatewayPage() {
                 <Logo />
               </div>
               <CardTitle className="text-2xl font-black tracking-tight text-neutral-900 md:pr-12">
-                Bienvenue dans NOVA
+                Bienvenue dans ZAP
               </CardTitle>
             </CardHeader>
             
@@ -134,7 +134,7 @@ export default function AuthGatewayPage() {
 
       {/* Footer minimaliste */}
       <div className="absolute bottom-6 flex items-center justify-center gap-2 text-[10px] font-black text-muted-foreground/50 uppercase tracking-widest select-none">
-        <span>NOVA 2027</span>
+        <span>ZAP 2027</span>
       </div>
     </div>
   );

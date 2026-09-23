@@ -5,7 +5,7 @@ import { FirebaseClientProvider } from '@/firebase/client-provider';
 import React from 'react';
 
 export const metadata: Metadata = {
-  title: 'NOVA',
+  title: 'ZAP',
   description: 'Plateforme vidéo scolaire moderne et créative pour les talents de demain.',
 };
 
