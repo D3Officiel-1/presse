@@ -11,7 +11,6 @@ import { LogIn, UserPlus, Sparkles, Film, Award } from 'lucide-react';
 export default function AuthGatewayPage() {
   return (
     <div className="flex min-h-screen flex-col items-center justify-center p-4 bg-gradient-to-b from-[#FDFDFD] via-background to-secondary/20 overflow-hidden relative">
-      {/* Arrière-plan avec formes organiques dynamiques et lumineuses */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <motion.div
           animate={{
@@ -36,7 +35,6 @@ export default function AuthGatewayPage() {
 
       <div className="w-full max-w-4xl grid grid-cols-1 md:grid-cols-2 gap-8 items-center relative z-10 px-2 sm:px-4">
         
-        {/* Section de gauche : Présentation visuelle & éditoriale de la plateforme */}
         <motion.div
           initial={{ opacity: 0, x: -30 }}
           animate={{ opacity: 1, x: 0 }}
@@ -78,21 +76,24 @@ export default function AuthGatewayPage() {
           </div>
         </motion.div>
 
-        {/* Section de droite : Carte de connexion épurée et monumentale */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
         >
-          {/* Version mobile du header */}
-          <div className="flex flex-col items-center text-center md:hidden mb-8">
-            <div className="w-20 h-20 p-2.5 bg-white shadow-xl rounded-[2.2rem] border border-border/40 mb-3 flex items-center justify-center">
+          <div className="flex flex-col items-center text-center md:hidden mb-10 pt-2 relative">
+            <motion.div 
+              animate={{ scale: [1, 1.05, 1] }}
+              transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+              className="w-24 h-24 p-3 bg-gradient-to-tr from-white to-neutral-50/80 shadow-[0_20px_50px_rgba(124,58,237,0.15)] rounded-[2.5rem] border border-white mb-4 flex items-center justify-center relative overflow-hidden backdrop-blur-md"
+            >
+              <div className="absolute inset-0 bg-primary/5 pointer-events-none" />
               <Logo />
-            </div>
-            <h1 className="text-4xl font-[1000] tracking-tighter text-foreground">
-              ZAP
+            </motion.div>
+            <h1 className="text-5xl font-[1000] tracking-tight text-neutral-950 leading-none filter drop-shadow-sm">
+              ZAP<span className="text-primary">.</span>
             </h1>
-            <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground/60 mt-1">
+            <p className="text-[11px] font-black uppercase tracking-[0.25em] text-primary/80 mt-2 bg-primary/5 px-3 py-1 rounded-full border border-primary/10">
               Réseau Créatif Scolaire
             </p>
           </div>
@@ -132,7 +133,6 @@ export default function AuthGatewayPage() {
         </motion.div>
       </div>
 
-      {/* Footer minimaliste */}
       <div className="absolute bottom-6 flex items-center justify-center gap-2 text-[10px] font-black text-muted-foreground/50 uppercase tracking-widest select-none">
         <span>ZAP 2027</span>
       </div>
