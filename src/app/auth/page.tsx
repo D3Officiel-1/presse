@@ -11,6 +11,7 @@ import { LogIn, UserPlus, Sparkles, Film, Award } from 'lucide-react';
 export default function AuthGatewayPage() {
   return (
     <div className="flex min-h-screen flex-col items-center justify-center p-4 bg-gradient-to-b from-[#FDFDFD] via-background to-secondary/20 overflow-hidden relative">
+      {/* Animated Immersive Background Blobs */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <motion.div
           animate={{
@@ -35,6 +36,7 @@ export default function AuthGatewayPage() {
 
       <div className="w-full max-w-4xl grid grid-cols-1 md:grid-cols-2 gap-8 items-center relative z-10 px-2 sm:px-4">
         
+        {/* Left Side: Desktop Branding & Value Prop */}
         <motion.div
           initial={{ opacity: 0, x: -30 }}
           animate={{ opacity: 1, x: 0 }}
@@ -76,11 +78,13 @@ export default function AuthGatewayPage() {
           </div>
         </motion.div>
 
+        {/* Right Side: Auth Card Centered for Mobile */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
         >
+          {/* Mobile Header (Centered at Top) */}
           <div className="flex flex-col items-center text-center md:hidden mb-10 pt-2 relative">
             <motion.div 
               animate={{ scale: [1, 1.05, 1] }}
@@ -133,6 +137,7 @@ export default function AuthGatewayPage() {
         </motion.div>
       </div>
 
+      {/* Footer Branding */}
       <div className="absolute bottom-6 flex items-center justify-center gap-2 text-[10px] font-black text-muted-foreground/50 uppercase tracking-widest select-none">
         <span>ZAP 2027</span>
       </div>
