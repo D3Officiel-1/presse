@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useEffect, useRef, useState } from 'react';
@@ -46,7 +45,7 @@ const INITIAL_VIDEOS: Video[] = [
     fullName: 'Yannick Koffi',
     institution: 'Lycée Scientifique',
     likes: 12400,
-    comments: 856,
+    comments: 2,
     bookmarks: 2100,
     shares: 432,
     videoUrl: 'https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
@@ -62,7 +61,7 @@ const INITIAL_VIDEOS: Video[] = [
     fullName: 'Aminata Diop',
     institution: 'Espaces Créatifs CTI',
     likes: 8200,
-    comments: 420,
+    comments: 1,
     bookmarks: 1200,
     shares: 128,
     videoUrl: 'https://storage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4',
@@ -78,7 +77,7 @@ const INITIAL_VIDEOS: Video[] = [
     fullName: 'Marc-Aurèle Yao',
     institution: 'Académie des Arts',
     likes: 45100,
-    comments: 2300,
+    comments: 0,
     bookmarks: 8400,
     shares: 1500,
     videoUrl: 'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
@@ -107,7 +106,6 @@ export default function FeedPage() {
   
   const [activeVideo, setActiveVideo] = useState('vid-1');
   const [paused, setPaused] = useState(false);
-  const [muted] = useState(true);
   const [feedMode, setFeedMode] = useState<'for-you' | 'following'>('for-you');
 
   const [activeHeartAnimation, setActiveHeartAnimation] = useState<{ videoId: string; x: number; y: number } | null>(null);
@@ -261,10 +259,7 @@ export default function FeedPage() {
   };
 
   const handleToggleFollow = (creatorId: string) => {
-    if (!user?.uid || !firestore) {
-      toast({ variant: 'destructive', title: 'Action requise', description: 'Connectez-vous pour suivre ce créateur.' });
-      return;
-    }
+    if (!user?.uid || !firestore) return;
 
     const userRef = doc(firestore, 'users', user.uid);
     const isFollowing = followedCreators.includes(creatorId);
@@ -295,7 +290,7 @@ export default function FeedPage() {
         await navigator.share(shareData);
       } else {
         await navigator.clipboard.writeText(shareData.url);
-        toast({ title: 'Lien copié !', description: 'Le lien unique de la vidéo est disponible dans votre presse-papier.' });
+        toast({ title: 'Lien copié !' });
       }
     } catch (err) {}
   };
@@ -392,7 +387,7 @@ export default function FeedPage() {
                     ref={(el) => { videoRefs.current[video.id] = el; }}
                     src={video.videoUrl}
                     poster={video.poster}
-                    muted={muted}
+                    muted={true}
                     playsInline
                     loop
                     preload={isActive ? 'auto' : isNearActive ? 'metadata' : 'none'}
@@ -596,7 +591,16 @@ export default function FeedPage() {
       </div>
 
       <AnimatePresence>
-        {activeSheet && selectedVideo && (
+        {activeSheet === 'comments' && selectedVideo && (
+          <CommentSheet 
+            video={selectedVideo}
+            comments={commentsStore[selectedVideo.id] || []}
+            onClose={closeGlobalSheet}
+            onAddComment={handleAddComment}
+          />
+        )}
+
+        {activeSheet === 'menu' && selectedVideo && (
           <>
             <motion.div
               className="fixed inset-0 z-[90] bg-black/60 backdrop-blur-[2px]"
@@ -615,45 +619,34 @@ export default function FeedPage() {
             >
               <div className="mx-auto mt-3 h-1.5 w-12 rounded-full bg-white/20 shrink-0 cursor-pointer" onClick={closeGlobalSheet} />
 
-              {activeSheet === 'comments' && (
-                <CommentSheet 
-                  video={selectedVideo}
-                  comments={commentsStore[selectedVideo.id] || []}
-                  onClose={closeGlobalSheet}
-                  onAddComment={handleAddComment}
-                />
-              )}
+              <div className="p-5 space-y-2.5 pb-[calc(env(safe-area-inset-bottom,0px)+24px)] text-left">
+                <p className="text-[10px] font-black uppercase tracking-widest text-neutral-400 px-2 mb-2">Options du projet</p>
+                
+                <button 
+                  onClick={() => { handleToggleBookmark(selectedVideo.id); closeGlobalSheet(); }}
+                  className="w-full p-4 bg-white/5 hover:bg-white/10 text-sm font-bold rounded-2xl flex items-center gap-3 transition-colors outline-none active:scale-[0.99]"
+                >
+                  <Bookmark className={cn("w-4 h-4", bookmarkedVideos.includes(selectedVideo.id) ? "text-yellow-400" : "text-white")} />
+                  {bookmarkedVideos.includes(selectedVideo.id) ? "Retirer des favoris" : "Enregistrer dans mes favoris"}
+                </button>
 
-              {activeSheet === 'menu' && (
-                <div className="p-5 space-y-2.5 pb-[calc(env(safe-area-inset-bottom,0px)+24px)] text-left">
-                  <p className="text-[10px] font-black uppercase tracking-widest text-neutral-400 px-2 mb-2">Options du projet</p>
-                  
-                  <button 
-                    onClick={() => { handleToggleBookmark(selectedVideo.id); closeGlobalSheet(); }}
-                    className="w-full p-4 bg-white/5 hover:bg-white/10 text-sm font-bold rounded-2xl flex items-center gap-3 transition-colors outline-none active:scale-[0.99]"
-                  >
-                    <Bookmark className={cn("w-4 h-4", bookmarkedVideos.includes(selectedVideo.id) ? "text-yellow-400" : "text-white")} />
-                    {bookmarkedVideos.includes(selectedVideo.id) ? "Retirer des favoris" : "Enregistrer dans mes favoris"}
-                  </button>
+                <button 
+                  onClick={() => { handleNativeShare(selectedVideo); closeGlobalSheet(); }}
+                  className="w-full p-4 bg-white/5 hover:bg-white/10 text-sm font-bold rounded-2xl flex items-center gap-3 transition-colors outline-none active:scale-[0.99]"
+                >
+                  <Music className="w-4 h-4 text-primary" />
+                  Partager le projet créatif
+                </button>
 
-                  <button 
-                    onClick={() => { handleNativeShare(selectedVideo); closeGlobalSheet(); }}
-                    className="w-full p-4 bg-white/5 hover:bg-white/10 text-sm font-bold rounded-2xl flex items-center gap-3 transition-colors outline-none active:scale-[0.99]"
-                  >
-                    <Music className="w-4 h-4 text-primary" />
-                    Partager le projet créatif
-                  </button>
+                <div className="h-px bg-white/5 my-2" />
 
-                  <div className="h-px bg-white/5 my-2" />
-
-                  <button 
-                    onClick={() => { toast({ title: 'Signalement enregistré', description: 'Merci de maintenir la communauté saine.' }); closeGlobalSheet(); }}
-                    className="w-full p-4 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 text-sm font-black rounded-2xl flex items-center gap-3 transition-colors outline-none active:scale-[0.99]"
-                  >
-                    Signaler ce contenu
-                  </button>
-                </div>
-              )}
+                <button 
+                  onClick={() => { toast({ title: 'Signalement enregistré' }); closeGlobalSheet(); }}
+                  className="w-full p-4 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 text-sm font-black rounded-2xl flex items-center gap-3 transition-colors outline-none active:scale-[0.99]"
+                >
+                  Signaler ce contenu
+                </button>
+              </div>
             </motion.div>
           </>
         )}
