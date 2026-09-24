@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { ChevronRight, ChevronLeft, Loader2, Sparkles, Check, Quote, AtSign, Phone } from 'lucide-react';
+import { ChevronRight, ChevronLeft, Loader2, Sparkles, Check, Quote, AtSign, Phone, User } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 
