@@ -9,7 +9,7 @@ import { useAuth, useFirestore } from '@/firebase/provider';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { ChevronRight, ChevronLeft, Sparkles, CheckCircle2, ShieldCheck, Hash } from 'lucide-react';
+import { ChevronRight, ChevronLeft, Sparkles, ShieldCheck } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 
@@ -28,7 +28,6 @@ export default function RegisterPage() {
   const router = useRouter();
 
   const handleMatriculeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    // Forcer uniquement les lettres majuscules et les chiffres
     const cleanValue = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
     setMatricule(cleanValue);
   };
@@ -127,7 +126,7 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="flex flex-col min-h-[100dvh] w-full bg-[#F9F9FC] text-neutral-900 px-6 pt-12 pb-[calc(env(safe-area-inset-bottom,0px)+2rem)] justify-start items-center relative">
+    <div className="flex flex-col min-h-[100dvh] w-full bg-[#F9F9FC] text-neutral-900 px-6 pt-12 pb-[calc(env(safe-area-inset-bottom,0px)+2rem)] justify-start items-center relative overflow-y-auto">
       <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
         <div 
           className="absolute top-[-10%] right-[-10%] w-[60vw] h-[60vw] rounded-full blur-[100px]"
@@ -141,14 +140,14 @@ export default function RegisterPage() {
             <div 
               key={s}
               className={cn(
-                "h-1.5 rounded-full transition-all duration-500",
-                step === s ? "w-8 bg-primary" : "w-2 bg-neutral-200"
+                "h-2 w-2 rounded-full transition-all duration-300",
+                step === s ? "bg-primary scale-125" : "bg-neutral-200"
               )}
             />
           ))}
         </div>
 
-        <form onSubmit={handleRegister} className="space-y-8">
+        <form onSubmit={handleRegister} className="space-y-6">
           <div className="text-center">
             <h2 className="text-xl font-black tracking-tight text-neutral-900 flex items-center justify-center gap-2">
               {step === 1 ? (
@@ -165,7 +164,7 @@ export default function RegisterPage() {
             </h2>
           </div>
 
-          <div className="min-h-[140px] flex flex-col justify-center">
+          <div className="min-h-[120px] flex flex-col justify-center">
             <AnimatePresence mode="wait">
               {step === 1 ? (
                 <motion.div
@@ -178,13 +177,12 @@ export default function RegisterPage() {
                 >
                   <div className="relative flex flex-col items-center">
                     <div className="w-full relative max-w-xs mx-auto">
-                      <Hash className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-primary/60 z-10" />
                       <Input
                         id="matricule"
                         placeholder="EX: 24X94829"
                         value={matricule}
                         onChange={handleMatriculeChange}
-                        className="pl-12 pr-4 h-14 bg-white border-2 border-primary/20 rounded-2xl text-center font-mono font-black tracking-widest text-lg shadow-inner focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all uppercase placeholder:text-neutral-300"
+                        className="w-full h-14 bg-white border-2 border-primary/20 rounded-2xl text-center font-mono font-black tracking-widest text-lg shadow-inner focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all uppercase placeholder:text-neutral-300 px-4"
                         disabled={loading}
                         autoFocus
                         maxLength={15}
