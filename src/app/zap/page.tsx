@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useEffect, useRef, useState } from 'react';
@@ -8,23 +7,21 @@ import {
   MessageCircle,
   Bookmark,
   Play,
-  X,
-  Send,
   Music,
   MoreVertical
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
-import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { useUser } from '@/firebase/auth/use-user';
 import { useFirestore } from '@/firebase/provider';
 import { doc, updateDoc, arrayUnion, arrayRemove, onSnapshot } from 'firebase/firestore';
+import { CommentSheet } from '@/components/zap/comment-sheet';
 
 export type Video = {
   id: string;
-  creatorId: string; // Ajout de l'UID du créateur
+  creatorId: string;
   title: string;
   creator: string;
   fullName: string;
@@ -127,7 +124,6 @@ export default function FeedPage() {
       { id: 'c3', user: 'yannick_vfx', text: 'Très bon pitch, clair, ambitieux et inspirant.', time: 'Il y a 30 min' }
     ]
   });
-  const [newCommentInput, setNewCommentInput] = useState('');
 
   const feedRef = useRef<HTMLDivElement>(null);
   const videoRefs = useRef<Record<string, HTMLVideoElement | null>>({});
@@ -135,7 +131,6 @@ export default function FeedPage() {
   const pointerStartRef = useRef<{ time: number; x: number; y: number }>({ time: 0, x: 0, y: 0 });
   const doubleTapStateRef = useRef<{ lastTap: number; lastTapVideo: string }>({ lastTap: 0, lastTapVideo: '' });
 
-  // Écouter les abonnements réels de l'utilisateur
   useEffect(() => {
     if (!user?.uid || !firestore) return;
 
@@ -203,7 +198,7 @@ export default function FeedPage() {
 
     sections.forEach((section) => observer.observe(section));
     return () => observer.disconnect();
-  }, [activeVideo, feedMode]); // Dépendance feedMode pour ré-observer après filtrage
+  }, [activeVideo, feedMode]);
 
   const handleToggleLike = (id: string) => {
     const alreadyLiked = likedVideos.includes(id);
@@ -273,16 +268,13 @@ export default function FeedPage() {
     const userRef = doc(firestore, 'users', user.uid);
     const isFollowing = followedCreators.includes(creatorId);
 
-    // Mise à jour optimiste de l'UI
     setFollowedCreators(prev => 
       isFollowing ? prev.filter(id => id !== creatorId) : [...prev, creatorId]
     );
 
-    // Persistance Firestore
     updateDoc(userRef, {
       following: isFollowing ? arrayRemove(creatorId) : arrayUnion(creatorId)
     }).catch((e) => {
-      // Annulation de l'optimisme en cas d'erreur
       setFollowedCreators(prev => 
         isFollowing ? [...prev, creatorId] : prev.filter(id => id !== creatorId)
       );
@@ -320,15 +312,14 @@ export default function FeedPage() {
   const closeGlobalSheet = () => {
     setActiveSheet(null);
     setSelectedVideo(null);
-    setNewCommentInput('');
   };
 
-  const submitComment = () => {
-    if (!newCommentInput.trim() || !selectedVideo) return;
+  const handleAddComment = (text: string) => {
+    if (!selectedVideo) return;
     const newComment = {
       id: `c-custom-${Date.now()}`,
       user: 'moi_createur',
-      text: newCommentInput.trim(),
+      text: text,
       time: 'À l\'instant'
     };
 
@@ -338,7 +329,6 @@ export default function FeedPage() {
     }));
 
     setVideos((prev) => prev.map((v) => v.id === selectedVideo.id ? { ...v, comments: v.comments + 1 } : v));
-    setNewCommentInput('');
   };
 
   const filteredVideos = feedMode === 'following' 
@@ -471,7 +461,6 @@ export default function FeedPage() {
                 )}
               </AnimatePresence>
 
-              {/* Action Side Rail */}
               <div className="absolute bottom-[130px] right-3 z-30 flex flex-col items-center gap-4">
                 <div className="flex flex-col items-center">
                   <button
@@ -540,7 +529,6 @@ export default function FeedPage() {
                 </div>
               </div>
 
-              {/* Info Overlay */}
               <div className="absolute bottom-[125px] left-4 right-16 z-20 text-left pointer-events-none">
                 <div className="space-y-1.5 pointer-events-auto max-w-[85%]">
                   <div className="flex items-center gap-2">
@@ -625,46 +613,12 @@ export default function FeedPage() {
               <div className="mx-auto mt-3 h-1.5 w-12 rounded-full bg-white/20 shrink-0 cursor-pointer" onClick={closeGlobalSheet} />
 
               {activeSheet === 'comments' && (
-                <div className="flex-1 flex flex-col overflow-hidden">
-                  <div className="px-5 py-3.5 border-b border-white/5 flex items-center justify-between">
-                    <span className="text-xs font-black uppercase tracking-widest text-neutral-400">
-                      Commentaires créatifs ({selectedVideo.comments})
-                    </span>
-                    <button onClick={closeGlobalSheet} className="p-1.5 rounded-xl bg-white/5 text-white/70 active:scale-95 transition-transform outline-none">
-                      <X className="w-4 h-4" />
-                    </button>
-                  </div>
-
-                  <div className="flex-1 overflow-y-auto p-4 space-y-4">
-                    {(commentsStore[selectedVideo.id] || []).map((comment) => (
-                      <div key={comment.id} className="flex gap-3 items-start text-xs text-neutral-200">
-                        <div className="w-8 h-8 rounded-xl bg-primary/20 text-primary border border-primary/20 font-black uppercase flex items-center justify-center shrink-0 select-none">
-                          {comment.user.substring(0, 2)}
-                        </div>
-                        <div className="space-y-0.5 flex-1">
-                          <div className="flex items-center justify-between">
-                            <span className="font-black text-white">@{comment.user}</span>
-                            <span className="text-[10px] text-neutral-500 font-mono">{comment.time}</span>
-                          </div>
-                          <p className="font-medium text-neutral-300 leading-relaxed">{comment.text}</p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-
-                  <div className="p-3 border-t border-white/5 bg-neutral-900/60 flex gap-2 items-center pb-[calc(env(safe-area-inset-bottom,0px)+16px)]">
-                    <Input
-                      placeholder="Commenter..."
-                      value={newCommentInput}
-                      onChange={(e) => setNewCommentInput(e.target.value)}
-                      onKeyDown={(e) => e.key === 'Enter' && submitComment()}
-                      className="flex-1 h-11 bg-white/5 border-white/10 rounded-xl text-white placeholder:text-neutral-500 text-sm focus-visible:ring-primary/40"
-                    />
-                    <Button onClick={submitComment} disabled={!newCommentInput.trim()} size="icon" className="rounded-xl h-11 w-11 bg-primary active:scale-90 transition-transform outline-none">
-                      <Send className="w-4 h-4" />
-                    </Button>
-                  </div>
-                </div>
+                <CommentSheet 
+                  video={selectedVideo}
+                  comments={commentsStore[selectedVideo.id] || []}
+                  onClose={closeGlobalSheet}
+                  onAddComment={handleAddComment}
+                />
               )}
 
               {activeSheet === 'menu' && (
