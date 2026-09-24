@@ -93,7 +93,11 @@ function formatCount(value: number) {
   return value.toString();
 }
 
-export default function FeedPage() {
+export default function FeedPage(props: { params: Promise<any>; searchParams: Promise<any> }) {
+  // Déballage des Promises pour Next.js 15
+  const _params = React.use(props.params);
+  const _searchParams = React.use(props.searchParams);
+
   const router = useRouter();
   const { toast } = useToast();
   const { user } = useUser();
