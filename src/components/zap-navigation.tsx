@@ -60,14 +60,6 @@ export function ZapNavigation({ activeTab, setActiveTab }: ZapNavigationProps) {
             )}>
               <Icon className="w-5 h-5" />
             </div>
-            <span className={cn(
-              "text-[8px] font-black tracking-wider uppercase mt-0.5 transition-all duration-200 block",
-              isActive 
-                ? "opacity-100 scale-100 font-black" 
-                : "opacity-60 scale-95"
-            )}>
-              {item.label}
-            </span>
             {isActive && (
               <span className="absolute bottom-1 w-1 h-1 bg-primary rounded-full" />
             )}
