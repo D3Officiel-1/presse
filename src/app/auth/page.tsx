@@ -79,7 +79,7 @@ export default function AuthGatewayPage() {
           
           <Link href="/auth/login" className="block w-full">
             <Button size="lg" className="w-full bg-white text-primary hover:bg-neutral-50 rounded-2xl h-14 font-bold tracking-tight shadow-md transition-transform active:scale-[0.99]">
-              Se connecter à mon espace
+              Se connecter
             </Button>
           </Link>
 
@@ -89,7 +89,7 @@ export default function AuthGatewayPage() {
 
           <Link href="/auth/register" className="block w-full">
             <Button size="lg" variant="outline" className="w-full rounded-2xl h-14 bg-transparent text-white border-white/30 hover:bg-white/10 transition-all font-bold">
-              Créer un accès membre
+              Créer un compte
             </Button>
           </Link>
         </div>
