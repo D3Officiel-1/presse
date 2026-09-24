@@ -5,7 +5,6 @@ import {
   Heart,
   MessageCircle,
   Bookmark,
-  Share2,
   Play,
   Volume2,
   VolumeX,
@@ -65,7 +64,7 @@ const INITIAL_VIDEOS: Video[] = [
     videoUrl: 'https://storage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4',
     poster: 'https://picsum.photos/seed/zap2/600/1000',
     audioName: 'Tech Talk — Innovation Hub',
-    description: 'Comment nous allons changer la mobilité des étudiants à Abidjan. #tech #startup',
+    description: 'Comment nous allons changer la mobility des étudiants à Abidjan. #tech #startup',
   },
   {
     id: 'vid-3',
@@ -121,11 +120,7 @@ export default function FeedPage() {
   const feedRef = useRef<HTMLDivElement>(null);
   const videoRefs = useRef<Record<string, HTMLVideoElement | null>>({});
   const pointerStartRef = useRef<{ time: number; x: number; y: number }>({ time: 0, x: 0, y: 0 });
-  const doubleTapStateRef = useRef<{ lastTap: number; lastTapVideo: string; timeout: NodeJS.Timeout | null }>({
-    lastTap: 0,
-    lastTapVideo: '',
-    timeout: null
-  });
+  const doubleTapStateRef = useRef<{ lastTap: number; lastTapVideo: string }>({ lastTap: 0, lastTapVideo: '' });
 
   useEffect(() => {
     if (typeof document !== 'undefined') {
@@ -216,10 +211,6 @@ export default function FeedPage() {
     const delta = now - state.lastTap;
 
     if (delta < 300 && state.lastTapVideo === id) {
-      if (state.timeout) {
-        clearTimeout(state.timeout);
-        state.timeout = null;
-      }
       if (!likedVideos.includes(id)) {
         handleToggleLike(id);
       }
@@ -229,9 +220,10 @@ export default function FeedPage() {
     } else {
       state.lastTap = now;
       state.lastTapVideo = id;
-      state.timeout = setTimeout(() => {
-        setPaused((prev) => !prev);
-        state.timeout = null;
+      setTimeout(() => {
+        if (doubleTapStateRef.current.lastTapVideo === id && doubleTapStateRef.current.lastTap !== 0) {
+          setPaused((prev) => !prev);
+        }
       }, 250);
     }
   };
@@ -272,7 +264,6 @@ export default function FeedPage() {
         await navigator.clipboard.writeText(shareData.url);
         toast({ title: 'Lien copié !', description: 'Le lien unique de la vidéo est disponible dans votre presse-papier.' });
       }
-      setVideos((prev) => prev.map((v) => v.id === video.id ? { ...v, shares: v.shares + 1 } : v));
     } catch (err) {}
   };
 
@@ -460,16 +451,6 @@ export default function FeedPage() {
 
                 <div className="flex flex-col items-center">
                   <button
-                    onClick={() => handleNativeShare(video)}
-                    className="flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-black/30 text-white shadow-lg backdrop-blur-md active:scale-90 transition-all outline-none duration-150 select-none"
-                  >
-                    <Share2 className="h-5 w-5" />
-                  </button>
-                  <span className="mt-1 text-[10px] font-bold text-white drop-shadow-md select-none">{formatCount(video.shares)}</span>
-                </div>
-
-                <div className="flex flex-col items-center">
-                  <button
                     onClick={() => openMenuSheet(video)}
                     className="flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-black/30 text-white shadow-lg backdrop-blur-md active:scale-90 transition-all outline-none duration-150 select-none"
                   >
@@ -505,8 +486,8 @@ export default function FeedPage() {
 
               {/* Minimal Text Content Overlay Stack */}
               <div className="absolute bottom-[125px] left-4 right-16 z-20 text-left pointer-events-none">
-                <div className="space-y-1.5 max-w-[85%]">
-                  <div className="flex items-center gap-2 pointer-events-auto">
+                <div className="space-y-1.5 pointer-events-auto max-w-[85%]">
+                  <div className="flex items-center gap-2">
                     <div className="w-7 h-7 rounded-full border border-white/30 overflow-hidden shrink-0 shadow-md">
                       <img 
                         src={`https://picsum.photos/seed/${video.creator}/48/48`} 
@@ -633,7 +614,7 @@ export default function FeedPage() {
                     onClick={() => { handleNativeShare(selectedVideo); closeGlobalSheet(); }}
                     className="w-full p-4 bg-white/5 hover:bg-white/10 text-sm font-bold rounded-2xl flex items-center gap-3 transition-colors outline-none active:scale-[0.99]"
                   >
-                    <Share2 className="w-4 h-4 text-primary" />
+                    <Music className="w-4 h-4 text-primary" />
                     Partager le projet créatif
                   </button>
 
