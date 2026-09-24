@@ -152,11 +152,6 @@ export default function RegisterPage() {
               />
             ))}
           </div>
-          <div className="flex justify-between w-full px-2">
-            <span className="text-[10px] font-black uppercase tracking-wider text-primary">
-              Étape {step} / 2
-            </span>
-          </div>
         </div>
 
         {/* Step Interactive Card Container */}
