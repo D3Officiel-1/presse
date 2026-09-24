@@ -8,11 +8,7 @@ import {
   Share2,
   Plus,
   Music,
-  MoreHorizontal,
   Play,
-  Pause,
-  Volume2,
-  VolumeX,
   Check,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -67,7 +63,7 @@ const INITIAL_VIDEOS: Video[] = [
     hint: 'african young woman speech presentation',
     audioName: 'Tech Talk — Innovation Hub',
     description:
-      'Comment nous allons changer la mobility à Abidjan. #tech #startup #ivorycoast',
+      'Comment nous allons changer la mobilité à Abidjan. #tech #startup #ivorycoast',
   },
   {
     id: 'vid-3',
@@ -108,7 +104,6 @@ export default function FeedPage(props: { params?: Promise<any>; searchParams?: 
   const [followedCreators, setFollowedCreators] = useState<string[]>([]);
   const [activeVideo, setActiveVideo] = useState('vid-1');
   const [paused, setPaused] = useState(false);
-  const [muted, setMuted] = useState(false);
   const [showHeart, setShowHeart] = useState<string | null>(null);
 
   const feedRef = useRef<HTMLDivElement>(null);
@@ -297,7 +292,7 @@ export default function FeedPage(props: { params?: Promise<any>; searchParams?: 
                 />
 
                 {/* Cinematic overlays */}
-                <div className="absolute inset-0 bg-gradient-to-b from-black/65 via-transparent via-40% to-black/95" />
+                <div className="absolute inset-0 bg-gradient-to-b from-black/45 via-transparent via-30% to-black/95" />
                 <div className="absolute inset-0 bg-gradient-to-r from-black/25 via-transparent to-black/25" />
                 <div className="absolute inset-0 bg-black/10" />
               </div>
@@ -334,13 +329,13 @@ export default function FeedPage(props: { params?: Promise<any>; searchParams?: 
                 )}
               </AnimatePresence>
 
-              {/* Right action rail */}
-              <div className="absolute bottom-[115px] right-3 z-30 flex w-14 flex-col items-center gap-4 md:right-5 md:bottom-[130px]">
+              {/* Right action rail (adapted position to be above the new bottom area) */}
+              <div className="absolute bottom-[230px] right-3 z-30 flex w-14 flex-col items-center gap-4 md:right-5">
                 {/* Avatar */}
                 <div className="relative mb-1">
                   <div className="absolute -inset-1 rounded-[19px] bg-gradient-to-tr from-primary via-fuchsia-500 to-orange-400 opacity-80 blur-[4px]" />
 
-                  <div className="relative h-12 w-12 overflow-hidden rounded-[16px] border-2 border-white bg-neutral-900 p-0.5 shadow-2xl md:h-14 md:w-14">
+                  <div className="relative h-12 w-12 overflow-hidden rounded-[16px] border-2 border-white bg-neutral-900 p-0.5 shadow-2xl">
                     <img
                       src={`https://picsum.photos/seed/${video.creator}/120/120`}
                       alt={video.fullName}
@@ -418,7 +413,7 @@ export default function FeedPage(props: { params?: Promise<any>; searchParams?: 
                   count={formatCount(video.shares)}
                 />
 
-                {/* Music */}
+                {/* Music Icon */}
                 <motion.div
                   animate={{ rotate: isActive && !paused ? 360 : 0 }}
                   transition={{
@@ -432,40 +427,37 @@ export default function FeedPage(props: { params?: Promise<any>; searchParams?: 
                 </motion.div>
               </div>
 
-              {/* Bottom information */}
-              <div className="absolute bottom-[72px] left-4 right-20 z-20 md:bottom-[90px] md:left-7 md:right-24">
-                <div className="max-w-xl space-y-2.5">
+              {/* Repositioned Bottom information: right above the floating nav bar layout */}
+              <div className="absolute bottom-[90px] left-4 right-20 z-20 md:left-6 md:right-24 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-4 rounded-3xl backdrop-blur-[2px] border border-white/5">
+                <div className="max-w-xl space-y-2">
                   <div className="flex flex-wrap items-center gap-2">
                     <button
                       onClick={() => handleToggleFollow(video.creator)}
-                      className="text-[16px] font-black tracking-tight drop-shadow-lg transition hover:opacity-80"
+                      className="text-[15px] font-black tracking-tight drop-shadow-md text-white hover:opacity-80 transition"
                     >
                       @{video.creator}
                     </button>
 
-                    <Badge className="rounded-full border border-white/10 bg-white/15 px-2.5 py-1 text-[9px] font-bold text-white backdrop-blur-md hover:bg-white/20">
+                    <Badge className="rounded-full border border-white/10 bg-primary text-white px-2 py-0.5 text-[9px] font-bold tracking-wider">
                       {video.institution}
                     </Badge>
                   </div>
 
-                  <h2 className="line-clamp-2 text-sm font-bold leading-snug text-white drop-shadow-xl md:text-base">
+                  <h2 className="line-clamp-1 text-sm font-black leading-snug text-neutral-100 drop-shadow-md">
                     {video.title}
                   </h2>
 
-                  <p className="line-clamp-2 text-xs font-medium leading-relaxed text-white/85 drop-shadow-lg md:text-sm">
+                  <p className="line-clamp-2 text-xs font-medium leading-relaxed text-neutral-300 drop-shadow-sm">
                     {video.description}
                   </p>
 
-                  <div className="flex min-w-0 items-center gap-2 pt-1 text-[11px] text-white/75">
-                    <Music className="h-3.5 w-3.5 shrink-0 text-primary" />
-
-                    <span className="truncate font-medium">
+                  <div className="flex min-w-0 items-center gap-2 pt-0.5 text-[10px] text-primary font-black uppercase tracking-wider">
+                    <Music className="h-3.5 w-3.5 shrink-0 animate-pulse" />
+                    <span className="truncate font-mono">
                       {video.audioName}
                     </span>
-
-                    <span className="h-1 w-1 shrink-0 rounded-full bg-white/50" />
-
-                    <span className="shrink-0">Original</span>
+                    <span className="h-1 w-1 shrink-0 rounded-full bg-white/40" />
+                    <span className="text-white/60 lowercase font-sans">original</span>
                   </div>
                 </div>
               </div>
