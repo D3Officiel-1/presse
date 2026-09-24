@@ -115,7 +115,7 @@ export default {
           '0%': { transform: 'scale(0.8)', opacity: '1' },
           '100%': { transform: 'scale(3)', opacity: '0' },
         },
-         "fade-up": {
+        "fade-up": {
           "0%": {
             opacity: "0",
             transform: "translateY(10px)",
@@ -145,7 +145,7 @@ export default {
         'accordion-up': 'accordion-up 0.2s ease-out',
         'fade-in-scale': 'fade-in-scale 1.2s cubic-bezier(0.25, 1, 0.5, 1) forwards',
         'ping-slow-once': 'ping-slow-once 1.5s cubic-bezier(0, 0, 0.2, 1) forwards',
-        'spin-slow': 'spin-slow 20s linear infinite',
+        'spin-slow': 'spin-slow 50s linear infinite',
         'pulse-subtle': 'pulse-subtle 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
         'ripple-1': 'ripple-1 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
         'ripple-2': 'ripple-2 2s cubic-bezier(0.4, 0, 0.6, 1) infinite 0.5s',
