@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { Logo } from '@/components/logo';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { LogIn, UserPlus, Film, Award, Flame } from 'lucide-react';
 
 export default function AuthGatewayPage() {
@@ -123,9 +123,6 @@ export default function AuthGatewayPage() {
               <div className="absolute top-6 right-8 hidden md:flex w-14 h-14 p-1.5 bg-white rounded-2xl shadow-md border border-neutral-200">
                 <Logo />
               </div>
-              <CardTitle className="text-2xl font-black tracking-tight text-neutral-950 md:pr-14">
-                Prêt pour l'impact ?
-              </CardTitle>
             </CardHeader>
             
             <CardContent className="space-y-4 pt-4 pb-8 px-6 sm:px-8 relative z-10">
