@@ -5,7 +5,6 @@ import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { Logo } from '@/components/logo';
 import { Button } from '@/components/ui/button';
-import { LogIn, UserPlus } from 'lucide-react';
 
 export default function AuthGatewayPage() {
   return (
@@ -80,18 +79,16 @@ export default function AuthGatewayPage() {
           
           <Link href="/auth/login" className="block w-full">
             <Button size="lg" className="w-full bg-white text-primary hover:bg-neutral-50 rounded-2xl h-14 font-bold tracking-tight shadow-md transition-transform active:scale-[0.99]">
-              <LogIn className="w-4 h-4 mr-2" />
               Se connecter à mon espace
             </Button>
           </Link>
 
           <div className="relative flex py-1 items-center justify-center">
-            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-white/50">ou rejoins l'aventure</span>
+            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-white/50">ou</span>
           </div>
 
           <Link href="/auth/register" className="block w-full">
             <Button size="lg" variant="outline" className="w-full rounded-2xl h-14 bg-transparent text-white border-white/30 hover:bg-white/10 transition-all font-bold">
-              <UserPlus className="w-4 h-4 mr-2" />
               Créer un accès membre
             </Button>
           </Link>
