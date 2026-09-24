@@ -63,7 +63,7 @@ const INITIAL_VIDEOS: Video[] = [
     videoUrl: 'https://storage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4',
     poster: 'https://picsum.photos/seed/zap2/600/1000',
     audioName: 'Tech Talk — Innovation Hub',
-    description: 'Comment nous allons changer la mobilité des étudiants à Abidjan. #tech #startup',
+    description: 'Comment nous allons changer la mobility des étudiants à Abidjan. #tech #startup',
   },
   {
     id: 'vid-3',
@@ -235,19 +235,10 @@ export default function FeedPage() {
     setVideos((prev) =>
       prev.map((v) => v.id === id ? { ...v, bookmarks: alreadyBookmarked ? v.bookmarks - 1 : v.bookmarks + 1 } : v)
     );
-    toast({
-      title: alreadyBookmarked ? 'Retiré des favoris' : 'Enregistré dans vos favoris !',
-      description: alreadyBookmarked ? 'Le projet a été retiré.' : 'Retrouvez ce projet à tout moment.'
-    });
   };
 
   const handleToggleFollow = (creator: string) => {
-    const isFollowing = followedCreators.includes(creator);
-    setFollowedCreators((prev) => isFollowing ? prev.filter((c) => c !== creator) : [...prev, creator]);
-    toast({
-      title: isFollowing ? 'Désabonné' : 'Abonnement activé !',
-      description: isFollowing ? `Vous ne suivez plus @${creator}` : `Vous suivez désormais les créations de @${creator}`
-    });
+    setFollowedCreators((prev) => followedCreators.includes(creator) ? prev.filter((c) => c !== creator) : [...prev, creator]);
   };
 
   const handleNativeShare = async (video: Video) => {
@@ -418,7 +409,7 @@ export default function FeedPage() {
                   <button
                     onClick={() => handleToggleLike(video.id)}
                     className={cn(
-                      "flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-black/30 text-white shadow-lg backdrop-blur-md active:scale-90 transition-all outline-none duration-150 select-none",
+                      "flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-black/30 text-white shadow-lg backdrop-blur-md active:scale-90 transition-transform outline-none duration-150 select-none",
                       isLiked && "text-primary border-primary/40 bg-primary/10"
                     )}
                   >
@@ -430,7 +421,7 @@ export default function FeedPage() {
                 <div className="flex flex-col items-center">
                   <button
                     onClick={() => openCommentsSheet(video)}
-                    className="flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-black/30 text-white shadow-lg backdrop-blur-md active:scale-90 transition-all outline-none duration-150 select-none"
+                    className="flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-black/30 text-white shadow-lg backdrop-blur-md active:scale-90 transition-transform outline-none duration-150 select-none"
                   >
                     <MessageCircle className="h-5 w-5" />
                   </button>
@@ -441,7 +432,7 @@ export default function FeedPage() {
                   <button
                     onClick={() => handleToggleBookmark(video.id)}
                     className={cn(
-                      "flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-black/30 text-white shadow-lg backdrop-blur-md active:scale-90 transition-all outline-none duration-150 select-none",
+                      "flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-black/30 text-white shadow-lg backdrop-blur-md active:scale-90 transition-transform outline-none duration-150 select-none",
                       isBookmarked && "text-yellow-400 border-yellow-400/40 bg-yellow-400/10"
                     )}
                   >
@@ -453,7 +444,7 @@ export default function FeedPage() {
                 <div className="flex flex-col items-center">
                   <button
                     onClick={() => openMenuSheet(video)}
-                    className="flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-black/30 text-white shadow-lg backdrop-blur-md active:scale-90 transition-all outline-none duration-150 select-none"
+                    className="flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-black/30 text-white shadow-lg backdrop-blur-md active:scale-90 transition-transform outline-none duration-150 select-none"
                   >
                     <MoreVertical className="h-5 w-5" />
                   </button>
@@ -464,7 +455,7 @@ export default function FeedPage() {
                   <button
                     onClick={() => router.push(`/zap/disque/${video.id}`)}
                     className={cn(
-                      "relative flex h-10 w-10 items-center justify-center rounded-full border-2 border-white/30 bg-neutral-900 shadow-xl overflow-hidden active:scale-90 transition-all outline-none select-none animate-spin"
+                      "relative flex h-10 w-10 items-center justify-center rounded-full border-2 border-white/30 bg-neutral-900 shadow-xl overflow-hidden active:scale-90 transition-transform outline-none select-none animate-spin"
                     )}
                     style={{ animationDuration: '3s' }}
                   >
@@ -498,11 +489,11 @@ export default function FeedPage() {
                       <button
                         onClick={() => handleToggleFollow(video.creator)}
                         className={cn(
-                          "text-[10px] font-black px-2.5 py-1 rounded-full transition-all shrink-0 uppercase tracking-tight active:scale-95 outline-none select-none",
+                          "text-[10px] font-black px-2.5 py-1 rounded-full transition-transform shrink-0 uppercase tracking-tight active:scale-95 outline-none select-none",
                           isFollowed ? "bg-white/20 text-white/90" : "bg-primary text-white"
                         )}
                       >
-                        {isFollowed ? 'Suivi ✓' : 'Suivre'}
+                        {isFollowed ? 'Suivi' : 'Suivre'}
                       </button>
                     </div>
                   </div>
