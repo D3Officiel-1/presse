@@ -100,7 +100,7 @@ export function CommentSheet({
       <>
         {/* Backdrop */}
         <motion.div
-          className="fixed inset-0 z-[90] bg-black/55 backdrop-blur-[3px]"
+          className="fixed inset-0 z-[90] bg-black/40 backdrop-blur-[2px]"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -125,13 +125,11 @@ export function CommentSheet({
             flex-col
             overflow-hidden
             rounded-t-[28px]
-            border
-            border-white/[0.08]
-            bg-[#0d0d0f]/[0.97]
-            text-white
-            shadow-[0_-20px_80px_rgba(0,0,0,0.45)]
-            backdrop-blur-3xl
-            supports-[backdrop-filter]:bg-[#0d0d0f]/85
+            border-t
+            border-neutral-200
+            bg-white
+            text-neutral-900
+            shadow-[0_-20px_50px_rgba(0,0,0,0.08)]
             md:left-1/2
             md:right-auto
             md:w-[560px]
@@ -158,7 +156,7 @@ export function CommentSheet({
                 h-1
                 w-10
                 rounded-full
-                bg-white/20
+                bg-neutral-200
               "
             />
           </div>
@@ -171,7 +169,7 @@ export function CommentSheet({
               items-center
               justify-between
               border-b
-              border-white/[0.07]
+              border-neutral-100
               px-4
               pb-3
               pt-1
@@ -188,20 +186,20 @@ export function CommentSheet({
                   justify-center
                   rounded-[11px]
                   border
-                  border-white/[0.08]
-                  bg-white/[0.07]
+                  border-neutral-100
+                  bg-neutral-50
                   shadow-inner
                 "
               >
-                <Sparkles className="h-3.5 w-3.5 text-white/70" />
+                <Sparkles className="h-3.5 w-3.5 text-neutral-500" />
               </div>
 
               <div className="min-w-0">
-                <h2 className="truncate text-[14px] font-semibold tracking-[-0.01em]">
+                <h2 className="truncate text-[14px] font-black tracking-tight">
                   Commentaires
                 </h2>
 
-                <p className="text-[11px] font-medium text-white/40">
+                <p className="text-[11px] font-bold text-neutral-400">
                   {video.comments}{' '}
                   {video.comments === 1
                     ? 'commentaire'
@@ -223,15 +221,15 @@ export function CommentSheet({
                 justify-center
                 rounded-full
                 border
-                border-white/[0.06]
-                bg-white/[0.06]
-                text-white/70
+                border-neutral-200
+                bg-neutral-50
+                text-neutral-500
                 outline-none
                 transition
                 active:scale-90
-                active:bg-white/10
+                active:bg-neutral-100
                 focus-visible:ring-2
-                focus-visible:ring-white/30
+                focus-visible:ring-neutral-200
               "
             >
               <X className="h-4 w-4" />
@@ -280,14 +278,12 @@ export function CommentSheet({
                       justify-center
                       rounded-[13px]
                       border
-                      border-white/[0.08]
-                      bg-gradient-to-br
-                      from-white/[0.14]
-                      to-white/[0.04]
+                      border-neutral-200
+                      bg-neutral-50
                       text-[10px]
-                      font-bold
+                      font-black
                       tracking-wide
-                      text-white/80
+                      text-neutral-700
                       shadow-sm
                     "
                   >
@@ -297,16 +293,16 @@ export function CommentSheet({
                   {/* Content */}
                   <div className="min-w-0 flex-1">
                     <div className="flex items-baseline gap-2">
-                      <span className="truncate text-[12px] font-semibold text-white">
+                      <span className="truncate text-[12px] font-black text-neutral-900">
                         @{comment.user.replace('@', '')}
                       </span>
 
-                      <span className="shrink-0 text-[10px] font-medium text-white/30">
+                      <span className="shrink-0 text-[10px] font-bold text-neutral-400">
                         {comment.time}
                       </span>
                     </div>
 
-                    <p className="mt-1 text-[13px] font-normal leading-[1.45] text-white/70">
+                    <p className="mt-1 text-[13px] font-medium leading-[1.45] text-neutral-700">
                       {comment.text}
                     </p>
                   </div>
@@ -325,18 +321,18 @@ export function CommentSheet({
                       justify-center
                       rounded-[20px]
                       border
-                      border-white/[0.07]
-                      bg-white/[0.05]
+                      border-neutral-100
+                      bg-neutral-50
                     "
                   >
-                    <Sparkles className="h-5 w-5 text-white/30" />
+                    <Sparkles className="h-5 w-5 text-neutral-300" />
                   </div>
 
-                  <p className="text-[13px] font-semibold text-white/70">
+                  <p className="text-[13px] font-bold text-neutral-700">
                     Aucun commentaire
                   </p>
 
-                  <p className="mt-1 max-w-[220px] text-[11px] leading-relaxed text-white/35">
+                  <p className="mt-1 max-w-[220px] text-[11px] leading-relaxed text-neutral-400">
                     Soyez le premier à partager votre réaction.
                   </p>
                 </div>
@@ -349,12 +345,10 @@ export function CommentSheet({
             className="
               shrink-0
               border-t
-              border-white/[0.07]
-              bg-[#0d0d0f]/90
+              border-neutral-100
+              bg-white
               px-3
               pt-3
-              backdrop-blur-2xl
-              supports-[backdrop-filter]:bg-[#0d0d0f]/70
             "
             style={{
               paddingBottom: 'max(12px, env(safe-area-inset-bottom))',
@@ -370,11 +364,11 @@ export function CommentSheet({
                   items-center
                   rounded-[17px]
                   border
-                  border-white/[0.08]
-                  bg-white/[0.055]
+                  border-neutral-200
+                  bg-neutral-50
                   transition-colors
-                  focus-within:border-white/[0.16]
-                  focus-within:bg-white/[0.07]
+                  focus-within:border-neutral-300
+                  focus-within:bg-neutral-100/50
                 "
               >
                 <Input
@@ -401,10 +395,10 @@ export function CommentSheet({
                     bg-transparent
                     px-4
                     text-base
-                    text-white
+                    text-neutral-900
                     shadow-none
                     outline-none
-                    placeholder:text-white/30
+                    placeholder:text-neutral-400
                     focus-visible:ring-0
                   "
                 />
@@ -421,13 +415,11 @@ export function CommentSheet({
                   w-11
                   shrink-0
                   rounded-[16px]
-                  border
-                  border-white/[0.08]
-                  bg-white
-                  text-black
-                  shadow-[0_4px_18px_rgba(255,255,255,0.08)]
+                  bg-neutral-900
+                  text-white
+                  shadow-[0_4px_12px_rgba(0,0,0,0.1)]
                   transition-all
-                  hover:bg-white
+                  hover:bg-neutral-800
                   active:scale-90
                   disabled:pointer-events-none
                   disabled:opacity-25
