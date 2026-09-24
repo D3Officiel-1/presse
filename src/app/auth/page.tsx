@@ -128,7 +128,7 @@ export default function AuthGatewayPage() {
               </CardTitle>
             </CardHeader>
             
-            <CardContent className="space-y-5 pt-4 pb-8 px-6 sm:px-8 relative z-10">
+            <CardContent className="space-y-4 pt-4 pb-8 px-6 sm:px-8 relative z-10">
               
               <Link href="/auth/login" className="block w-full">
                 <Button size="lg" className="w-full group rounded-2xl h-14 relative overflow-hidden bg-primary text-white font-bold tracking-tight shadow-[0_10px_25px_rgba(124,58,237,0.2)] transition-all hover:shadow-[0_15px_35px_rgba(124,58,237,0.35)] hover:scale-[1.01]">
