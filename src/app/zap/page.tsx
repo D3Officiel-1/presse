@@ -94,7 +94,6 @@ function formatCount(value: number) {
 }
 
 export default function FeedPage(props: { params: Promise<any>; searchParams: Promise<any> }) {
-  // Déballage des Promises pour Next.js 15
   const _params = React.use(props.params);
   const _searchParams = React.use(props.searchParams);
 
@@ -234,7 +233,7 @@ export default function FeedPage(props: { params: Promise<any>; searchParams: Pr
     const y = e.clientY - rect.top;
 
     const state = doubleTapStateRef.current;
-    const delta = now - state.lastTap;
+    const delta = now - start.time;
 
     if (delta < 300 && state.lastTapVideo === id) {
       if (!likedVideos.includes(id)) {
@@ -331,9 +330,28 @@ export default function FeedPage(props: { params: Promise<any>; searchParams: Pr
     setVideos((prev) => prev.map((v) => v.id === selectedVideo.id ? { ...v, comments: v.comments + 1 } : v));
   };
 
+  const handleEditComment = (commentId: string | number, newText: string) => {
+    if (!selectedVideo) return;
+    setCommentsStore((prev) => ({
+      ...prev,
+      [selectedVideo.id]: (prev[selectedVideo.id] || []).map(c => c.id === commentId ? { ...c, text: newText } : c)
+    }));
+  };
+
+  const handleDeleteComment = (commentId: string | number) => {
+    if (!selectedVideo) return;
+    setCommentsStore((prev) => ({
+      ...prev,
+      [selectedVideo.id]: (prev[selectedVideo.id] || []).filter(c => c.id !== commentId)
+    }));
+    setVideos((prev) => prev.map((v) => v.id === selectedVideo.id ? { ...v, comments: Math.max(0, v.comments - 1) } : v));
+  };
+
   const filteredVideos = feedMode === 'following' 
     ? videos.filter(v => followedCreators.includes(v.creatorId))
     : videos;
+
+  const currentSelectedVideoComments = selectedVideo ? (commentsStore[selectedVideo.id] || []) : [];
 
   return (
     <>
@@ -444,20 +462,6 @@ export default function FeedPage(props: { params: Promise<any>; searchParams: Pr
                       >
                         <Heart className="h-20 w-20 fill-white text-white drop-shadow-2xl" strokeWidth={1.5} />
                       </motion.div>
-                      {Array.from({ length: 8 }).map((_, idx) => (
-                        <motion.div
-                          key={idx}
-                          className="absolute h-2 w-2 rounded-full bg-white/80"
-                          initial={{ x: 0, y: 0, scale: 0, opacity: 1 }}
-                          animate={{
-                            x: Math.cos(idx * 0.785) * 80,
-                            y: Math.sin(idx * 0.785) * 80,
-                            scale: [0, 1.2, 0],
-                            opacity: [1, 1, 0]
-                          }}
-                          transition={{ duration: 0.6, delay: 0.02 }}
-                        />
-                      ))}
                     </div>
                   )}
                 </AnimatePresence>
@@ -511,13 +515,9 @@ export default function FeedPage(props: { params: Promise<any>; searchParams: Pr
                   <div className="flex flex-col items-center pt-1">
                     <button
                       onClick={() => router.push(`/zap/disque/${video.id}`)}
-                      className={cn(
-                        "relative flex h-10 w-10 items-center justify-center rounded-full border-2 border-white/30 bg-neutral-900 shadow-xl overflow-hidden active:scale-90 transition-all outline-none duration-150 select-none animate-spin"
-                      )}
+                      className="relative flex h-10 w-10 items-center justify-center rounded-full border-2 border-white/30 bg-neutral-900 shadow-xl overflow-hidden active:scale-90 transition-all outline-none duration-150 select-none animate-spin"
                       style={{ animationDuration: '3s' }}
                     >
-                      <div className="absolute inset-1 rounded-full border border-neutral-700/60 pointer-events-none" />
-                      <div className="absolute inset-2 rounded-full border border-neutral-800 pointer-events-none" />
                       <div className="absolute w-4 h-4 rounded-full bg-primary flex items-center justify-center z-10 shadow-sm">
                         <Music className="h-2 w-2 text-white animate-pulse" />
                       </div>
@@ -598,9 +598,11 @@ export default function FeedPage(props: { params: Promise<any>; searchParams: Pr
         {activeSheet === 'comments' && selectedVideo && (
           <CommentSheet 
             video={selectedVideo}
-            comments={commentsStore[selectedVideo.id] || []}
+            comments={currentSelectedVideoComments}
             onClose={closeGlobalSheet}
             onAddComment={handleAddComment}
+            onEditComment={handleEditComment}
+            onDeleteComment={handleDeleteComment}
           />
         )}
 
@@ -640,15 +642,6 @@ export default function FeedPage(props: { params: Promise<any>; searchParams: Pr
                 >
                   <Music className="w-4 h-4 text-primary" />
                   Partager le projet créatif
-                </button>
-
-                <div className="h-px bg-white/5 my-2" />
-
-                <button 
-                  onClick={() => { toast({ title: 'Signalement enregistré' }); closeGlobalSheet(); }}
-                  className="w-full p-4 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 text-sm font-black rounded-2xl flex items-center gap-3 transition-colors outline-none active:scale-[0.99]"
-                >
-                  Signaler ce contenu
                 </button>
               </div>
             </motion.div>
