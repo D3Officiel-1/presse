@@ -92,9 +92,9 @@ function formatCount(value: number) {
   return value.toString();
 }
 
-export default function FeedPage({ params, searchParams }: { params: Promise<any>; searchParams: Promise<any> }) {
-  const _params = React.use(params);
-  const _searchParams = React.use(searchParams);
+export default function FeedPage(props: { params: Promise<any>; searchParams: Promise<any> }) {
+  const _params = props.params ? React.use(props.params) : null;
+  const _searchParams = props.searchParams ? React.use(props.searchParams) : null;
   const router = useRouter();
 
   const [videos, setVideos] = useState(INITIAL_VIDEOS);
@@ -328,7 +328,7 @@ export default function FeedPage({ params, searchParams }: { params: Promise<any
                 )}
               </AnimatePresence>
 
-              {/* Right action rail (adapted position to be above the new bottom area) */}
+              {/* Right action rail */}
               <div className="absolute bottom-[230px] right-3 z-30 flex w-14 flex-col items-center gap-4 md:right-5">
                 {/* Avatar */}
                 <div className="relative mb-1">
@@ -426,7 +426,7 @@ export default function FeedPage({ params, searchParams }: { params: Promise<any
                 </motion.div>
               </div>
 
-              {/* Repositioned Bottom information: right above the floating nav bar layout */}
+              {/* Repositioned Bottom information */}
               <div className="absolute bottom-[90px] left-4 right-20 z-20 md:left-6 md:right-24 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-4 rounded-3xl backdrop-blur-[2px] border border-white/5">
                 <div className="max-w-xl space-y-2">
                   <div className="flex flex-wrap items-center gap-2">

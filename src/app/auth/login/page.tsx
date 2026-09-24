@@ -16,9 +16,9 @@ import { Logo } from '@/components/logo';
 
 const AUTH_DOMAIN = "@zap.ci";
 
-export default function LoginPage({ params, searchParams }: { params: Promise<any>; searchParams: Promise<any> }) {
-  const _params = React.use(params);
-  const _searchParams = React.use(searchParams);
+export default function LoginPage(props: { params: Promise<any>; searchParams: Promise<any> }) {
+  const _params = props.params ? React.use(props.params) : null;
+  const _searchParams = props.searchParams ? React.use(props.searchParams) : null;
 
   const [matricule, setMatricule] = useState('');
   const [password, setPassword] = useState('');

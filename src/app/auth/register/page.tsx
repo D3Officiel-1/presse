@@ -15,9 +15,9 @@ import { cn } from '@/lib/utils';
 
 const AUTH_DOMAIN = "@zap.ci";
 
-export default function RegisterPage({ params, searchParams }: { params: Promise<any>; searchParams: Promise<any> }) {
-  const _params = React.use(params);
-  const _searchParams = React.use(searchParams);
+export default function RegisterPage(props: { params: Promise<any>; searchParams: Promise<any> }) {
+  const _params = props.params ? React.use(props.params) : null;
+  const _searchParams = props.searchParams ? React.use(props.searchParams) : null;
 
   const [step, setStep] = useState(1);
   const [matricule, setMatricule] = useState('');
@@ -51,7 +51,7 @@ export default function RegisterPage({ params, searchParams }: { params: Promise
         toast({
           variant: 'destructive',
           title: 'Format incorrect',
-          description: 'Le matricule est trop court pour être valide.',
+          description: 'Le matricule is trop court pour être valide.',
         });
         return;
       }
@@ -118,7 +118,6 @@ export default function RegisterPage({ params, searchParams }: { params: Promise
         description: 'Bienvenue au Studio ZAP. Configurons votre pass.',
       });
 
-      // Remplacement par router.replace pour empêcher le retour en arrière
       router.replace('/auth/onboarding');
     } catch (error: any) {
       toast({
