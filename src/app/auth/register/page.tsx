@@ -78,7 +78,7 @@ export default function RegisterPage() {
     }
 
     if (password !== confirmPassword) {
-      toast({ variant: 'destructive', title: 'Erreur', description: 'Les mots de passe ne correspondent pas.' });
+      toast({ variant: 'destructive', title: 'Erreur de confirmation', description: 'Les deux mots de passe ne correspondent pas.' });
       return;
     }
 
