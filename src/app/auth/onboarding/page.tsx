@@ -9,13 +9,12 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { ChevronRight, ChevronLeft, Loader2, Sparkles, Check, User, Camera, Film, PenTool, Music, Quote } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const ROLES = [
-  { id: 'leader', title: 'Créateur Étoile', description: 'Élève actif publiant des projets, courts-métrages et tutoriels.' },
+  { id: 'leader', title: 'Créateur Étoile', description: 'Élève publiant des projets, courts-métrages et tutoriels.' },
   { id: 'partner', title: 'Partenaire Club', description: 'Établissement scolaire, encadrant ou mentor créatif.' },
   { id: 'guest', title: 'Visiteur Inspiré', description: 'Observateur, juré des challenges ou contributeur ponctuel.' },
 ];
@@ -102,8 +101,8 @@ export default function OnboardingPage() {
         }
 
         toast({
-          title: 'Profil complété !',
-          description: 'Bienvenue officiellement sur la plateforme ZAP.',
+          title: 'Profil activé !',
+          description: 'Bienvenue officiellement sur le Studio ZAP.',
         });
         router.push('/');
       })
@@ -122,36 +121,44 @@ export default function OnboardingPage() {
   const progressValue = (step / 5) * 100;
 
   return (
-    <div className="flex flex-col min-h-[100dvh] w-full bg-[#F9F9FC] text-neutral-900 overflow-y-auto px-4 pt-12 pb-[calc(env(safe-area-inset-bottom,0px)+2rem)] justify-start items-center relative">
+    <div className="flex flex-col min-h-[100dvh] w-full bg-[#F9F9FC] text-neutral-900 px-6 pt-12 pb-[calc(env(safe-area-inset-bottom,0px)+2rem)] justify-start items-center relative overflow-y-auto">
       
-      <div className="w-full max-w-lg mb-4 z-10">
-        <Progress value={progressValue} className="h-1.5" />
-        <p className="text-right text-[10px] font-bold text-muted-foreground uppercase tracking-wider mt-1.5">Étape {step} sur 5</p>
+      <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
+        <div 
+          className="absolute top-[-10%] right-[-10%] w-[60vw] h-[60vw] rounded-full blur-[100px]"
+          style={{ background: 'radial-gradient(circle, rgba(255,39,0,0.04) 0%, transparent 60%)' }}
+        />
       </div>
 
-      <Card className="w-full max-w-lg shadow-[0_20px_40px_rgba(0,0,0,0.03)] border-neutral-200/60 bg-white rounded-3xl z-10 overflow-hidden">
-        <CardHeader>
-          <div className="flex items-center gap-2 text-primary mb-1">
-            <Sparkles className="w-4 h-4" />
-            <span className="text-[10px] uppercase font-bold tracking-widest">Configuration du Pass Studio</span>
+      <div className="w-full max-w-md z-10 space-y-8 mt-4">
+        <div className="space-y-3">
+          <Progress value={progressValue} className="h-1.5 bg-neutral-200" />
+          <div className="flex justify-between items-center px-1">
+            <span className="text-[10px] font-black uppercase tracking-widest text-primary flex items-center gap-1.5">
+              <Sparkles className="w-3.5 h-3.5" /> Étape {step}/5
+            </span>
+            <span className="text-[9px] font-bold text-neutral-400 uppercase tracking-widest">Configuration du Pass</span>
           </div>
-          <CardTitle className="text-lg">
-            {step === 1 && 'Faisons connaissance'}
-            {step === 2 && 'Votre rôle au sein de l\'app'}
-            {step === 3 && 'Informations scolaires & contact'}
-            {step === 4 && 'Vos super-pouvoirs créatifs'}
-            {step === 5 && 'Votre univers en quelques mots'}
-          </CardTitle>
-          <CardDescription className="normal-case text-xs text-muted-foreground">
-            {step === 1 && 'Entrez vos informations de base pour votre pass de créateur ZAP.'}
-            {step === 2 && 'Sélectionnez le statut qui correspond le mieux à votre profil.'}
-            {step === 3 && 'Ces détails aideront le club et vos camarades à vous identifier.'}
-            {step === 4 && 'Sélectionnez les domaines vidéo et artistiques qui vous passionnent le plus.'}
-            {step === 5 && 'Ajoutez une courte devise ou biographie qui apparaîtra sur votre Pass de membre.'}
-          </CardDescription>
-        </CardHeader>
+        </div>
 
-        <CardContent className="min-h-[240px]">
+        <div className="space-y-1">
+          <h2 className="text-2xl font-black tracking-tight text-neutral-950 leading-tight">
+            {step === 1 && 'Faisons connaissance'}
+            {step === 2 && 'Votre rôle au Studio'}
+            {step === 3 && 'École & Contact'}
+            {step === 4 && 'Vos super-pouvoirs'}
+            {step === 5 && 'Votre univers'}
+          </h2>
+          <p className="text-xs text-muted-foreground font-medium leading-relaxed">
+            {step === 1 && 'Entrez votre nom complet pour votre pass scolaire.'}
+            {step === 2 && 'Sélectionnez le statut qui correspond à votre profil.'}
+            {step === 3 && 'Aidez le club et vos camarades à vous identifier.'}
+            {step === 4 && 'Quels domaines artistiques vous passionnent le plus ?'}
+            {step === 5 && 'Une courte biographie qui apparaîtra sur votre Pass.'}
+          </p>
+        </div>
+
+        <div className="min-h-[280px]">
           <AnimatePresence mode="wait">
             {step === 1 && (
               <motion.div
@@ -162,15 +169,16 @@ export default function OnboardingPage() {
                 className="space-y-4"
               >
                 <div className="space-y-2">
-                  <Label htmlFor="fullName">Nom complet (Prénom & Nom)</Label>
+                  <Label htmlFor="fullName" className="text-[10px] font-black uppercase tracking-widest text-neutral-400 ml-1">Nom Complet</Label>
                   <div className="relative">
-                    <User className="absolute left-3 top-3.5 h-4 w-4 text-muted-foreground" />
+                    <User className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-neutral-400" />
                     <Input
                       id="fullName"
                       placeholder="Jean Dupont"
                       value={fullName}
                       onChange={(e) => setFullName(e.target.value)}
-                      className="pl-10"
+                      className="pl-12 h-14 bg-white border-neutral-200 rounded-2xl text-base focus-visible:ring-primary/10 transition-all font-bold"
+                      autoFocus
                     />
                   </div>
                 </div>
@@ -189,20 +197,20 @@ export default function OnboardingPage() {
                   <div
                     key={r.id}
                     onClick={() => setSelectedRole(r.id)}
-                    className={`p-4 rounded-xl border cursor-pointer transition-all duration-200 flex items-start gap-3 ${
+                    className={`p-4 rounded-2xl border-2 cursor-pointer transition-all duration-200 flex items-start gap-4 ${
                       selectedRole === r.id
                         ? 'border-primary bg-primary/5 shadow-sm'
-                        : 'border-neutral-200 hover:border-neutral-300 bg-card'
+                        : 'border-neutral-200 bg-white hover:border-neutral-300'
                     }`}
                   >
-                    <div className={`mt-0.5 w-4 h-4 rounded-full border flex items-center justify-center shrink-0 ${
-                      selectedRole === r.id ? 'bg-primary border-primary text-primary-foreground' : 'border-neutral-400'
+                    <div className={`mt-0.5 w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 ${
+                      selectedRole === r.id ? 'bg-primary border-primary text-white' : 'border-neutral-300'
                     }`}>
-                      {selectedRole === r.id && <Check className="w-2.5 h-2.5" />}
+                      {selectedRole === r.id && <Check className="w-3 h-3 stroke-[3]" />}
                     </div>
                     <div>
-                      <h4 className="font-bold text-sm text-neutral-900">{r.title}</h4>
-                      <p className="text-xs text-muted-foreground mt-0.5">{r.description}</p>
+                      <h4 className="font-black text-sm text-neutral-900 tracking-tight">{r.title}</h4>
+                      <p className="text-[11px] text-muted-foreground font-medium mt-0.5 leading-tight">{r.description}</p>
                     </div>
                   </div>
                 ))}
@@ -218,22 +226,24 @@ export default function OnboardingPage() {
                 className="space-y-4"
               >
                 <div className="space-y-2">
-                  <Label htmlFor="company">Établissement Scolaire / Lycée / Collège</Label>
+                  <Label htmlFor="company" className="text-[10px] font-black uppercase tracking-widest text-neutral-400 ml-1">Établissement</Label>
                   <Input
                     id="company"
-                    placeholder="Ex: Lycée Classique d'Abidjan"
+                    placeholder="Lycée Classique d'Abidjan"
                     value={company}
                     onChange={(e) => setCompany(e.target.value)}
+                    className="h-14 bg-white border-neutral-200 rounded-2xl text-base focus-visible:ring-primary/10 transition-all font-bold"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="phone">Numéro de téléphone WhatsApp</Label>
+                  <Label htmlFor="phone" className="text-[10px] font-black uppercase tracking-widest text-neutral-400 ml-1">Numéro WhatsApp</Label>
                   <Input
                     id="phone"
                     type="tel"
-                    placeholder="Ex: +225 07 00 00 00 00"
+                    placeholder="+225 07 00 00 00 00"
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
+                    className="h-14 bg-white border-neutral-200 rounded-2xl text-base focus-visible:ring-primary/10 transition-all font-bold"
                   />
                 </div>
               </motion.div>
@@ -247,7 +257,6 @@ export default function OnboardingPage() {
                 exit={{ opacity: 0, x: -10 }}
                 className="space-y-3"
               >
-                <Label className="text-xs text-neutral-500 block mb-1">Sélectionnez une ou plusieurs options :</Label>
                 <div className="grid grid-cols-1 gap-2.5">
                   {INTERESTS_OPTIONS.map((option) => {
                     const IconComponent = option.icon;
@@ -256,22 +265,22 @@ export default function OnboardingPage() {
                       <div
                         key={option.id}
                         onClick={() => toggleInterest(option.id)}
-                        className={`p-3.5 rounded-xl border cursor-pointer transition-all duration-200 flex items-center justify-between ${
+                        className={`p-4 rounded-2xl border-2 cursor-pointer transition-all duration-200 flex items-center justify-between ${
                           isSelected
-                            ? 'border-primary bg-primary/5 shadow-sm text-neutral-900 font-bold'
-                            : 'border-neutral-200 hover:border-neutral-300 bg-card text-neutral-700'
+                            ? 'border-primary bg-primary/5 text-neutral-950 font-black'
+                            : 'border-neutral-200 bg-white hover:border-neutral-300 text-neutral-700 font-bold'
                         }`}
                       >
                         <div className="flex items-center gap-3">
-                          <div className={`p-2 rounded-lg ${isSelected ? 'bg-primary/10 text-primary' : 'bg-neutral-100 text-neutral-500'}`}>
-                            <IconComponent className="w-4 h-4" />
+                          <div className={`p-2 rounded-xl ${isSelected ? 'bg-primary/10 text-primary' : 'bg-neutral-100 text-neutral-500'}`}>
+                            <IconComponent className="w-5 h-5" />
                           </div>
-                          <span className="text-sm">{option.title}</span>
+                          <span className="text-sm tracking-tight">{option.title}</span>
                         </div>
-                        <div className={`w-5 h-5 rounded-md border flex items-center justify-center transition-all ${
+                        <div className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all ${
                           isSelected ? 'bg-primary border-primary text-white' : 'border-neutral-300'
                         }`}>
-                          {isSelected && <Check className="w-3 h-3 stroke-[3]" />}
+                          {isSelected && <Check className="w-4 h-4 stroke-[3]" />}
                         </div>
                       </div>
                     );
@@ -289,53 +298,67 @@ export default function OnboardingPage() {
                 className="space-y-4"
               >
                 <div className="space-y-2">
-                  <Label htmlFor="bio" className="flex items-center gap-1.5">
-                    <Quote className="w-3.5 h-3.5 text-primary" /> Devise de Créateur / Courte Bio
+                  <Label htmlFor="bio" className="text-[10px] font-black uppercase tracking-widest text-neutral-400 ml-1 flex items-center gap-1.5">
+                    <Quote className="w-3 h-3 text-primary" /> Devise de Créateur
                   </Label>
                   <Textarea
                     id="bio"
                     maxLength={160}
-                    placeholder="Ex: Passionné de courts-métrages de fiction et de montage rythmé sur CapCut ! Prêt pour tous les challenges ZAP !"
+                    placeholder="Ex: Passionné de courts-métrages et de montage rythmé sur CapCut !"
                     value={bio}
                     onChange={(e) => setBio(e.target.value)}
-                    className="min-h-[110px] resize-none focus-visible:ring-primary rounded-xl"
+                    className="min-h-[140px] bg-white border-neutral-200 rounded-2xl text-base focus-visible:ring-primary/10 transition-all font-medium resize-none"
                   />
-                  <p className="text-[10px] text-right text-muted-foreground font-semibold">
-                    {bio.length} / 160 caractères au maximum
+                  <p className="text-[10px] text-right text-muted-foreground font-black uppercase tracking-wider">
+                    {bio.length} / 160 caractères
                   </p>
                 </div>
               </motion.div>
             )}
           </AnimatePresence>
-        </CardContent>
+        </div>
 
-        <CardFooter className="flex justify-between border-t border-neutral-100 pt-4 bg-neutral-50/50">
-          <Button
-            variant="ghost"
-            onClick={handleBack}
-            disabled={step === 1 || loading}
-            className={`rounded-xl h-11 text-neutral-600 ${step === 1 ? 'opacity-0 pointer-events-none' : ''}`}
-          >
-            <ChevronLeft className="w-4 h-4 mr-1" /> Retour
-          </Button>
+        <div className="flex flex-col gap-4 pt-4">
+          <div className="flex w-full items-center gap-3">
+            {step > 1 && (
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleBack}
+                disabled={loading}
+                className="rounded-2xl px-6 border-neutral-200 text-neutral-600 font-black text-xs h-14 bg-white transition-all active:scale-[0.98]"
+              >
+                <ChevronLeft className="w-4 h-4 mr-1" /> Retour
+              </Button>
+            )}
 
-          {step < 5 ? (
-            <Button onClick={handleNext} className="rounded-xl h-11 px-5">
-              Suivant <ChevronRight className="w-4 h-4 ml-1" />
-            </Button>
-          ) : (
-            <Button onClick={handleCompleteOnboarding} disabled={loading} className="rounded-xl h-11 bg-primary text-white hover:bg-primary/90 px-5 shadow-md">
-              {loading ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" /> Activation...
-                </>
-              ) : (
-                'Finaliser & Accéder'
-              )}
-            </Button>
-          )}
-        </CardFooter>
-      </Card>
+            {step < 5 ? (
+              <Button
+                type="button"
+                onClick={handleNext}
+                className="flex-1 bg-neutral-900 text-white hover:bg-neutral-800 rounded-2xl font-black text-xs h-14 transition-all flex items-center justify-center gap-1 shadow-md active:scale-[0.98]"
+              >
+                Suivant <ChevronRight className="w-4 h-4 ml-1" />
+              </Button>
+            ) : (
+              <Button
+                type="button"
+                onClick={handleCompleteOnboarding}
+                disabled={loading}
+                className="flex-1 bg-primary text-white hover:bg-primary/95 rounded-2xl font-black text-xs h-14 transition-all shadow-md active:scale-[0.98]"
+              >
+                {loading ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" /> Activation...
+                  </>
+                ) : (
+                  'Finaliser & Entrer au Studio'
+                )}
+              </Button>
+            )}
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
