@@ -223,7 +223,8 @@ export default function OnboardingPage() {
                       "p-4 rounded-2xl border-2 cursor-pointer transition-all duration-200 flex items-center justify-between text-left",
                       selectedClasse === c.id
                         ? 'border-primary bg-primary/5 shadow-sm font-black'
-                        : 'border-neutral-200 bg-white hover:border-neutral-300 font-bold'
+                        : 'border-neutral-200 bg-white hover:border-neutral-300 font-bold',
+                      c.id === 'tle' && "col-span-2"
                     )}
                   >
                     <span className="text-sm text-neutral-900 tracking-tight">{c.title}</span>
