@@ -128,6 +128,10 @@ export default function OnboardingPage(props: { params?: Promise<any>; searchPar
         toast({ variant: 'destructive', title: 'Format incorrect', description: 'Le numéro doit avoir 10 chiffres.' });
         return;
       }
+      if (!['01', '05', '07'].includes(cleanPhone.substring(0, 2))) {
+        toast({ variant: 'destructive', title: 'Indicatif invalide', description: 'Le numéro doit commencer par 01, 05 ou 07.' });
+        return;
+      }
     }
     setStep((prev) => prev + 1);
   };
@@ -426,7 +430,7 @@ export default function OnboardingPage(props: { params?: Promise<any>; searchPar
                 disabled={loading || !selectedSchool}
                 className="flex-1 bg-primary text-white rounded-2xl font-black text-xs h-14 shadow-md disabled:opacity-50 disabled:grayscale transition-all"
               >
-                {loading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : 'Finaliser & Entrer au Studio'}
+                {loading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : 'Finaliser'}
               </Button>
             )}
           </div>
