@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useState } from 'react';
@@ -22,7 +21,7 @@ export default function ForgotPasswordPage() {
   const authInstance = useAuth();
   const { toast } = useToast();
 
-  const handleReset = async (e: React.FormEvent) => {
+  const handleResult = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!matricule) {
       toast({ variant: 'destructive', title: 'Erreur', description: 'Veuillez saisir votre matricule.' });
@@ -50,14 +49,22 @@ export default function ForgotPasswordPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center p-4 bg-gradient-to-br from-background to-secondary/30">
+    <div className="flex flex-col min-h-[100dvh] w-full bg-[#F9F9FC] text-neutral-900 overflow-y-auto px-4 pt-12 pb-[calc(env(safe-area-inset-bottom,0px)+2rem)] justify-start items-center relative">
+      
+      <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
+        <div 
+          className="absolute top-[-10%] right-[-10%] w-[70vw] h-[70vw] rounded-full blur-[100px]"
+          style={{ background: 'radial-gradient(circle, rgba(124,58,237,0.05) 0%, transparent 60%)' }}
+        />
+      </div>
+
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="w-full max-w-md"
+        className="w-full max-w-md z-10"
       >
-        <Card className="border-border/60 shadow-xl backdrop-blur-sm bg-card/90">
+        <Card className="border-neutral-200/60 shadow-[0_20px_40px_rgba(0,0,0,0.03)] bg-white rounded-3xl overflow-hidden">
           <CardHeader>
             <CardTitle className="text-xl text-center">Récupération</CardTitle>
             <CardDescription className="text-center">
@@ -65,7 +72,7 @@ export default function ForgotPasswordPage() {
             </CardDescription>
           </CardHeader>
           {!success ? (
-            <form onSubmit={handleReset}>
+            <form onSubmit={handleResult}>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="matricule">Matricule</Label>
@@ -82,8 +89,8 @@ export default function ForgotPasswordPage() {
                   </div>
                 </div>
               </CardContent>
-              <CardFooter className="flex flex-col space-y-4">
-                <Button type="submit" className="w-full" disabled={loading}>
+              <CardFooter className="flex flex-col space-y-4 border-t border-neutral-100 pt-4 bg-neutral-50/50">
+                <Button type="submit" className="w-full rounded-xl h-11" disabled={loading}>
                   {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : 'Réinitialiser'}
                 </Button>
                 <Link
@@ -103,7 +110,7 @@ export default function ForgotPasswordPage() {
                 Instructions envoyées pour le matricule <strong>{matricule}</strong>.
               </p>
               <Link href="/auth/login" className="block w-full">
-                <Button variant="outline" className="w-full">Retour à la connexion</Button>
+                <Button variant="outline" className="w-full rounded-xl">Retour à la connexion</Button>
               </Link>
             </CardContent>
           )}

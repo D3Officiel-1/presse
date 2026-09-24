@@ -55,7 +55,7 @@ export default function OnboardingPage() {
     const uid = localStorage.getItem('userId');
     if (!uid) return;
 
-    setLoading(true);
+    loading || setLoading(true);
     try {
       const userDocRef = doc(firestoreInstance, 'users', uid);
       const updateData = {
@@ -94,24 +94,25 @@ export default function OnboardingPage() {
   const progressValue = (step / 3) * 100;
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center p-4 bg-gradient-to-br from-background to-secondary/30">
-      <div className="w-full max-w-lg mb-4">
-        <Progress value={progressValue} className="h-2" />
-        <p className="text-right text-xs font-medium text-muted-foreground mt-1">Étape {step} sur 3</p>
+    <div className="flex flex-col min-h-[100dvh] w-full bg-[#F9F9FC] text-neutral-900 overflow-y-auto px-4 pt-12 pb-[calc(env(safe-area-inset-bottom,0px)+2rem)] justify-start items-center relative">
+      
+      <div className="w-full max-w-lg mb-4 z-10">
+        <Progress value={progressValue} className="h-1.5" />
+        <p className="text-right text-[10px] font-bold text-muted-foreground uppercase tracking-wider mt-1.5">Étape {step} sur 3</p>
       </div>
 
-      <Card className="w-full max-w-lg shadow-2xl border-border/60">
+      <Card className="w-full max-w-lg shadow-[0_20px_40px_rgba(0,0,0,0.03)] border-neutral-200/60 bg-white rounded-3xl z-10 overflow-hidden">
         <CardHeader>
           <div className="flex items-center gap-2 text-primary mb-1">
-            <Sparkles className="w-5 h-5" />
-            <span className="text-xs uppercase font-bold tracking-widest">Configuration initiale</span>
+            <Sparkles className="w-4 h-4" />
+            <span className="text-[10px] uppercase font-bold tracking-widest">Configuration initiale</span>
           </div>
-          <CardTitle className="text-xl">
+          <CardTitle className="text-lg">
             {step === 1 && 'Faisons connaissance'}
             {step === 2 && 'Votre rôle au sein de l\'app'}
             {step === 3 && 'Informations scolaires'}
           </CardTitle>
-          <CardDescription>
+          <CardDescription className="normal-case text-xs text-muted-foreground">
             {step === 1 && 'Entrez vos informations de base pour votre pass de créateur ZAP.'}
             {step === 2 && 'Sélectionnez le statut qui correspond le mieux à votre profil.'}
             {step === 3 && 'Ces détails aideront les autres élèves à vous découvrir.'}
@@ -131,7 +132,7 @@ export default function OnboardingPage() {
                 <div className="space-y-2">
                   <Label htmlFor="fullName">Nom complet (Prénom & Nom)</Label>
                   <div className="relative">
-                    <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                    <User className="absolute left-3 top-3.5 h-4 w-4 text-muted-foreground" />
                     <Input
                       id="fullName"
                       placeholder="Jean Dupont"
@@ -156,20 +157,20 @@ export default function OnboardingPage() {
                   <div
                     key={r.id}
                     onClick={() => setSelectedRole(r.id)}
-                    className={`p-4 rounded-xl border-2 cursor-pointer transition-all duration-200 flex items-start gap-3 ${
+                    className={`p-4 rounded-xl border cursor-pointer transition-all duration-200 flex items-start gap-3 ${
                       selectedRole === r.id
-                        ? 'border-primary bg-primary/5 shadow-md'
-                        : 'border-border/60 hover:border-border bg-card'
+                        ? 'border-primary bg-primary/5 shadow-sm'
+                        : 'border-neutral-200 hover:border-neutral-300 bg-card'
                     }`}
                   >
-                    <div className={`mt-0.5 w-5 h-5 rounded-full border flex items-center justify-center shrink-0 ${
-                      selectedRole === r.id ? 'bg-primary border-primary text-primary-foreground' : 'border-muted-foreground'
+                    <div className={`mt-0.5 w-4 h-4 rounded-full border flex items-center justify-center shrink-0 ${
+                      selectedRole === r.id ? 'bg-primary border-primary text-primary-foreground' : 'border-neutral-400'
                     }`}>
-                      {selectedRole === r.id && <Check className="w-3 h-3" />}
+                      {selectedRole === r.id && <Check className="w-2.5 h-2.5" />}
                     </div>
                     <div>
-                      <h4 className="font-semibold text-sm">{r.title}</h4>
-                      <p className="text-xs text-muted-foreground">{r.description}</p>
+                      <h4 className="font-bold text-sm text-neutral-900">{r.title}</h4>
+                      <p className="text-xs text-muted-foreground mt-0.5">{r.description}</p>
                     </div>
                   </div>
                 ))}
@@ -208,22 +209,22 @@ export default function OnboardingPage() {
           </AnimatePresence>
         </CardContent>
 
-        <CardFooter className="flex justify-between border-t pt-4">
+        <CardFooter className="flex justify-between border-t border-neutral-100 pt-4 bg-neutral-50/50">
           <Button
             variant="ghost"
             onClick={handleBack}
             disabled={step === 1 || loading}
-            className={step === 1 ? 'opacity-0 pointer-events-none' : ''}
+            className={`rounded-xl h-11 text-neutral-600 ${step === 1 ? 'opacity-0 pointer-events-none' : ''}`}
           >
             <ChevronLeft className="w-4 h-4 mr-1" /> Retour
           </Button>
 
           {step < 3 ? (
-            <Button onClick={handleNext}>
+            <Button onClick={handleNext} className="rounded-xl h-11 px-5">
               Suivant <ChevronRight className="w-4 h-4 ml-1" />
             </Button>
           ) : (
-            <Button onClick={handleCompleteOnboarding} disabled={loading} className="bg-primary hover:bg-primary/90">
+            <Button onClick={handleCompleteOnboarding} disabled={loading} className="rounded-xl h-11 bg-primary text-white hover:bg-primary/90 px-5">
               {loading ? (
                 <>
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" /> Finalisation...

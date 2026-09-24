@@ -89,21 +89,30 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center p-4 bg-gradient-to-br from-background to-secondary/30">
+    <div className="flex flex-col min-h-[100dvh] w-full bg-[#F9F9FC] text-neutral-900 overflow-y-auto px-4 pt-12 pb-[calc(env(safe-area-inset-bottom,0px)+2rem)] justify-start items-center relative">
+      
+      {/* Background Aurora */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
+        <div 
+          className="absolute top-[-10%] left-[-10%] w-[70vw] h-[70vw] rounded-full blur-[100px]"
+          style={{ background: 'radial-gradient(circle, rgba(124,58,237,0.05) 0%, transparent 60%)' }}
+        />
+      </div>
+
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="w-full max-w-md"
+        className="w-full max-w-md z-10 space-y-6"
       >
-        <div className="flex flex-col items-center mb-6 text-center">
-          <div className="w-16 h-16 p-2 rounded-2xl bg-primary/10 text-primary mb-2">
+        <div className="flex flex-col items-center text-center">
+          <div className="w-16 h-16 p-2 rounded-2xl bg-primary/10 text-primary mb-2 flex items-center justify-center">
             <Logo />
           </div>
           <h2 className="text-2xl font-bold tracking-tight">ZAP</h2>
         </div>
 
-        <Card className="border-border/60 shadow-xl backdrop-blur-sm bg-card/90">
+        <Card className="border-neutral-200/60 shadow-[0_20px_40px_rgba(0,0,0,0.03)] bg-white rounded-3xl overflow-hidden">
           <CardHeader>
             <CardTitle className="text-xl text-center">Connexion</CardTitle>
             <CardDescription className="text-center">
@@ -150,8 +159,8 @@ export default function LoginPage() {
                 </div>
               </div>
             </CardContent>
-            <CardFooter className="flex flex-col space-y-4">
-              <Button type="submit" className="w-full" disabled={loading}>
+            <CardFooter className="flex flex-col space-y-4 border-t border-neutral-100 pt-4 bg-neutral-50/50">
+              <Button type="submit" className="w-full rounded-xl h-11" disabled={loading}>
                 {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : 'Se connecter'}
               </Button>
               <div className="text-sm text-center text-muted-foreground">
