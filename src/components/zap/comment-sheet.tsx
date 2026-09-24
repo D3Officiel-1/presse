@@ -379,6 +379,7 @@ export function CommentSheet({
               >
                 <Input
                   ref={inputRef}
+                  type="text"
                   value={newCommentInput}
                   onChange={(event) => setNewCommentInput(event.target.value)}
                   onKeyDown={(event) => {
@@ -390,6 +391,9 @@ export function CommentSheet({
                   placeholder="Ajouter un commentaire…"
                   maxLength={500}
                   autoComplete="off"
+                  autoCorrect="on"
+                  autoCapitalize="sentences"
+                  spellCheck={true}
                   enterKeyHint="send"
                   className="
                     h-11
