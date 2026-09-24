@@ -195,7 +195,6 @@ export default function OnboardingPage(props: { params?: Promise<any>; searchPar
           description: 'Bienvenue officiellement sur le Studio ZAP.',
         });
         
-        // Utilisation de replace pour éviter de revenir sur l'onboarding
         router.replace('/zap');
       })
       .catch((error) => {
