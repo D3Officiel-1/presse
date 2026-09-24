@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { ChevronRight, ChevronLeft, Loader2, Sparkles, Check, User, Camera, Film, PenTool, Music, Quote, AtSign } from 'lucide-react';
+import { ChevronRight, ChevronLeft, Loader2, Sparkles, Check, Quote, AtSign, Phone } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 
@@ -23,20 +23,12 @@ const CLASSES = [
   { id: 'tle', title: 'Terminale (Tle)' },
 ];
 
-const INTERESTS_OPTIONS = [
-  { id: 'direction', title: 'Réalisation & Cadrage', icon: Camera },
-  { id: 'editing', title: 'Montage & FX / VFX', icon: Film },
-  { id: 'acting', title: 'Jeu d\'Acteur & Théâtre', icon: User },
-  { id: 'script', title: 'Scénario & Storyboard', icon: PenTool },
-  { id: 'audio', title: 'Production Son & Musique', icon: Music },
-];
-
 export default function OnboardingPage() {
   const [step, setStep] = useState(1);
   const [fullName, setFullName] = useState('');
   const [selectedClasse, setSelectedClasse] = useState('');
   const [username, setUsername] = useState('');
-  const [selectedInterests, setSelectedInterests] = useState<string[]>([]);
+  const [phone, setPhone] = useState('');
   const [bio, setBio] = useState('');
   const [loading, setLoading] = useState(false);
   
@@ -95,24 +87,35 @@ export default function OnboardingPage() {
         setLoading(false);
       }
     }
-    if (step === 4 && selectedInterests.length === 0) {
-      toast({ variant: 'destructive', title: 'Sélection requise', description: 'Choisissez au moins une compétence ou un centre d\'intérêt.' });
-      return;
+    if (step === 4) {
+      const cleanPhone = phone.replace(/[^0-9]/g, '');
+      if (!cleanPhone) {
+        toast({ variant: 'destructive', title: 'Champs requis', description: 'Veuillez renseigner votre numéro de téléphone.' });
+        return;
+      }
+      if (cleanPhone.length !== 10) {
+        toast({ variant: 'destructive', title: 'Format incorrect', description: 'Le numéro doit comporter exactement 10 chiffres.' });
+        return;
+      }
+      const prefix = cleanPhone.substring(0, 2);
+      if (prefix !== '01' && prefix !== '05' && prefix !== '07') {
+        toast({ variant: 'destructive', title: 'Indicatif invalide', description: 'Le numéro doit obligatoirement commencer par 01, 05 ou 07.' });
+        return;
+      }
     }
     setStep((prev) => prev + 1);
   };
 
   const handleBack = () => setStep((prev) => Math.max(1, prev - 1));
 
-  const toggleInterest = (id: string) => {
-    setSelectedInterests((prev) =>
-      prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]
-    );
-  };
-
   const handleUsernameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value.toLowerCase().replace(/[^a-z0-9_-]/g, '');
     setUsername(value);
+  };
+
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value.replace(/[^0-9]/g, '').substring(0, 10);
+    setPhone(value);
   };
 
   const handleCompleteOnboarding = () => {
@@ -125,7 +128,7 @@ export default function OnboardingPage() {
       name: fullName,
       classe: selectedClasse,
       username: username.trim().toLowerCase(),
-      interests: selectedInterests,
+      phone: phone,
       bio: bio.trim(),
       onboarded: true,
       updatedAt: new Date()
@@ -203,7 +206,7 @@ export default function OnboardingPage() {
             {step === 4 && (
               <>
                 <Sparkles className="w-4 h-4 text-primary" />
-                Vos super-pouvoirs
+                Numéro de téléphone
               </>
             )}
             {step === 5 && (
@@ -308,38 +311,26 @@ export default function OnboardingPage() {
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -20 }}
-                className="space-y-3"
+                className="space-y-4"
               >
-                <div className="grid grid-cols-1 gap-2.5">
-                  {INTERESTS_OPTIONS.map((option) => {
-                    const IconComponent = option.icon;
-                    const isSelected = selectedInterests.includes(option.id);
-                    return (
-                      <div
-                        key={option.id}
-                        onClick={() => toggleInterest(option.id)}
-                        className={cn(
-                          "p-4 rounded-2xl border-2 cursor-pointer transition-all duration-200 flex items-center justify-between",
-                          isSelected
-                            ? 'border-primary bg-primary/5 text-neutral-950 font-black'
-                            : 'border-neutral-200 bg-white hover:border-neutral-300 text-neutral-700 font-bold'
-                        )}
-                      >
-                        <div className="flex items-center gap-3">
-                          <div className={cn("p-2 rounded-xl", isSelected ? 'bg-primary/10 text-primary' : 'bg-neutral-100 text-neutral-500')}>
-                            <IconComponent className="w-5 h-5" />
-                          </div>
-                          <span className="text-sm tracking-tight">{option.title}</span>
-                        </div>
-                        <div className={cn(
-                          "w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all",
-                          isSelected ? 'bg-primary border-primary text-white' : 'border-neutral-300'
-                        )}>
-                          {isSelected && <Check className="w-4 h-4 stroke-[3]" />}
-                        </div>
-                      </div>
-                    );
-                  })}
+                <div className="space-y-2">
+                  <Label htmlFor="phone" className="text-[10px] font-black uppercase tracking-widest text-neutral-400 ml-1">Numéro de Téléphone (WhatsApp)</Label>
+                  <div className="relative">
+                    <Phone className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-neutral-400" />
+                    <Input
+                      id="phone"
+                      type="tel"
+                      placeholder="Ex: 0707070707"
+                      value={phone}
+                      onChange={handlePhoneChange}
+                      className="pl-12 h-14 bg-white border-neutral-200 rounded-2xl text-base focus-visible:ring-primary/10 transition-all font-bold font-mono"
+                      maxLength={10}
+                      autoFocus
+                    />
+                  </div>
+                  <span className="text-[10px] text-muted-foreground font-medium block px-1">
+                    Doit comporter exactement 10 chiffres et commencer par 01, 05 ou 07
+                  </span>
                 </div>
               </motion.div>
             )}
