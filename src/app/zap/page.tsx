@@ -119,11 +119,11 @@ export default function FeedPage(props: { params: Promise<any>; searchParams: Pr
 
   const [commentsStore, setCommentsStore] = useState<Record<string, any[]>>({
     'vid-1': [
-      { id: 'c1', user: 'fatim_creative', text: 'Incroyable les effets de lumière ! 🔥', time: 'Il y a 2h' },
-      { id: 'c2', user: 'gilles_art', text: 'Quel logiciel pour le tracking ? Beau travail !', time: 'Il y a 1h' }
+      { id: 'c1', user: 'fatim_creative', text: 'Incroyable les effets de lumière ! 🔥', time: 'Il y a 2h', likes: 24, isLiked: false },
+      { id: 'c2', user: 'gilles_art', text: 'Quel logiciel pour le tracking ? Beau travail !', time: 'Il y a 1h', likes: 12, isLiked: false }
     ],
     'vid-2': [
-      { id: 'c3', user: 'yannick_vfx', text: 'Très bon pitch, clair, ambitieux et inspirant.', time: 'Il y a 30 min' }
+      { id: 'c3', user: 'yannick_vfx', text: 'Très bon pitch, clair, ambitieux et inspirant.', time: 'Il y a 30 min', likes: 7, isLiked: false }
     ]
   });
 
@@ -319,7 +319,9 @@ export default function FeedPage(props: { params: Promise<any>; searchParams: Pr
       id: `c-custom-${Date.now()}`,
       user: 'moi_createur',
       text: text,
-      time: 'À l\'instant'
+      time: 'À l\'instant',
+      likes: 0,
+      isLiked: false
     };
 
     setCommentsStore((prev) => ({
@@ -345,6 +347,24 @@ export default function FeedPage(props: { params: Promise<any>; searchParams: Pr
       [selectedVideo.id]: (prev[selectedVideo.id] || []).filter(c => c.id !== commentId)
     }));
     setVideos((prev) => prev.map((v) => v.id === selectedVideo.id ? { ...v, comments: Math.max(0, v.comments - 1) } : v));
+  };
+
+  const handleToggleLikeComment = (commentId: string | number) => {
+    if (!selectedVideo) return;
+    setCommentsStore((prev) => ({
+      ...prev,
+      [selectedVideo.id]: (prev[selectedVideo.id] || []).map(c => {
+        if (c.id === commentId) {
+          const isLikedNow = !c.isLiked;
+          return {
+            ...c,
+            isLiked: isLikedNow,
+            likes: isLikedNow ? (c.likes || 0) + 1 : Math.max(0, (c.likes || 0) - 1)
+          };
+        }
+        return c;
+      })
+    }));
   };
 
   const filteredVideos = feedMode === 'following' 
@@ -603,6 +623,7 @@ export default function FeedPage(props: { params: Promise<any>; searchParams: Pr
             onAddComment={handleAddComment}
             onEditComment={handleEditComment}
             onDeleteComment={handleDeleteComment}
+            onToggleLikeComment={handleToggleLikeComment}
           />
         )}
 

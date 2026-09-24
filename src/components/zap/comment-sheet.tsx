@@ -7,17 +7,20 @@ import React, {
   useState,
 } from 'react';
 import { AnimatePresence, motion, PanInfo } from 'framer-motion';
-import { X, Send, Sparkles, Trash2, Edit2, Loader2, RefreshCw, AlertTriangle } from 'lucide-react';
+import { X, Send, Sparkles, Trash2, Edit2, Loader2, RefreshCw, AlertTriangle, Heart } from 'lucide-react';
 
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import type { Video } from '@/app/zap/page';
+import { cn } from '@/lib/utils';
 
 interface Comment {
   id: string | number;
   user: string;
   text: string;
   time: string;
+  likes: number;
+  isLiked?: boolean;
 }
 
 interface CommentSheetProps {
@@ -27,6 +30,7 @@ interface CommentSheetProps {
   onAddComment: (text: string) => void;
   onEditComment?: (id: string | number, newText: string) => void;
   onDeleteComment?: (id: string | number) => void;
+  onToggleLikeComment?: (id: string | number) => void;
 }
 
 export function CommentSheet({
@@ -36,6 +40,7 @@ export function CommentSheet({
   onAddComment,
   onEditComment,
   onDeleteComment,
+  onToggleLikeComment,
 }: CommentSheetProps) {
   const [newCommentInput, setNewCommentInput] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -48,6 +53,8 @@ export function CommentSheet({
   const inputRef = useRef<HTMLInputElement>(null);
   const commentsRef = useRef<HTMLDivElement>(null);
   const lastSentRef = useRef<string>('');
+  
+  const commentTapsRef = useRef<Record<string | number, { lastTap: number }>>({});
 
   const CHAR_LIMIT = 500;
 
@@ -121,7 +128,7 @@ export function CommentSheet({
 
     setIsSubmitting(true);
 
-    const checkFakeNetworkError = Math.random() < 0.15;
+    const checkFakeNetworkError = Math.random() < 0.05;
     if (checkFakeNetworkError) {
       setTimeout(() => {
         setNetworkError(true);
@@ -169,11 +176,25 @@ export function CommentSheet({
     return clean.slice(0, 2).toUpperCase();
   }, []);
 
+  const handleCommentClickOrTap = (id: string | number) => {
+    const now = Date.now();
+    const state = commentTapsRef.current[id] || { lastTap: 0 };
+    
+    if (now - state.lastTap < 300) {
+      if (onToggleLikeComment) {
+        onToggleLikeComment(id);
+      }
+      commentTapsRef.current[id] = { lastTap: 0 };
+    } else {
+      commentTapsRef.current[id] = { lastTap: now };
+    }
+  };
+
   return (
     <AnimatePresence>
       <>
         <motion.div
-          className="fixed inset-0 z-[90] bg-black/30 backdrop-blur-[3px]"
+          className="fixed inset-0 z-[90] bg-black/30 backdrop-blur-[2px]"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -274,13 +295,16 @@ export function CommentSheet({
                       initial={{ opacity: 0, y: 6 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.2, delay: Math.min(index * 0.02, 0.12), ease: 'easeOut' }}
-                      className="flex gap-3 group"
+                      className="flex gap-3 group relative items-start select-none"
                     >
                       <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[13px] border border-neutral-200 bg-neutral-50 text-[10px] font-black tracking-wide text-neutral-700">
                         {getInitials(comment.user)}
                       </div>
 
-                      <div className="min-w-0 flex-1">
+                      <div 
+                        className="min-w-0 flex-1 pr-10 cursor-pointer"
+                        onClick={() => handleCommentClickOrTap(comment.id)}
+                      >
                         <div className="flex items-center justify-between">
                           <div className="flex items-baseline gap-2">
                             <span className="truncate text-[12px] font-black text-neutral-900">
@@ -292,16 +316,16 @@ export function CommentSheet({
                           </div>
 
                           {isMe && !isEditing && (
-                            <div className="flex items-center gap-2 opacity-60 group-hover:opacity-100 transition-opacity">
+                            <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity ml-2 shrink-0">
                               <button 
-                                onClick={() => { setEditingId(comment.id); setEditingText(comment.text); }}
+                                onClick={(e) => { e.stopPropagation(); setEditingId(comment.id); setEditingText(comment.text); }}
                                 className="text-neutral-500 hover:text-neutral-900 p-1"
                               >
                                 <Edit2 className="w-3 h-3" />
                               </button>
                               {onDeleteComment && (
                                 <button 
-                                  onClick={() => onDeleteComment(comment.id)}
+                                  onClick={(e) => { e.stopPropagation(); onDeleteComment(comment.id); }}
                                   className="text-neutral-400 hover:text-rose-600 p-1"
                                 >
                                   <Trash2 className="w-3 h-3" />
@@ -312,7 +336,7 @@ export function CommentSheet({
                         </div>
 
                         {isEditing ? (
-                          <div className="mt-1 flex gap-2">
+                          <div className="mt-1 flex gap-2" onClick={(e) => e.stopPropagation()}>
                             <Input 
                               value={editingText}
                               onChange={(e) => setEditingText(e.target.value.substring(0, CHAR_LIMIT))}
@@ -330,6 +354,30 @@ export function CommentSheet({
                             {comment.text}
                           </p>
                         )}
+                      </div>
+
+                      {/* Right-aligned interactions section for comment like */}
+                      <div className="absolute right-0 top-0.5 flex flex-col items-center justify-center space-y-0.5">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (onToggleLikeComment) onToggleLikeComment(comment.id);
+                          }}
+                          className={cn(
+                            "p-1.5 rounded-full transition-transform active:scale-70",
+                            comment.isLiked ? "text-primary" : "text-neutral-300 hover:text-neutral-400"
+                          )}
+                        >
+                          <motion.div
+                            scale={comment.isLiked ? [1, 1.4, 1] : 1}
+                            transition={{ duration: 0.2 }}
+                          >
+                            <Heart className={cn("w-3.5 h-3.5", comment.isLiked && "fill-primary stroke-primary")} />
+                          </motion.div>
+                        </button>
+                        <span className="text-[9px] font-mono font-bold text-neutral-400">
+                          {comment.likes || 0}
+                        </span>
                       </div>
                     </motion.article>
                   );
