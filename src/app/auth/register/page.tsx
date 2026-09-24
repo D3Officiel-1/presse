@@ -118,7 +118,8 @@ export default function RegisterPage(props: { params?: Promise<any>; searchParam
         description: 'Bienvenue au Studio ZAP. Configurons votre pass.',
       });
 
-      router.push('/auth/onboarding');
+      // Remplacement par router.replace pour empêcher le retour en arrière
+      router.replace('/auth/onboarding');
     } catch (error: any) {
       toast({
         variant: 'destructive',
