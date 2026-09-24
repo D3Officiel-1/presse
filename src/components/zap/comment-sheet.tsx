@@ -1,14 +1,8 @@
 'use client';
 
-import React, {
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-} from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion, PanInfo } from 'framer-motion';
 import { X, Send, Sparkles } from 'lucide-react';
-
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import type { Video } from '@/app/zap/page';
@@ -36,302 +30,173 @@ export function CommentSheet({
   const [newCommentInput, setNewCommentInput] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
 
+  /*
+   * Bloque uniquement le scroll de la page derrière la sheet.
+   * On évite touchAction:none afin de ne pas perturber iOS.
+   */
   useEffect(() => {
     const previousOverflow = document.body.style.overflow;
-    const previousTouchAction = document.body.style.touchAction;
-
     document.body.style.overflow = 'hidden';
-    document.body.style.touchAction = 'none';
-
     return () => {
       document.body.style.overflow = previousOverflow;
-      document.body.style.touchAction = previousTouchAction;
     };
   }, []);
 
+  /*
+   * Fermeture clavier / desktop.
+   */
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
         onClose();
       }
     };
-
     window.addEventListener('keydown', handleKeyDown);
-
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
     };
   }, [onClose]);
 
+  /*
+   * Envoi du commentaire.
+   */
   const submitComment = useCallback(() => {
     const text = newCommentInput.trim();
-
     if (!text) return;
-
     onAddComment(text);
     setNewCommentInput('');
-
     requestAnimationFrame(() => {
       inputRef.current?.focus();
     });
   }, [newCommentInput, onAddComment]);
 
-  const handleDragEnd = (
-    _: MouseEvent | TouchEvent | PointerEvent,
-    info: PanInfo
-  ) => {
-    const shouldClose = info.offset.y > 120 || info.velocity.y > 700;
+  /*
+   * Swipe vers le bas.
+   */
+  const handleDragEnd = useCallback(
+    ( _: MouseEvent | TouchEvent | PointerEvent, info: PanInfo ) => {
+      if (info.offset.y > 110 || info.velocity.y > 650) {
+        onClose();
+      }
+    },
+    [onClose]
+  );
 
-    if (shouldClose) {
-      onClose();
-    }
-  };
-
-  const getInitials = (username: string) => {
+  /*
+   * Initiales avatar.
+   */
+  const getInitials = useCallback((username: string) => {
     const clean = username.replace('@', '').trim();
-
     if (!clean) return '?';
-
     return clean.slice(0, 2).toUpperCase();
-  };
+  }, []);
 
   return (
     <AnimatePresence>
       <>
         {/* Backdrop */}
         <motion.div
-          className="fixed inset-0 z-[90] bg-black/40 backdrop-blur-[2px]"
+          className="fixed inset-0 z-[90] bg-black/30 backdrop-blur-[3px]"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          transition={{ duration: 0.2 }}
+          transition={{ duration: 0.2, ease: 'easeOut' }}
           onClick={onClose}
           aria-hidden="true"
         />
 
-        {/* Sheet */}
+        {/* Bottom Sheet */}
         <motion.section
           role="dialog"
           aria-modal="true"
           aria-label="Commentaires"
-          className="
-            fixed
-            inset-x-0
-            bottom-0
-            z-[100]
-            flex
-            max-h-[92dvh]
-            min-h-[45dvh]
-            flex-col
-            overflow-hidden
-            rounded-t-[28px]
-            border-t
-            border-neutral-200
-            bg-white
-            text-neutral-900
-            shadow-[0_-20px_50px_rgba(0,0,0,0.08)]
-            md:left-1/2
-            md:right-auto
-            md:w-[560px]
-            md:-translate-x-1/2
-          "
+          className="fixed inset-x-0 bottom-0 z-[100] flex max-h-[92dvh] min-h-[45dvh] flex-col overflow-hidden rounded-t-[30px] border border-neutral-200/80 bg-white text-neutral-900 shadow-[0_-20px_60px_rgba(0,0,0,0.12)] md:left-1/2 md:right-auto md:w-[560px] md:-translate-x-1/2"
           initial={{ y: '100%' }}
           animate={{ y: 0 }}
           exit={{ y: '100%' }}
-          transition={{
-            type: 'spring',
-            stiffness: 420,
-            damping: 38,
-            mass: 0.8,
-          }}
-          drag="y"
-          dragConstraints={{ top: 0 }}
-          dragElastic={{ top: 0.02, bottom: 0.35 }}
-          onDragEnd={handleDragEnd}
+          transition={{ type: 'spring', stiffness: 430, damping: 38, mass: 0.8 }}
         >
-          {/* Drag indicator */}
-          <div className="flex shrink-0 justify-center pt-2.5 pb-1">
-            <div
-              className="
-                h-1
-                w-10
-                rounded-full
-                bg-neutral-200
-              "
-            />
-          </div>
-
-          {/* Header */}
-          <header
-            className="
-              flex
-              shrink-0
-              items-center
-              justify-between
-              border-b
-              border-neutral-100
-              px-4
-              pb-3
-              pt-1
-            "
+          {/* Drag area */}
+          <motion.div
+            className="shrink-0 touch-none select-none cursor-grab active:cursor-grabbing"
+            drag="y"
+            dragConstraints={{ top: 0 }}
+            dragElastic={{ top: 0.02, bottom: 0.3 }}
+            onDragEnd={handleDragEnd}
           >
-            <div className="flex min-w-0 items-center gap-2.5">
-              <div
-                className="
-                  flex
-                  h-8
-                  w-8
-                  shrink-0
-                  items-center
-                  justify-center
-                  rounded-[11px]
-                  border
-                  border-neutral-100
-                  bg-neutral-50
-                  shadow-inner
-                "
-              >
-                <Sparkles className="h-3.5 w-3.5 text-neutral-500" />
-              </div>
-
-              <div className="min-w-0">
-                <h2 className="truncate text-[14px] font-black tracking-tight">
-                  Commentaires
-                </h2>
-
-                <p className="text-[11px] font-bold text-neutral-400">
-                  {video.comments}{' '}
-                  {video.comments === 1
-                    ? 'commentaire'
-                    : 'commentaires'}
-                </p>
-              </div>
+            {/* Handle */}
+            <div className="flex justify-center px-4 pb-1 pt-2.5">
+              <div className="h-1 w-10 rounded-full bg-neutral-200" />
             </div>
 
-            <button
-              type="button"
-              onClick={onClose}
-              aria-label="Fermer les commentaires"
-              className="
-                flex
-                h-9
-                w-9
-                shrink-0
-                items-center
-                justify-center
-                rounded-full
-                border
-                border-neutral-200
-                bg-neutral-50
-                text-neutral-500
-                outline-none
-                transition
-                active:scale-90
-                active:bg-neutral-100
-                focus-visible:ring-2
-                focus-visible:ring-neutral-200
-              "
-            >
-              <X className="h-4 w-4" />
-            </button>
-          </header>
+            {/* Header */}
+            <header className="flex items-center justify-between border-b border-neutral-100 px-4 pb-3 pt-1">
+              <div className="flex min-w-0 items-center gap-2.5">
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[11px] border border-neutral-100 bg-neutral-50">
+                  <Sparkles className="h-3.5 w-3.5 text-neutral-500" />
+                </div>
+                <div className="min-w-0">
+                  <h2 className="truncate text-[14px] font-black tracking-tight">
+                    Commentaires
+                  </h2>
+                  <p className="text-[11px] font-bold text-neutral-400">
+                    {video.comments}{' '}
+                    {video.comments === 1 ? 'commentaire' : 'commentaires'}
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={onClose}
+                aria-label="Fermer les commentaires"
+                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-neutral-200 bg-neutral-50 text-neutral-500 outline-none transition-all active:scale-90 active:bg-neutral-100 focus-visible:ring-2 focus-visible:ring-neutral-200"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </header>
+          </motion.div>
 
-          {/* Comments */}
-          <div
-            className="
-              min-h-0
-              flex-1
-              overflow-y-auto
-              overscroll-contain
-              px-4
-              py-4
-              [scrollbar-width:none]
-              [-webkit-overflow-scrolling:touch]
-            "
-          >
+          {/* Comment list */}
+          <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 py-4 [scrollbar-width:none] [-ms-overflow-style:none] [-webkit-overflow-scrolling:touch]">
             <div className="space-y-5">
               {comments.map((comment, index) => (
                 <motion.article
                   key={comment.id}
-                  initial={{
-                    opacity: 0,
-                    y: 8,
-                  }}
-                  animate={{
-                    opacity: 1,
-                    y: 0,
-                  }}
-                  transition={{
-                    duration: 0.22,
-                    delay: Math.min(index * 0.025, 0.15),
-                  }}
+                  initial={{ opacity: 0, y: 6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.2, delay: Math.min(index * 0.02, 0.12), ease: 'easeOut' }}
                   className="flex gap-3"
                 >
                   {/* Avatar */}
-                  <div
-                    className="
-                      flex
-                      h-9
-                      w-9
-                      shrink-0
-                      items-center
-                      justify-center
-                      rounded-[13px]
-                      border
-                      border-neutral-200
-                      bg-neutral-50
-                      text-[10px]
-                      font-black
-                      tracking-wide
-                      text-neutral-700
-                      shadow-sm
-                    "
-                  >
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[13px] border border-neutral-200 bg-neutral-50 text-[10px] font-black tracking-wide text-neutral-700">
                     {getInitials(comment.user)}
                   </div>
-
-                  {/* Content */}
+                  {/* Comment content */}
                   <div className="min-w-0 flex-1">
                     <div className="flex items-baseline gap-2">
                       <span className="truncate text-[12px] font-black text-neutral-900">
                         @{comment.user.replace('@', '')}
                       </span>
-
                       <span className="shrink-0 text-[10px] font-bold text-neutral-400">
                         {comment.time}
                       </span>
                     </div>
-
-                    <p className="mt-1 text-[13px] font-medium leading-[1.45] text-neutral-700">
+                    <p className="mt-1 break-words text-[13px] font-medium leading-[1.45] text-neutral-700">
                       {comment.text}
                     </p>
                   </div>
                 </motion.article>
               ))}
 
+              {/* Empty state */}
               {comments.length === 0 && (
                 <div className="flex min-h-[240px] flex-col items-center justify-center text-center">
-                  <div
-                    className="
-                      mb-4
-                      flex
-                      h-14
-                      w-14
-                      items-center
-                      justify-center
-                      rounded-[20px]
-                      border
-                      border-neutral-100
-                      bg-neutral-50
-                    "
-                  >
+                  <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-[20px] border border-neutral-100 bg-neutral-50">
                     <Sparkles className="h-5 w-5 text-neutral-300" />
                   </div>
-
                   <p className="text-[13px] font-bold text-neutral-700">
                     Aucun commentaire
                   </p>
-
                   <p className="mt-1 max-w-[220px] text-[11px] leading-relaxed text-neutral-400">
                     Soyez le premier à partager votre réaction.
                   </p>
@@ -342,35 +207,12 @@ export function CommentSheet({
 
           {/* Composer */}
           <div
-            className="
-              shrink-0
-              border-t
-              border-neutral-100
-              bg-white
-              px-3
-              pt-3
-            "
-            style={{
-              paddingBottom: 'max(12px, env(safe-area-inset-bottom))',
-            }}
+            className="shrink-0 border-t border-neutral-100 bg-white px-3 pt-3"
+            style={{ paddingBottom: 'max(12px, env(safe-area-inset-bottom))' }}
           >
             <div className="flex items-center gap-2">
-              <div
-                className="
-                  relative
-                  flex
-                  min-w-0
-                  flex-1
-                  items-center
-                  rounded-[17px]
-                  border
-                  border-neutral-200
-                  bg-neutral-50
-                  transition-colors
-                  focus-within:border-neutral-300
-                  focus-within:bg-neutral-100/50
-                "
-              >
+              {/* Input */}
+              <div className="flex min-w-0 flex-1 items-center rounded-[17px] border border-neutral-200 bg-neutral-50 transition-all focus-within:border-neutral-300 focus-within:bg-neutral-100/60 focus-within:shadow-[0_0_0_3px_rgba(0,0,0,0.025)]">
                 <Input
                   ref={inputRef}
                   type="text"
@@ -387,20 +229,9 @@ export function CommentSheet({
                   autoComplete="off"
                   autoCorrect="on"
                   autoCapitalize="sentences"
-                  spellCheck={true}
+                  spellCheck
                   enterKeyHint="send"
-                  className="
-                    h-11
-                    border-0
-                    bg-transparent
-                    px-4
-                    text-base
-                    text-neutral-900
-                    shadow-none
-                    outline-none
-                    placeholder:text-neutral-400
-                    focus-visible:ring-0
-                  "
+                  className="h-11 border-0 bg-transparent px-4 text-[16px] text-neutral-900 shadow-none outline-none placeholder:text-neutral-400 focus-visible:ring-0"
                 />
               </div>
 
@@ -410,20 +241,7 @@ export function CommentSheet({
                 onClick={submitComment}
                 disabled={!newCommentInput.trim()}
                 aria-label="Envoyer le commentaire"
-                className="
-                  h-11
-                  w-11
-                  shrink-0
-                  rounded-[16px]
-                  bg-neutral-900
-                  text-white
-                  shadow-[0_4px_12px_rgba(0,0,0,0.1)]
-                  transition-all
-                  hover:bg-neutral-800
-                  active:scale-90
-                  disabled:pointer-events-none
-                  disabled:opacity-25
-                "
+                className="h-11 w-11 shrink-0 rounded-[16px] bg-neutral-900 text-white shadow-[0_4px_12px_rgba(0,0,0,0.1)] transition-all hover:bg-neutral-800 active:scale-90 disabled:pointer-events-none disabled:opacity-25"
               >
                 <Send className="h-[15px] w-[15px]" />
               </Button>
