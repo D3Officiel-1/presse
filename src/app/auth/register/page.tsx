@@ -11,31 +11,70 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { UserPlus, Lock, Loader2, UserCircle } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { Progress } from '@/components/ui/progress';
+import { UserCircle, Lock, Loader2, ChevronRight, ChevronLeft, Sparkles, CheckCircle2, ShieldCheck, HelpCircle } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Logo } from '@/components/logo';
 
 const AUTH_DOMAIN = "@zap.ci";
 
 export default function RegisterPage() {
+  const [step, setStep] = useState(1);
   const [matricule, setMatricule] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
+
   const authInstance = useAuth();
   const firestoreInstance = useFirestore();
   const { toast } = useToast();
   const router = useRouter();
 
+  const handleNextStep = () => {
+    if (step === 1) {
+      if (!matricule.trim()) {
+        toast({
+          variant: 'destructive',
+          title: 'Matricule requis',
+          description: 'Veuillez saisir votre matricule unique fourni par votre établissement.',
+        });
+        return;
+      }
+      if (matricule.trim().length < 4) {
+        toast({
+          variant: 'destructive',
+          title: 'Format incorrect',
+          description: 'Le matricule semble trop court pour être valide.',
+        });
+        return;
+      }
+      setStep(2);
+    }
+  };
+
+  const handleBackStep = () => {
+    setStep(1);
+  };
+
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!matricule || !password || !confirmPassword) {
-      toast({ variant: 'destructive', title: 'Erreur', description: 'Veuillez remplir tous les champs.' });
+    if (step === 1) {
+      handleNextStep();
+      return;
+    }
+
+    if (!password || !confirmPassword) {
+      toast({ variant: 'destructive', title: 'Champs requis', description: 'Veuillez configurer et confirmer votre mot de passe.' });
+      return;
+    }
+
+    if (password.length < 6) {
+      toast({ variant: 'destructive', title: 'Mot de passe trop court', description: 'Pour votre sécurité, utilisez au moins 6 caractères.' });
       return;
     }
 
     if (password !== confirmPassword) {
-      toast({ variant: 'destructive', title: 'Erreur', description: 'Les mots de passe ne correspondent pas.' });
+      toast({ variant: 'destructive', title: 'Erreur de saisie', description: 'Les deux mots de passe ne sont pas identiques.' });
       return;
     }
 
@@ -68,108 +107,214 @@ export default function RegisterPage() {
       }));
 
       toast({
-        title: 'Inscription réussie',
-        description: 'Bienvenue sur ZAP ! Complétez votre profil.',
+        title: 'Compte initialisé !',
+        description: 'Bienvenue au Studio ZAP. Configurons maintenant votre pass.',
       });
 
       router.push('/auth/onboarding');
     } catch (error: any) {
       toast({
         variant: 'destructive',
-        title: 'Erreur',
-        description: error.code === 'auth/email-already-in-use' ? 'Ce matricule est déjà utilisé.' : error.message,
+        title: 'Inscription impossible',
+        description: error.code === 'auth/email-already-in-use' ? 'Ce matricule est déjà enregistré sur la plateforme.' : error.message,
       });
     } finally {
       setLoading(false);
     }
   };
 
+  const progressPercent = step === 1 ? 50 : 100;
+
   return (
-    <div className="flex min-h-screen items-center justify-center p-4 bg-gradient-to-br from-background to-secondary/30">
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="w-full max-w-md"
-      >
-        <div className="flex flex-col items-center mb-4">
-          <div className="w-12 h-12 p-1.5 bg-primary/10 rounded-xl text-primary mb-2">
+    <div className="flex min-h-screen items-center justify-center p-4 bg-[#F9F9FC] text-neutral-900 overflow-hidden relative">
+      
+      {/* Dynamic Aurora Ambient Background (Light Mode) */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
+        <div 
+          className="absolute top-[-10%] right-[-10%] w-[60vw] h-[60vw] rounded-full blur-[100px]"
+          style={{ background: 'radial-gradient(circle, rgba(124,58,237,0.06) 0%, transparent 60%)' }}
+        />
+        <div 
+          className="absolute bottom-[-10%] left-[-10%] w-[50vw] h-[50vw] rounded-full blur-[100px]"
+          style={{ background: 'radial-gradient(circle, rgba(255,107,0,0.04) 0%, transparent 60%)' }}
+        />
+      </div>
+
+      <div className="w-full max-w-md z-10 space-y-6">
+        
+        {/* Top Minimalist Branding */}
+        <div className="flex flex-col items-center text-center">
+          <Link href="/auth" className="w-12 h-12 p-2 rounded-xl bg-white border border-neutral-200/80 shadow-sm flex items-center justify-center transition-transform active:scale-95">
             <Logo />
+          </Link>
+          <h2 className="text-xl font-black mt-3 tracking-tight">Rejoindre ZAP</h2>
+          <p className="text-xs text-muted-foreground font-medium">L'aventure créative commence ici</p>
+        </div>
+
+        {/* Global Progress Bar Indicator */}
+        <div className="space-y-1.5">
+          <Progress value={progressPercent} className="h-1.5 bg-neutral-200" />
+          <div className="flex justify-between text-[10px] font-bold text-muted-foreground uppercase tracking-wider px-1">
+            <span>Étape {step} sur 2</span>
+            <span>{step === 1 ? 'Identifiants' : 'Sécurisation'}</span>
           </div>
         </div>
 
-        <Card className="border-border/60 shadow-xl backdrop-blur-sm bg-card/90">
-          <CardHeader>
-            <div className="flex items-center justify-center gap-2 mb-2 text-primary">
-              <UserPlus className="w-5 h-5" />
-              <span className="font-bold text-sm uppercase tracking-wider">Rejoindre ZAP</span>
-            </div>
-            <CardTitle className="text-xl text-center">Créer un compte</CardTitle>
-            <CardDescription className="text-center">
-              Enregistrez-vous avec votre matricule unique
-            </CardDescription>
-          </CardHeader>
+        {/* Step Interactive Card Container */}
+        <Card className="border-neutral-200/60 shadow-[0_20px_40px_rgba(0,0,0,0.03)] bg-white rounded-3xl overflow-hidden">
           <form onSubmit={handleRegister}>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="matricule">Matricule</Label>
-                <div className="relative">
-                  <UserCircle className="absolute left-3 top-3.5 h-5 w-5 text-muted-foreground" />
-                  <Input
-                    id="matricule"
-                    placeholder="Ex: 20492945R"
-                    value={matricule}
-                    onChange={(e) => setMatricule(e.target.value)}
-                    className="pl-10 h-12"
-                    disabled={loading}
-                  />
-                </div>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="password">Mot de passe</Label>
-                <div className="relative">
-                  <Lock className="absolute left-3 top-3.5 h-5 w-5 text-muted-foreground" />
-                  <Input
-                    id="password"
-                    type="password"
-                    placeholder="••••••••"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="pl-10 h-12"
-                    disabled={loading}
-                  />
-                </div>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="confirmPassword">Confirmer le mot de passe</Label>
-                <div className="relative">
-                  <Lock className="absolute left-3 top-3.5 h-5 w-5 text-muted-foreground" />
-                  <Input
-                    id="confirmPassword"
-                    type="password"
-                    placeholder="••••••••"
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    className="pl-10 h-12"
-                    disabled={loading}
-                  />
-                </div>
-              </div>
+            <CardHeader className="pb-4">
+              <CardTitle className="text-lg font-black tracking-tight text-neutral-900 flex items-center gap-2">
+                {step === 1 ? (
+                  <>
+                    <Sparkles className="w-4 h-4 text-primary" />
+                    Quel est votre matricule ?
+                  </>
+                ) : (
+                  <>
+                    <ShieldCheck className="w-4 h-4 text-emerald-500" />
+                    Créez votre mot de passe
+                  </>
+                )}
+              </CardTitle>
+              <CardDescription className="normal-case text-xs text-muted-foreground font-medium">
+                {step === 1 
+                  ? 'Entrez le matricule officiel de votre pass scolaire ou de votre carte étudiante.' 
+                  : 'Choisissez un accès sécurisé pour protéger vos productions et vos badges.'}
+              </CardDescription>
+            </CardHeader>
+
+            <CardContent className="min-h-[160px] flex flex-col justify-center">
+              <AnimatePresence mode="wait">
+                {step === 1 ? (
+                  <motion.div
+                    key="step-matricule"
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -20 }}
+                    transition={{ duration: 0.25 }}
+                    className="space-y-4"
+                  >
+                    <div className="space-y-2">
+                      <Label htmlFor="matricule" className="text-xs font-bold text-neutral-700">Numéro Matricule Élève</Label>
+                      <div className="relative">
+                        <UserCircle className="absolute left-3.5 top-3.5 h-5 w-5 text-neutral-400" />
+                        <Input
+                          id="matricule"
+                          placeholder="Ex: 24X94829R"
+                          value={matricule}
+                          onChange={(e) => setMatricule(e.target.value)}
+                          className="pl-11 h-12 bg-neutral-50/50 border-neutral-200 rounded-xl font-semibold tracking-wide placeholder:font-normal placeholder:text-neutral-400 text-sm focus-visible:ring-primary/20"
+                          disabled={loading}
+                          autoFocus
+                        />
+                      </div>
+                    </div>
+
+                    {/* Educational Helper Banner */}
+                    <div className="flex gap-2.5 p-3 bg-primary/5 rounded-xl border border-primary/10 text-[11px] leading-relaxed text-neutral-600 font-medium">
+                      <HelpCircle className="w-4 h-4 text-primary shrink-0 mt-0.5" />
+                      <span>Ce matricule sert d'identifiant unique. Vos futurs projets et films courts y seront directement associés.</span>
+                    </div>
+                  </motion.div>
+                ) : (
+                  <motion.div
+                    key="step-security"
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -20 }}
+                    transition={{ duration: 0.25 }}
+                    className="space-y-3.5"
+                  >
+                    <div className="space-y-2">
+                      <Label htmlFor="password" className="text-xs font-bold text-neutral-700">Mot de passe secret</Label>
+                      <div className="relative">
+                        <Lock className="absolute left-3.5 top-3.5 h-5 w-5 text-neutral-400" />
+                        <Input
+                          id="password"
+                          type="password"
+                          placeholder="Minimum 6 caractères"
+                          value={password}
+                          onChange={(e) => setPassword(e.target.value)}
+                          className="pl-11 h-12 bg-neutral-50/50 border-neutral-200 rounded-xl text-sm focus-visible:ring-primary/20"
+                          disabled={loading}
+                          autoFocus
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="confirmPassword" className="text-xs font-bold text-neutral-700">Confirmation du mot de passe</Label>
+                      <div className="relative">
+                        <Lock className="absolute left-3.5 top-3.5 h-5 w-5 text-neutral-400" />
+                        <Input
+                          id="confirmPassword"
+                          type="password"
+                          placeholder="Répétez le mot de passe exact"
+                          value={confirmPassword}
+                          onChange={(e) => setConfirmPassword(e.target.value)}
+                          className="pl-11 h-12 bg-neutral-50/50 border-neutral-200 rounded-xl text-sm focus-visible:ring-primary/20"
+                          disabled={loading}
+                        />
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </CardContent>
-            <CardFooter className="flex flex-col space-y-4">
-              <Button type="submit" className="w-full" disabled={loading}>
-                {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : 'S\'inscrire'}
-              </Button>
-              <div className="text-sm text-center text-muted-foreground">
-                Déjà inscrit ?{' '}
-                <Link href="/auth/login" className="text-primary font-medium hover:underline">
+
+            <CardFooter className="flex flex-col gap-4 border-t border-neutral-100 pt-4 bg-neutral-50/50">
+              <div className="flex w-full items-center justify-between gap-3">
+                {step === 2 && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={handleBackStep}
+                    disabled={loading}
+                    className="rounded-xl px-4 border-neutral-200 text-neutral-600 font-bold text-xs h-11 active:scale-95 transition-transform"
+                  >
+                    <ChevronLeft className="w-4 h-4 mr-1" /> Retour
+                  </Button>
+                )}
+
+                {step === 1 ? (
+                  <Button
+                    type="button"
+                    onClick={handleNextStep}
+                    className="w-full bg-neutral-900 text-white hover:bg-neutral-800 rounded-xl font-bold text-xs h-11 active:scale-95 transition-all flex items-center justify-center gap-1 shadow-sm"
+                  >
+                    Continuer <ChevronRight className="w-4 h-4" />
+                  </Button>
+                ) : (
+                  <Button
+                    type="submit"
+                    disabled={loading}
+                    className="flex-1 bg-primary text-white hover:bg-primary/95 rounded-xl font-bold text-xs h-11 active:scale-95 transition-all shadow-md shadow-primary/10"
+                  >
+                    {loading ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-1.5 animate-spin" /> Création du pass...
+                      </>
+                    ) : (
+                      <>
+                        <CheckCircle2 className="w-4 h-4 mr-1" /> Finaliser l'inscription
+                      </>
+                    )}
+                  </Button>
+                )}
+              </div>
+
+              <div className="text-center w-full">
+                <span className="text-xs text-muted-foreground font-medium">Déjà inscrit ? </span>
+                <Link href="/auth/login" className="text-xs text-primary font-bold hover:underline transition-all">
                   Se connecter
                 </Link>
               </div>
             </CardFooter>
           </form>
         </Card>
-      </motion.div>
+
+      </div>
     </div>
   );
 }
