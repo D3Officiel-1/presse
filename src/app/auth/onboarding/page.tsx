@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { ChevronRight, ChevronLeft, Loader2, Sparkles, Check, User, Camera, Film, PenTool, Music, Quote } from 'lucide-react';
+import { ChevronRight, ChevronLeft, Loader2, Sparkles, Check, User, Camera, Film, PenTool, Music, Quote, ShieldCheck } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 
@@ -129,7 +129,7 @@ export default function OnboardingPage() {
       </div>
 
       <div className="w-full max-w-md z-10 space-y-8 mt-4">
-        {/* Indicateur sous forme de puces circulaires identiques au Register */}
+        {/* Indicateur de progression sous forme de puces identiques à l'inscription */}
         <div className="flex justify-center gap-2">
           {[1, 2, 3, 4, 5].map((s) => (
             <div 
@@ -142,22 +142,39 @@ export default function OnboardingPage() {
           ))}
         </div>
 
-        <div className="space-y-1 text-center">
-          <h2 className="text-xl font-black tracking-tight text-neutral-900 leading-tight flex items-center justify-center gap-2">
-            <Sparkles className="w-4 h-4 text-primary shrink-0" />
-            {step === 1 && 'Faisons connaissance'}
-            {step === 2 && 'Votre rôle au Studio'}
-            {step === 3 && 'École & Contact'}
-            {step === 4 && 'Vos super-pouvoirs'}
-            {step === 5 && 'Votre univers'}
+        <div className="text-center">
+          <h2 className="text-xl font-black tracking-tight text-neutral-900 flex items-center justify-center gap-2">
+            {step === 1 && (
+              <>
+                <Sparkles className="w-4 h-4 text-primary" />
+                Faisons connaissance
+              </>
+            )}
+            {step === 2 && (
+              <>
+                <Sparkles className="w-4 h-4 text-primary" />
+                Votre rôle au Studio
+              </>
+            )}
+            {step === 3 && (
+              <>
+                <Sparkles className="w-4 h-4 text-primary" />
+                École & Contact
+              </>
+            )}
+            {step === 4 && (
+              <>
+                <ShieldCheck className="w-4 h-4 text-emerald-500" />
+                Vos super-pouvoirs
+              </>
+            )}
+            {step === 5 && (
+              <>
+                <Sparkles className="w-4 h-4 text-primary" />
+                Votre univers
+              </>
+            )}
           </h2>
-          <p className="text-xs text-muted-foreground font-medium leading-relaxed max-w-xs mx-auto">
-            {step === 1 && 'Entrez votre nom complet pour votre pass scolaire.'}
-            {step === 2 && 'Sélectionnez le statut qui correspond à votre profil.'}
-            {step === 3 && 'Aidez le club et vos camarades à vous identifier.'}
-            {step === 4 && 'Quels domaines artistiques vous passionnent le plus ?'}
-            {step === 5 && 'Une courte biographie qui apparaîtra sur votre Pass.'}
-          </p>
         </div>
 
         <div className="min-h-[280px]">
