@@ -9,6 +9,7 @@
         "matricule": { "type": "string", "description": "Identifiant unique du membre" },
         "email": { "type": "string", "format": "email" },
         "name": { "type": "string" },
+        "username": { "type": "string", "description": "Pseudo unique de l'élève au sein du studio" },
         "classe": { "type": "string", "description": "Classe de l'élève de la 6e à la Terminale" },
         "phone": { "type": "string" },
         "company": { "type": "string" },

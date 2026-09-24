@@ -2,14 +2,14 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { doc, setDoc } from 'firebase/firestore';
+import { doc, setDoc, collection, query, where, getDocs } from 'firebase/firestore';
 import { useFirestore } from '@/firebase/provider';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { ChevronRight, ChevronLeft, Loader2, Sparkles, Check, User, Camera, Film, PenTool, Music, Quote, ShieldCheck } from 'lucide-react';
+import { ChevronRight, ChevronLeft, Loader2, Sparkles, Check, User, Camera, Film, PenTool, Music, Quote, AtSign } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 
@@ -35,8 +35,7 @@ export default function OnboardingPage() {
   const [step, setStep] = useState(1);
   const [fullName, setFullName] = useState('');
   const [selectedClasse, setSelectedClasse] = useState('');
-  const [phone, setPhone] = useState('');
-  const [company, setCompany] = useState('');
+  const [username, setUsername] = useState('');
   const [selectedInterests, setSelectedInterests] = useState<string[]>([]);
   const [bio, setBio] = useState('');
   const [loading, setLoading] = useState(false);
@@ -51,7 +50,7 @@ export default function OnboardingPage() {
     }
   }, [router]);
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (step === 1 && !fullName.trim()) {
       toast({ variant: 'destructive', title: 'Champs requis', description: 'Veuillez renseigner votre nom complet.' });
       return;
@@ -60,9 +59,41 @@ export default function OnboardingPage() {
       toast({ variant: 'destructive', title: 'Champs requis', description: 'Veuillez sélectionner votre classe.' });
       return;
     }
-    if (step === 3 && (!company.trim() || !phone.trim())) {
-      toast({ variant: 'destructive', title: 'Champs requis', description: 'Veuillez renseigner votre école et votre numéro WhatsApp.' });
-      return;
+    if (step === 3) {
+      const cleanUsername = username.trim().toLowerCase().replace(/[^a-z0-9_-]/g, '');
+      if (!cleanUsername) {
+        toast({ variant: 'destructive', title: 'Champs requis', description: 'Veuillez choisir un pseudo.' });
+        return;
+      }
+      if (cleanUsername.length < 3) {
+        toast({ variant: 'destructive', title: 'Trop court', description: 'Le pseudo doit comporter au moins 3 caractères.' });
+        return;
+      }
+
+      setLoading(true);
+      try {
+        const uid = localStorage.getItem('userId');
+        const usersRef = collection(firestoreInstance, 'users');
+        const q = query(usersRef, where('username', '==', cleanUsername));
+        const querySnapshot = await getDocs(q);
+        
+        let isTaken = false;
+        querySnapshot.forEach((doc) => {
+          if (doc.id !== uid) {
+            isTaken = true;
+          }
+        });
+
+        if (isTaken) {
+          toast({ variant: 'destructive', title: 'Pseudo indisponible', description: 'Ce pseudo est déjà utilisé par un autre membre.' });
+          setLoading(false);
+          return;
+        }
+      } catch (error) {
+        console.error(error);
+      } finally {
+        setLoading(false);
+      }
     }
     if (step === 4 && selectedInterests.length === 0) {
       toast({ variant: 'destructive', title: 'Sélection requise', description: 'Choisissez au moins une compétence ou un centre d\'intérêt.' });
@@ -79,6 +110,11 @@ export default function OnboardingPage() {
     );
   };
 
+  const handleUsernameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value.toLowerCase().replace(/[^a-z0-9_-]/g, '');
+    setUsername(value);
+  };
+
   const handleCompleteOnboarding = () => {
     const uid = localStorage.getItem('userId');
     if (!uid) return;
@@ -88,8 +124,7 @@ export default function OnboardingPage() {
     const updateData = {
       name: fullName,
       classe: selectedClasse,
-      phone: phone,
-      company: company,
+      username: username.trim().toLowerCase(),
       interests: selectedInterests,
       bio: bio.trim(),
       onboarded: true,
@@ -101,7 +136,7 @@ export default function OnboardingPage() {
         const cachedUser = localStorage.getItem('user');
         if (cachedUser) {
           const parsed = JSON.parse(cachedUser);
-          localStorage.setItem('user', JSON.stringify({ ...parsed, name: fullName }));
+          localStorage.setItem('user', JSON.stringify({ ...parsed, name: fullName, username: username.trim().toLowerCase() }));
         }
 
         toast({
@@ -162,12 +197,12 @@ export default function OnboardingPage() {
             {step === 3 && (
               <>
                 <Sparkles className="w-4 h-4 text-primary" />
-                École & Contact
+                Choisis ton pseudo unique
               </>
             )}
             {step === 4 && (
               <>
-                <ShieldCheck className="w-4 h-4 text-emerald-500" />
+                <Sparkles className="w-4 h-4 text-primary" />
                 Vos super-pouvoirs
               </>
             )}
@@ -248,25 +283,21 @@ export default function OnboardingPage() {
                 className="space-y-4"
               >
                 <div className="space-y-2">
-                  <Label htmlFor="company" className="text-[10px] font-black uppercase tracking-widest text-neutral-400 ml-1">Établissement</Label>
-                  <Input
-                    id="company"
-                    placeholder="Lycée Classique d'Abidjan"
-                    value={company}
-                    onChange={(e) => setCompany(e.target.value)}
-                    className="h-14 bg-white border-neutral-200 rounded-2xl text-base focus-visible:ring-primary/10 transition-all font-bold"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="phone" className="text-[10px] font-black uppercase tracking-widest text-neutral-400 ml-1">Numéro WhatsApp</Label>
-                  <Input
-                    id="phone"
-                    type="tel"
-                    placeholder="+225 07 00 00 00 00"
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                    className="h-14 bg-white border-neutral-200 rounded-2xl text-base focus-visible:ring-primary/10 transition-all font-bold"
-                  />
+                  <Label htmlFor="username" className="text-[10px] font-black uppercase tracking-widest text-neutral-400 ml-1">Pseudo Public Unique</Label>
+                  <div className="relative">
+                    <AtSign className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-neutral-400" />
+                    <Input
+                      id="username"
+                      placeholder="ex: marc_vfx"
+                      value={username}
+                      onChange={handleUsernameChange}
+                      className="pl-12 h-14 bg-white border-neutral-200 rounded-2xl text-base focus-visible:ring-primary/10 transition-all font-bold font-mono"
+                      autoFocus
+                    />
+                  </div>
+                  <span className="text-[10px] text-muted-foreground font-medium block px-1">
+                    Uniquement des lettres minuscules, chiffres, tirets (-) ou underscores (_)
+                  </span>
                 </div>
               </motion.div>
             )}
@@ -360,8 +391,10 @@ export default function OnboardingPage() {
               <Button
                 type="button"
                 onClick={handleNext}
+                disabled={loading}
                 className="flex-1 bg-neutral-900 text-white hover:bg-neutral-800 rounded-2xl font-black text-xs h-14 transition-all flex items-center justify-center gap-1 shadow-md active:scale-[0.98]"
               >
+                {loading ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : null}
                 Suivant <ChevronRight className="w-4 h-4 ml-1" />
               </Button>
             ) : (
