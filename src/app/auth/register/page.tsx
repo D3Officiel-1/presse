@@ -125,7 +125,7 @@ export default function RegisterPage() {
   const progressPercent = step === 1 ? 50 : 100;
 
   return (
-    <div className="flex min-h-screen items-center justify-center p-4 bg-[#F9F9FC] text-neutral-900 overflow-hidden relative">
+    <div className="flex min-h-screen flex-col justify-start items-center p-4 pt-12 bg-[#F9F9FC] text-neutral-900 overflow-hidden relative">
       
       {/* Dynamic Aurora Ambient Background (Light Mode) */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
@@ -141,8 +141,8 @@ export default function RegisterPage() {
 
       <div className="w-full max-w-md z-10 space-y-6">
         
-        {/* Global Progress Bar Indicator */}
-        <div className="space-y-1.5">
+        {/* Global Progress Bar Indicator - Positioned at the very top of the section */}
+        <div className="space-y-1.5 w-full">
           <Progress value={progressPercent} className="h-1.5 bg-neutral-200" />
           <div className="flex justify-between text-[10px] font-bold text-muted-foreground uppercase tracking-wider px-1">
             <span>Étape {step} sur 2</span>
