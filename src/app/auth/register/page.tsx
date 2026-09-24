@@ -16,8 +16,8 @@ import { cn } from '@/lib/utils';
 const AUTH_DOMAIN = "@zap.ci";
 
 export default function RegisterPage(props: { params?: Promise<any>; searchParams?: Promise<any> }) {
-  if (props?.params) { React.use(props.params); }
-  if (props?.searchParams) { React.use(props.searchParams); }
+  const params = props.params ? React.use(props.params) : null;
+  const searchParams = props.searchParams ? React.use(props.searchParams) : null;
 
   const [step, setStep] = useState(1);
   const [matricule, setMatricule] = useState('');

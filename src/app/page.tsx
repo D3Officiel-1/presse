@@ -6,8 +6,8 @@ import { motion } from 'framer-motion';
 import { Logo } from '@/components/logo';
 
 export default function SplashScreen(props: { params?: Promise<any>; searchParams?: Promise<any> }) {
-  if (props?.params) { React.use(props.params); }
-  if (props?.searchParams) { React.use(props.searchParams); }
+  const params = props.params ? React.use(props.params) : null;
+  const searchParams = props.searchParams ? React.use(props.searchParams) : null;
 
   const router = useRouter();
 
