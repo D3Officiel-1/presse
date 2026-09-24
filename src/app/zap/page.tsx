@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useEffect, useRef, useState } from 'react';
@@ -17,9 +18,13 @@ import { cn } from '@/lib/utils';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
+import { useUser } from '@/firebase/auth/use-user';
+import { useFirestore } from '@/firebase/provider';
+import { doc, updateDoc, arrayUnion, arrayRemove, onSnapshot } from 'firebase/firestore';
 
 export type Video = {
   id: string;
+  creatorId: string; // Ajout de l'UID du créateur
   title: string;
   creator: string;
   fullName: string;
@@ -37,6 +42,7 @@ export type Video = {
 const INITIAL_VIDEOS: Video[] = [
   {
     id: 'vid-1',
+    creatorId: 'user-yannick-uid',
     title: 'Court-métrage : "L’Énigme du Code 2027"',
     creator: 'yannick_vfx',
     fullName: 'Yannick Koffi',
@@ -52,6 +58,7 @@ const INITIAL_VIDEOS: Video[] = [
   },
   {
     id: 'vid-2',
+    creatorId: 'user-amina-uid',
     title: 'Pitch d’Avenir : Révolutionner le transport urbain',
     creator: 'amina_diop',
     fullName: 'Aminata Diop',
@@ -67,6 +74,7 @@ const INITIAL_VIDEOS: Video[] = [
   },
   {
     id: 'vid-3',
+    creatorId: 'user-marc-uid',
     title: 'Danse Urbaine réinventée sur le parvis',
     creator: 'marc_dance',
     fullName: 'Marc-Aurèle Yao',
@@ -91,6 +99,9 @@ function formatCount(value: number) {
 export default function FeedPage() {
   const router = useRouter();
   const { toast } = useToast();
+  const { user } = useUser();
+  const firestore = useFirestore();
+
   const [videos, setVideos] = useState<Video[]>(INITIAL_VIDEOS);
   const [likedVideos, setLikedVideos] = useState<string[]>([]);
   const [bookmarkedVideos, setBookmarkedVideos] = useState<string[]>([]);
@@ -99,6 +110,7 @@ export default function FeedPage() {
   const [activeVideo, setActiveVideo] = useState('vid-1');
   const [paused, setPaused] = useState(false);
   const [muted] = useState(true);
+  const [feedMode, setFeedMode] = useState<'for-you' | 'following'>('for-you');
 
   const [activeHeartAnimation, setActiveHeartAnimation] = useState<{ videoId: string; x: number; y: number } | null>(null);
   const [activeSheet, setActiveSheet] = useState<'comments' | 'menu' | null>(null);
@@ -122,6 +134,21 @@ export default function FeedPage() {
   
   const pointerStartRef = useRef<{ time: number; x: number; y: number }>({ time: 0, x: 0, y: 0 });
   const doubleTapStateRef = useRef<{ lastTap: number; lastTapVideo: string }>({ lastTap: 0, lastTapVideo: '' });
+
+  // Écouter les abonnements réels de l'utilisateur
+  useEffect(() => {
+    if (!user?.uid || !firestore) return;
+
+    const userRef = doc(firestore, 'users', user.uid);
+    const unsubscribe = onSnapshot(userRef, (snapshot) => {
+      if (snapshot.exists()) {
+        const data = snapshot.data();
+        setFollowedCreators(data.following || []);
+      }
+    });
+
+    return () => unsubscribe();
+  }, [user?.uid, firestore]);
 
   useEffect(() => {
     if (typeof document !== 'undefined') {
@@ -176,7 +203,7 @@ export default function FeedPage() {
 
     sections.forEach((section) => observer.observe(section));
     return () => observer.disconnect();
-  }, [activeVideo]);
+  }, [activeVideo, feedMode]); // Dépendance feedMode pour ré-observer après filtrage
 
   const handleToggleLike = (id: string) => {
     const alreadyLiked = likedVideos.includes(id);
@@ -237,8 +264,29 @@ export default function FeedPage() {
     );
   };
 
-  const handleToggleFollow = (creator: string) => {
-    setFollowedCreators((prev) => followedCreators.includes(creator) ? prev.filter((c) => c !== creator) : [...prev, creator]);
+  const handleToggleFollow = (creatorId: string) => {
+    if (!user?.uid || !firestore) {
+      toast({ variant: 'destructive', title: 'Action requise', description: 'Connectez-vous pour suivre ce créateur.' });
+      return;
+    }
+
+    const userRef = doc(firestore, 'users', user.uid);
+    const isFollowing = followedCreators.includes(creatorId);
+
+    // Mise à jour optimiste de l'UI
+    setFollowedCreators(prev => 
+      isFollowing ? prev.filter(id => id !== creatorId) : [...prev, creatorId]
+    );
+
+    // Persistance Firestore
+    updateDoc(userRef, {
+      following: isFollowing ? arrayRemove(creatorId) : arrayUnion(creatorId)
+    }).catch((e) => {
+      // Annulation de l'optimisme en cas d'erreur
+      setFollowedCreators(prev => 
+        isFollowing ? [...prev, creatorId] : prev.filter(id => id !== creatorId)
+      );
+    });
   };
 
   const handleNativeShare = async (video: Video) => {
@@ -293,12 +341,32 @@ export default function FeedPage() {
     setNewCommentInput('');
   };
 
+  const filteredVideos = feedMode === 'following' 
+    ? videos.filter(v => followedCreators.includes(v.creatorId))
+    : videos;
+
   return (
     <div className="fixed inset-0 overflow-hidden bg-black text-white select-none">
       <header className="pointer-events-none fixed inset-x-0 top-0 z-50 flex justify-center pt-4">
         <div className="pointer-events-auto flex items-center gap-1 rounded-full border border-white/10 bg-black/40 p-1.5 shadow-2xl backdrop-blur-xl">
-          <button className="rounded-full px-4 py-1.5 text-[11px] font-bold tracking-wide text-white/60 transition hover:text-white outline-none">Abonnements</button>
-          <button className="rounded-full bg-white/10 px-5 py-1.5 text-[11px] font-black tracking-wide text-white shadow-inner outline-none">Pour toi</button>
+          <button 
+            onClick={() => setFeedMode('following')}
+            className={cn(
+              "rounded-full px-4 py-1.5 text-[11px] font-bold tracking-wide transition outline-none",
+              feedMode === 'following' ? "bg-white/10 text-white shadow-inner" : "text-white/60 hover:text-white"
+            )}
+          >
+            Abonnements
+          </button>
+          <button 
+            onClick={() => setFeedMode('for-you')}
+            className={cn(
+              "rounded-full px-5 py-1.5 text-[11px] font-black tracking-wide transition outline-none",
+              feedMode === 'for-you' ? "bg-white/10 text-white shadow-inner" : "text-white/60 hover:text-white"
+            )}
+          >
+            Pour toi
+          </button>
         </div>
       </header>
 
@@ -306,12 +374,12 @@ export default function FeedPage() {
         ref={feedRef}
         className="h-[100dvh] w-full snap-y snap-mandatory overflow-y-auto overscroll-y-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden bg-black"
       >
-        {videos.map((video, index) => {
+        {filteredVideos.length > 0 ? filteredVideos.map((video, index) => {
           const isLiked = likedVideos.includes(video.id);
           const isBookmarked = bookmarkedVideos.includes(video.id);
-          const isFollowed = followedCreators.includes(video.creator);
+          const isFollowed = followedCreators.includes(video.creatorId);
           const isActive = activeVideo === video.id;
-          const isNearActive = Math.abs(videos.findIndex(v => v.id === activeVideo) - index) <= 1;
+          const isNearActive = Math.abs(filteredVideos.findIndex(v => v.id === activeVideo) - index) <= 1;
 
           const currentTime = progressState[video.id] ?? 0;
           const duration = durationState[video.id] ?? 0;
@@ -450,7 +518,6 @@ export default function FeedPage() {
                   </button>
                 </div>
 
-                {/* Vinyl Music Disc button - Navigates to TikTok audio style layout page */}
                 <div className="flex flex-col items-center pt-1">
                   <button
                     onClick={() => router.push(`/zap/disque/${video.id}`)}
@@ -473,7 +540,7 @@ export default function FeedPage() {
                 </div>
               </div>
 
-              {/* Minimal Text Content Overlay Stack */}
+              {/* Info Overlay */}
               <div className="absolute bottom-[125px] left-4 right-16 z-20 text-left pointer-events-none">
                 <div className="space-y-1.5 pointer-events-auto max-w-[85%]">
                   <div className="flex items-center gap-2">
@@ -486,15 +553,17 @@ export default function FeedPage() {
                     </div>
                     <div className="flex items-center gap-1.5">
                       <span className="text-xs font-black text-white drop-shadow-md">@{video.creator}</span>
-                      <button
-                        onClick={() => handleToggleFollow(video.creator)}
-                        className={cn(
-                          "text-[10px] font-black px-2.5 py-1 rounded-full transition-transform shrink-0 uppercase tracking-tight active:scale-95 outline-none select-none",
-                          isFollowed ? "bg-white/20 text-white/90" : "bg-primary text-white"
-                        )}
-                      >
-                        {isFollowed ? 'Suivi' : 'Suivre'}
-                      </button>
+                      {user?.uid !== video.creatorId && (
+                        <button
+                          onClick={() => handleToggleFollow(video.creatorId)}
+                          className={cn(
+                            "text-[10px] font-black px-2.5 py-1 rounded-full transition-transform shrink-0 uppercase tracking-tight active:scale-95 outline-none select-none",
+                            isFollowed ? "bg-white/20 text-white/90" : "bg-primary text-white"
+                          )}
+                        >
+                          {isFollowed ? 'Suivi' : 'Suivre'}
+                        </button>
+                      )}
                     </div>
                   </div>
 
@@ -512,7 +581,6 @@ export default function FeedPage() {
                 </div>
               </div>
 
-              {/* Real-time Video Stream Synchronized Progress Bar */}
               <div className="absolute bottom-0 left-0 right-0 z-40 h-[3px] bg-white/10">
                 <div 
                   className="h-full bg-primary transition-[width] duration-100 origin-left" 
@@ -521,7 +589,19 @@ export default function FeedPage() {
               </div>
             </section>
           );
-        })}
+        }) : (
+          <div className="h-full flex flex-col items-center justify-center p-8 text-center space-y-4">
+            <Music className="w-16 h-16 text-neutral-800 opacity-20" />
+            <p className="text-neutral-400 font-bold text-sm">Aucune vidéo dans vos abonnements.</p>
+            <Button 
+              variant="outline" 
+              className="rounded-full text-xs" 
+              onClick={() => setFeedMode('for-you')}
+            >
+              Découvrir des créateurs
+            </Button>
+          </div>
+        )}
       </main>
 
       <AnimatePresence>
@@ -595,7 +675,7 @@ export default function FeedPage() {
                     onClick={() => { handleToggleBookmark(selectedVideo.id); closeGlobalSheet(); }}
                     className="w-full p-4 bg-white/5 hover:bg-white/10 text-sm font-bold rounded-2xl flex items-center gap-3 transition-colors outline-none active:scale-[0.99]"
                   >
-                    <Bookmark className="w-4 h-4 text-yellow-400" />
+                    <Bookmark className={cn("w-4 h-4", bookmarkedVideos.includes(selectedVideo.id) ? "text-yellow-400" : "text-white")} />
                     {bookmarkedVideos.includes(selectedVideo.id) ? "Retirer des favoris" : "Enregistrer dans mes favoris"}
                   </button>
 

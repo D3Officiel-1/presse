@@ -1,3 +1,4 @@
+
 {
   "entities": {
     "User": {
@@ -18,7 +19,8 @@
         "onboarded": { "type": "boolean" },
         "deviceId": { "type": "string" },
         "online": { "type": "boolean" },
-        "lastSeen": { "type": "string", "format": "date-time" }
+        "lastSeen": { "type": "string", "format": "date-time" },
+        "following": { "type": "array", "items": { "type": "string" }, "description": "Liste des UID des créateurs suivis" }
       },
       "required": ["uid", "matricule"]
     }
