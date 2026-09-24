@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Heart, MessageSquare, Bookmark, Share2, Plus, Music } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { useRouter } from 'next/navigation';
@@ -12,7 +12,6 @@ export default function FeedPage() {
   const [likedVideos, setLikedVideos] = useState<string[]>([]);
   const [bookmarkedVideos, setBookmarkedVideos] = useState<string[]>([]);
 
-  // Force le fond de page au niveau du body en noir uniquement pour cette page
   useEffect(() => {
     const originalBg = document.body.style.backgroundColor;
     document.body.style.backgroundColor = '#000000';
@@ -112,68 +111,107 @@ export default function FeedPage() {
               <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-transparent to-black/95" />
             </div>
 
+            {/* Barre Latérale d'Interactions Radicalement Réinventée */}
             <div className="absolute right-4 bottom-[120px] z-20 flex flex-col items-center gap-5">
-              <div className="relative flex flex-col items-center">
-                <div className="w-12 h-12 rounded-full border-2 border-white overflow-hidden bg-neutral-800 shadow-md">
+              
+              {/* Créateur Avatar avec micro-animation */}
+              <motion.div 
+                whileHover={{ scale: 1.05 }}
+                className="relative flex flex-col items-center"
+              >
+                <div className="w-12 h-12 rounded-full border-2 border-white overflow-hidden bg-neutral-800 shadow-[0_8px_25px_rgba(0,0,0,0.3)]">
                   <img src={`https://picsum.photos/seed/${video.creator}/100/100`} alt="Avatar" className="w-full h-full object-cover" />
                 </div>
-                <button className="absolute -bottom-1.5 w-5 h-5 bg-primary rounded-full flex items-center justify-center shadow-lg border border-white">
+                <motion.button 
+                  whileTap={{ scale: 0.8 }}
+                  className="absolute -bottom-1.5 w-5 h-5 bg-primary rounded-full flex items-center justify-center shadow-lg border border-white"
+                >
                   <Plus className="w-3 h-3 text-white" />
-                </button>
-              </div>
+                </motion.button>
+              </motion.div>
 
+              {/* J'aime / Like */}
               <div className="flex flex-col items-center">
-                <button 
+                <motion.button 
                   onClick={() => handleToggleLike(video.id)}
+                  whileHover={{ scale: 1.15 }}
+                  whileTap={{ scale: 0.85 }}
+                  animate={{ 
+                    scale: likedVideos.includes(video.id) ? [1, 1.3, 1] : 1
+                  }}
+                  transition={{ type: "spring", stiffness: 300, damping: 15 }}
                   className={cn(
-                    "w-12 h-12 flex items-center justify-center rounded-full transition-transform active:scale-75 bg-black/40 backdrop-blur-md border border-white/10 shadow-lg text-white",
-                    likedVideos.includes(video.id) && "text-primary"
+                    "w-12 h-12 flex items-center justify-center rounded-full bg-black/40 backdrop-blur-xl border border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.2)] text-white transition-colors duration-200",
+                    likedVideos.includes(video.id) && "border-primary/40 bg-primary/10 text-primary"
                   )}
                 >
-                  <Heart className={cn("w-6 h-6", likedVideos.includes(video.id) && "fill-primary stroke-primary")} />
-                </button>
-                <span className="text-[11px] font-bold mt-1 text-white shadow-sm">{video.likes.toLocaleString()}</span>
+                  <Heart className={cn("w-6 h-6 transition-all", likedVideos.includes(video.id) && "fill-primary stroke-primary")} />
+                </motion.button>
+                <motion.span 
+                  key={video.likes}
+                  initial={{ opacity: 0, y: 4 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="text-[11px] font-black mt-1.5 tracking-tight text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]"
+                >
+                  {video.likes.toLocaleString()}
+                </motion.span>
               </div>
 
+              {/* Commentaires / Chat */}
               <div className="flex flex-col items-center">
-                <button 
+                <motion.button 
                   onClick={() => router.push('/zap/chat')}
-                  className="w-12 h-12 flex items-center justify-center text-white active:scale-75 transition-transform bg-black/40 backdrop-blur-md border border-white/10 shadow-lg"
+                  whileHover={{ scale: 1.15 }}
+                  whileTap={{ scale: 0.85 }}
+                  className="w-12 h-12 flex items-center justify-center rounded-full bg-black/40 backdrop-blur-xl border border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.2)] text-white"
                 >
                   <MessageSquare className="w-5 h-5" />
-                </button>
-                <span className="text-[11px] font-bold mt-1 text-white shadow-sm">{video.comments}</span>
+                </motion.button>
+                <span className="text-[11px] font-black mt-1.5 tracking-tight text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">{video.comments}</span>
               </div>
 
+              {/* Sauvegarder / Favoris */}
               <div className="flex flex-col items-center">
-                <button 
+                <motion.button 
                   onClick={() => handleToggleBookmark(video.id)}
+                  whileHover={{ scale: 1.15 }}
+                  whileTap={{ scale: 0.85 }}
+                  animate={{ 
+                    rotate: bookmarkedVideos.includes(video.id) ? [0, -15, 10, 0] : 0 
+                  }}
                   className={cn(
-                    "w-12 h-12 flex items-center justify-center text-white active:scale-75 transition-transform bg-black/40 backdrop-blur-md border border-white/10 shadow-lg",
-                    bookmarkedVideos.includes(video.id) && "text-yellow-400"
+                    "w-12 h-12 flex items-center justify-center rounded-full bg-black/40 backdrop-blur-xl border border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.2)] text-white transition-colors duration-200",
+                    bookmarkedVideos.includes(video.id) && "border-yellow-400/40 bg-yellow-400/10 text-yellow-400"
                   )}
                 >
-                  <Bookmark className={cn("w-5 h-5", bookmarkedVideos.includes(video.id) && "fill-yellow-400")} />
-                </button>
-                <span className="text-[11px] font-bold mt-1 text-white shadow-sm">{video.bookmarks}</span>
+                  <Bookmark className={cn("w-5 h-5 transition-all", bookmarkedVideos.includes(video.id) && "fill-yellow-400 stroke-yellow-400")} />
+                </motion.button>
+                <span className="text-[11px] font-black mt-1.5 tracking-tight text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">{video.bookmarks}</span>
               </div>
 
+              {/* Partage / Share */}
               <div className="flex flex-col items-center">
-                <button className="w-12 h-12 flex items-center justify-center text-white active:scale-75 transition-transform bg-black/40 backdrop-blur-md border border-white/10 shadow-lg">
+                <motion.button 
+                  whileHover={{ scale: 1.15, rotate: 15 }}
+                  whileTap={{ scale: 0.85 }}
+                  className="w-12 h-12 flex items-center justify-center rounded-full bg-black/40 backdrop-blur-xl border border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.2)] text-white"
+                >
                   <Share2 className="w-5 h-5" />
-                </button>
-                <span className="text-[11px] font-bold mt-1 text-white shadow-sm">{video.shares}</span>
+                </motion.button>
+                <span className="text-[11px] font-black mt-1.5 tracking-tight text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">{video.shares}</span>
               </div>
 
+              {/* Disque Musical tournant de façon fluide */}
               <motion.div 
                 animate={{ rotate: 360 }}
-                transition={{ duration: 5, repeat: Infinity, ease: "linear" }}
-                className="w-10 h-10 rounded-full border-2 border-white/30 bg-neutral-900 flex items-center justify-center overflow-hidden p-1.5 shadow-xl mt-2"
+                transition={{ duration: 6, repeat: Infinity, ease: "linear" }}
+                className="w-10 h-10 rounded-full border-2 border-white/30 bg-neutral-950 flex items-center justify-center overflow-hidden p-1.5 shadow-[0_4px_20px_rgba(255,39,0,0.3)] mt-1"
               >
                  <Music className="w-5 h-5 text-primary" />
               </motion.div>
             </div>
 
+            {/* Descriptif bas de page */}
             <div className="absolute left-4 bottom-[120px] right-20 z-20 text-white space-y-2">
               <div className="flex items-center gap-2">
                 <span className="font-black text-base tracking-tight text-white drop-shadow">@{video.creator}</span>
