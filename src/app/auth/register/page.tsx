@@ -9,7 +9,7 @@ import { useAuth, useFirestore } from '@/firebase/provider';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { ChevronRight, ChevronLeft, Sparkles, ShieldCheck } from 'lucide-react';
+import { ChevronRight, ChevronLeft, Sparkles, ShieldCheck, Eye, EyeOff } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 
@@ -20,6 +20,8 @@ export default function RegisterPage() {
   const [matricule, setMatricule] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const authInstance = useAuth();
@@ -164,7 +166,7 @@ export default function RegisterPage() {
             </h2>
           </div>
 
-          <div className="min-h-[120px] flex flex-col justify-center">
+          <div className="min-h-[140px] flex flex-col justify-center">
             <AnimatePresence mode="wait">
               {step === 1 ? (
                 <motion.div
@@ -208,29 +210,43 @@ export default function RegisterPage() {
                   transition={{ duration: 0.25 }}
                   className="space-y-4"
                 >
-                  <div className="space-y-1">
+                  <div className="relative">
                     <Input
                       id="password"
-                      type="password"
+                      type={showPassword ? "text" : "password"}
                       placeholder="Mot de passe secret (min 6)"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      className="h-12 bg-white border-neutral-200 rounded-xl px-4 text-sm focus-visible:ring-primary/20"
+                      className="h-12 bg-white border-neutral-200 rounded-xl pr-12 pl-4 text-sm focus-visible:ring-primary/20"
                       disabled={loading}
                       autoFocus
                     />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-600 p-1"
+                    >
+                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
                   </div>
 
-                  <div className="space-y-1">
+                  <div className="relative">
                     <Input
                       id="confirmPassword"
-                      type="password"
+                      type={showConfirmPassword ? "text" : "password"}
                       placeholder="Confirmez le mot de passe"
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
-                      className="h-12 bg-white border-neutral-200 rounded-xl px-4 text-sm focus-visible:ring-primary/20"
+                      className="h-12 bg-white border-neutral-200 rounded-xl pr-12 px-4 text-sm focus-visible:ring-primary/20"
                       disabled={loading}
                     />
+                    <button
+                      type="button"
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-600 p-1"
+                    >
+                      {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
                   </div>
                 </motion.div>
               )}
