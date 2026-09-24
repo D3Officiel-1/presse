@@ -396,7 +396,7 @@ export function CommentSheet({
                     border-0
                     bg-transparent
                     px-4
-                    text-[13px]
+                    text-base
                     text-white
                     shadow-none
                     outline-none
