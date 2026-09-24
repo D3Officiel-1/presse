@@ -11,10 +11,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Progress } from '@/components/ui/progress';
 import { UserCircle, Lock, Loader2, ChevronRight, ChevronLeft, Sparkles, CheckCircle2, ShieldCheck, HelpCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Logo } from '@/components/logo';
+import { cn } from '@/lib/utils';
 
 const AUTH_DOMAIN = "@zap.ci";
 
@@ -123,10 +122,8 @@ export default function RegisterPage() {
     }
   };
 
-  const progressPercent = step === 1 ? 50 : 100;
-
   return (
-    <div className="flex min-h-screen items-center justify-center p-4 bg-[#F9F9FC] text-neutral-900 overflow-hidden relative">
+    <div className="flex flex-col min-h-[100dvh] w-full bg-[#F9F9FC] text-neutral-900 overflow-y-auto px-4 pt-12 pb-[calc(env(safe-area-inset-bottom,0px)+2rem)] justify-start items-center relative">
       
       {/* Dynamic Aurora Ambient Background (Light Mode) */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
@@ -142,12 +139,18 @@ export default function RegisterPage() {
 
       <div className="w-full max-w-md z-10 space-y-6">
         
-        {/* Global Progress Bar Indicator */}
-        <div className="space-y-1.5">
-          <Progress value={progressPercent} className="h-1.5 bg-neutral-200" />
-          <div className="flex justify-between text-[10px] font-bold text-muted-foreground uppercase tracking-wider px-1">
-            <span>Étape {step} sur 2</span>
-            <span>{step === 1 ? 'Identifiants' : 'Sécurisation'}</span>
+        {/* Global Progress Indicator - Minimal Dots */}
+        <div className="w-full flex flex-col items-center gap-3">
+          <div className="flex gap-2">
+            {[1, 2].map((s) => (
+              <div 
+                key={s}
+                className={cn(
+                  "h-2 rounded-full transition-all duration-500",
+                  step === s ? "w-6 bg-primary" : "w-2 bg-neutral-200"
+                )}
+              />
+            ))}
           </div>
         </div>
 
