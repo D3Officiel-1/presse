@@ -130,7 +130,7 @@ export default function RegisterPage() {
       <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
         <div 
           className="absolute top-[-10%] right-[-10%] w-[60vw] h-[60vw] rounded-full blur-[100px]"
-          style={{ background: 'radial-gradient(circle, rgba(124,58,237,0.06) 0%, transparent 60%)' }}
+          style={{ background: 'radial-gradient(circle, rgba(255,39,0,0.06) 0%, transparent 60%)' }}
         />
       </div>
 
@@ -182,6 +182,12 @@ export default function RegisterPage() {
                         placeholder="EX: 24X94829"
                         value={matricule}
                         onChange={handleMatriculeChange}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            handleNextStep();
+                          }
+                        }}
                         className="w-full h-14 bg-white border-2 border-primary/20 rounded-2xl text-center font-mono font-black tracking-widest text-lg shadow-inner focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all uppercase placeholder:text-neutral-300 px-4"
                         disabled={loading}
                         autoFocus
@@ -248,7 +254,10 @@ export default function RegisterPage() {
               {step === 1 ? (
                 <Button
                   type="button"
-                  onClick={handleNextStep}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    handleNextStep();
+                  }}
                   className="w-full bg-neutral-900 text-white hover:bg-neutral-800 rounded-xl font-bold text-xs h-11 transition-all flex items-center justify-center gap-1 shadow-sm"
                 >
                   Continuer <ChevronRight className="w-4 h-4" />
