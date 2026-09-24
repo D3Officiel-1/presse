@@ -156,9 +156,6 @@ export default function RegisterPage() {
             <span className="text-[10px] font-black uppercase tracking-wider text-primary">
               Étape {step} / 2
             </span>
-            <span className="text-[10px] font-black uppercase tracking-widest text-neutral-400">
-              {step === 1 ? 'Vérification Pass' : 'Sécurisation'}
-            </span>
           </div>
         </div>
 
