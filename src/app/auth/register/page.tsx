@@ -125,7 +125,7 @@ export default function RegisterPage() {
   const progressPercent = step === 1 ? 50 : 100;
 
   return (
-    <div className="flex min-h-screen flex-col justify-start items-center p-4 pt-12 bg-[#F9F9FC] text-neutral-900 overflow-hidden relative">
+    <div className="flex flex-col min-h-[100dvh] w-full bg-[#F9F9FC] text-neutral-900 overflow-y-auto px-4 pt-12 pb-[calc(env(safe-area-inset-bottom,0px)+2rem)] justify-start items-center relative">
       
       {/* Dynamic Aurora Ambient Background (Light Mode) */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
@@ -141,13 +141,17 @@ export default function RegisterPage() {
 
       <div className="w-full max-w-md z-10 space-y-6">
         
-        {/* Global Progress Bar Indicator - Positioned at the very top of the section */}
-        <div className="space-y-1.5 w-full">
-          <Progress value={progressPercent} className="h-1.5 bg-neutral-200" />
-          <div className="flex justify-between text-[10px] font-bold text-muted-foreground uppercase tracking-wider px-1">
-            <span>Étape {step} sur 2</span>
-            <span>{step === 1 ? 'Identifiants' : 'Sécurisation'}</span>
+        {/* Global Progress Bar Indicator - Reinvented */}
+        <div className="bg-white/60 backdrop-blur-md rounded-2xl p-3 border border-neutral-200/60 shadow-sm w-full space-y-2">
+          <div className="flex justify-between items-center px-1">
+            <span className="text-[10px] font-black uppercase tracking-wider text-primary bg-primary/10 px-2 py-0.5 rounded-md">
+              Étape {step} sur 2
+            </span>
+            <span className="text-[10px] font-black uppercase tracking-widest text-neutral-500">
+              {step === 1 ? 'Vérification Pass' : 'Sécurisation'}
+            </span>
           </div>
+          <Progress value={progressPercent} className="h-1.5 bg-neutral-100" />
         </div>
 
         {/* Step Interactive Card Container */}
