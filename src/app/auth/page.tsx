@@ -10,7 +10,7 @@ export default function AuthGatewayPage() {
   return (
     <div className="flex min-h-screen flex-col justify-between bg-[#F9F9FC] text-neutral-900 overflow-hidden relative">
       
-      {/* Effets Aurora en arrière-plan (Top 1% Design) */}
+      {/* Effets Aurora en arrière-plan */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
         <motion.div
           animate={{
@@ -67,7 +67,7 @@ export default function AuthGatewayPage() {
         </div>
       </motion.div>
 
-      {/* Couche Violette 3D ancrée au bas (Actions de Connexion) */}
+      {/* Couche Violette 3D ancrée au bas */}
       <motion.div
         initial={{ opacity: 0, y: 150 }}
         animate={{ opacity: 1, y: 0 }}
@@ -84,7 +84,7 @@ export default function AuthGatewayPage() {
           </Link>
 
           <div className="relative flex py-1 items-center justify-center">
-            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-white/50">ou</span>
+            <span className="text-xs font-bold text-white/50">ou</span>
           </div>
 
           <Link href="/auth/register" className="block w-full">
