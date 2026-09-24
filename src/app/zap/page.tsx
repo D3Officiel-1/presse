@@ -97,7 +97,9 @@ function formatCount(value: number) {
   return value.toString();
 }
 
-export default function FeedPage() {
+export default function FeedPage(props: { params?: Promise<any>; searchParams?: Promise<any> }) {
+  const params = props.params ? React.use(props.params) : null;
+  const searchParams = props.searchParams ? React.use(props.searchParams) : null;
   const router = useRouter();
 
   const [videos, setVideos] = useState(INITIAL_VIDEOS);
@@ -298,28 +300,6 @@ export default function FeedPage() {
                 <div className="absolute inset-0 bg-gradient-to-b from-black/65 via-transparent via-40% to-black/95" />
                 <div className="absolute inset-0 bg-gradient-to-r from-black/25 via-transparent to-black/25" />
                 <div className="absolute inset-0 bg-black/10" />
-              </div>
-
-              {/* Top right controls */}
-              <div className="absolute right-4 top-4 z-30 flex items-center gap-2">
-                <button
-                  aria-label={muted ? 'Activer le son' : 'Couper le son'}
-                  onClick={() => setMuted((value) => !value)}
-                  className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-black/30 backdrop-blur-xl transition hover:bg-black/50 active:scale-90"
-                >
-                  {muted ? (
-                    <VolumeX className="h-4 w-4" />
-                  ) : (
-                    <Volume2 className="h-4 w-4" />
-                  )}
-                </button>
-
-                <button
-                  aria-label="Plus d'options"
-                  className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-black/30 backdrop-blur-xl transition hover:bg-black/50 active:scale-90"
-                >
-                  <MoreHorizontal className="h-5 w-5" />
-                </button>
               </div>
 
               {/* Center play/pause */}
