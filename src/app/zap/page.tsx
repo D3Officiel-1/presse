@@ -12,7 +12,6 @@ import {
   Check,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { useRouter } from 'next/navigation';
 
@@ -63,7 +62,7 @@ const INITIAL_VIDEOS: Video[] = [
     hint: 'african young woman speech presentation',
     audioName: 'Tech Talk — Innovation Hub',
     description:
-      'Comment nous allons changer la mobilité à Abidjan. #tech #startup #ivorycoast',
+      'Comment nous allons changer la mobility à Abidjan. #tech #startup #ivorycoast',
   },
   {
     id: 'vid-3',
@@ -437,10 +436,6 @@ export default function FeedPage(props: { params?: Promise<any>; searchParams?: 
                     >
                       @{video.creator}
                     </button>
-
-                    <Badge className="rounded-full border border-white/10 bg-primary text-white px-2 py-0.5 text-[9px] font-bold tracking-wider">
-                      {video.institution}
-                    </Badge>
                   </div>
 
                   <h2 className="line-clamp-1 text-sm font-black leading-snug text-neutral-100 drop-shadow-md">
