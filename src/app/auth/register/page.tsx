@@ -14,7 +14,6 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Progress } from '@/components/ui/progress';
 import { UserCircle, Lock, Loader2, ChevronRight, ChevronLeft, Sparkles, CheckCircle2, ShieldCheck, HelpCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Logo } from '@/components/logo';
 
 const AUTH_DOMAIN = "@zap.ci";
 
@@ -142,15 +141,6 @@ export default function RegisterPage() {
 
       <div className="w-full max-w-md z-10 space-y-6">
         
-        {/* Top Minimalist Branding */}
-        <div className="flex flex-col items-center text-center">
-          <Link href="/auth" className="w-12 h-12 p-2 rounded-xl bg-white border border-neutral-200/80 shadow-sm flex items-center justify-center transition-transform active:scale-95">
-            <Logo />
-          </Link>
-          <h2 className="text-xl font-black mt-3 tracking-tight">Rejoindre ZAP</h2>
-          <p className="text-xs text-muted-foreground font-medium">L'aventure créative commence ici</p>
-        </div>
-
         {/* Global Progress Bar Indicator */}
         <div className="space-y-1.5">
           <Progress value={progressPercent} className="h-1.5 bg-neutral-200" />
