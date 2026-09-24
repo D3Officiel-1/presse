@@ -9,7 +9,7 @@
         "matricule": { "type": "string", "description": "Identifiant unique du membre" },
         "email": { "type": "string", "format": "email" },
         "name": { "type": "string" },
-        "role": { "type": "string", "enum": ["leader", "partner", "guest"] },
+        "classe": { "type": "string", "description": "Classe de l'élève de la 6e à la Terminale" },
         "phone": { "type": "string" },
         "company": { "type": "string" },
         "interests": { "type": "array", "items": { "type": "string" }, "description": "Centres d'intérêt créatifs de l'élève" },

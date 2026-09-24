@@ -11,7 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import { 
   LogOut, User, Phone, BadgeCheck, Award, Briefcase, Sparkles, 
   Film, Play, Flame, Heart, MessageSquare, Share2, Compass, 
-  Plus, TrendingUp, Zap, Tv, Eye, Sliders, MessageCircle
+  Plus, TrendingUp, Zap, Tv, Eye, Sliders, MessageCircle, GraduationCap
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Logo } from '@/components/logo';
@@ -448,10 +448,10 @@ export default function Home() {
               <div className="p-6 space-y-4">
                 <div className="space-y-2.5">
                   <div className="flex items-center gap-3 p-3 rounded-xl bg-neutral-50 border border-neutral-100">
-                    <Award className="w-4 h-4 text-primary shrink-0" />
+                    <GraduationCap className="w-4 h-4 text-primary shrink-0" />
                     <div className="flex flex-col">
-                      <span className="text-[9px] text-neutral-400 font-bold uppercase tracking-wider">Statut</span>
-                      <span className="font-bold text-neutral-800 text-xs capitalize">{profile?.role || 'Nouvelle Étoile'}</span>
+                      <span className="text-[9px] text-neutral-400 font-bold uppercase tracking-wider">Classe</span>
+                      <span className="font-bold text-neutral-800 text-xs uppercase">{profile?.classe || 'Non spécifiée'}</span>
                     </div>
                   </div>
 

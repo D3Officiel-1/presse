@@ -13,10 +13,14 @@ import { ChevronRight, ChevronLeft, Loader2, Sparkles, Check, User, Camera, Film
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 
-const ROLES = [
-  { id: 'leader', title: 'Créateur Étoile', description: 'Élève publiant des projets, courts-métrages et tutoriels.' },
-  { id: 'partner', title: 'Partenaire Club', description: 'Établissement scolaire, encadrant ou mentor créatif.' },
-  { id: 'guest', title: 'Visiteur Inspiré', description: 'Observateur, juré des challenges ou contributeur ponctuel.' },
+const CLASSES = [
+  { id: '6e', title: 'Sixième (6e)' },
+  { id: '5e', title: 'Cinquième (5e)' },
+  { id: '4e', title: 'Quatrième (4e)' },
+  { id: '3e', title: 'Troisième (3e)' },
+  { id: '2nde', title: 'Seconde (2nde)' },
+  { id: '1ere', title: 'Première (1ère)' },
+  { id: 'tle', title: 'Terminale (Tle)' },
 ];
 
 const INTERESTS_OPTIONS = [
@@ -30,7 +34,7 @@ const INTERESTS_OPTIONS = [
 export default function OnboardingPage() {
   const [step, setStep] = useState(1);
   const [fullName, setFullName] = useState('');
-  const [selectedRole, setSelectedRole] = useState('');
+  const [selectedClasse, setSelectedClasse] = useState('');
   const [phone, setPhone] = useState('');
   const [company, setCompany] = useState('');
   const [selectedInterests, setSelectedInterests] = useState<string[]>([]);
@@ -52,8 +56,8 @@ export default function OnboardingPage() {
       toast({ variant: 'destructive', title: 'Champs requis', description: 'Veuillez renseigner votre nom complet.' });
       return;
     }
-    if (step === 2 && !selectedRole) {
-      toast({ variant: 'destructive', title: 'Champs requis', description: 'Veuillez sélectionner un statut.' });
+    if (step === 2 && !selectedClasse) {
+      toast({ variant: 'destructive', title: 'Champs requis', description: 'Veuillez sélectionner votre classe.' });
       return;
     }
     if (step === 3 && (!company.trim() || !phone.trim())) {
@@ -83,7 +87,7 @@ export default function OnboardingPage() {
     const userDocRef = doc(firestoreInstance, 'users', uid);
     const updateData = {
       name: fullName,
-      role: selectedRole,
+      classe: selectedClasse,
       phone: phone,
       company: company,
       interests: selectedInterests,
@@ -129,7 +133,6 @@ export default function OnboardingPage() {
       </div>
 
       <div className="w-full max-w-md z-10 space-y-8 mt-4">
-        {/* Indicateur de progression sous forme de puces identiques à l'inscription */}
         <div className="flex justify-center gap-2">
           {[1, 2, 3, 4, 5].map((s) => (
             <div 
@@ -153,7 +156,7 @@ export default function OnboardingPage() {
             {step === 2 && (
               <>
                 <Sparkles className="w-4 h-4 text-primary" />
-                Votre rôle au Studio
+                Dans quelle classe es-tu ?
               </>
             )}
             {step === 3 && (
@@ -210,28 +213,25 @@ export default function OnboardingPage() {
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -20 }}
-                className="space-y-3"
+                className="grid grid-cols-2 gap-2.5"
               >
-                {ROLES.map((r) => (
+                {CLASSES.map((c) => (
                   <div
-                    key={r.id}
-                    onClick={() => setSelectedRole(r.id)}
+                    key={c.id}
+                    onClick={() => setSelectedClasse(c.id)}
                     className={cn(
-                      "p-4 rounded-2xl border-2 cursor-pointer transition-all duration-200 flex items-start gap-4 text-left",
-                      selectedRole === r.id
-                        ? 'border-primary bg-primary/5 shadow-sm'
-                        : 'border-neutral-200 bg-white hover:border-neutral-300'
+                      "p-4 rounded-2xl border-2 cursor-pointer transition-all duration-200 flex items-center justify-between text-left",
+                      selectedClasse === c.id
+                        ? 'border-primary bg-primary/5 shadow-sm font-black'
+                        : 'border-neutral-200 bg-white hover:border-neutral-300 font-bold'
                     )}
                   >
+                    <span className="text-sm text-neutral-900 tracking-tight">{c.title}</span>
                     <div className={cn(
-                      "mt-0.5 w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0",
-                      selectedRole === r.id ? 'bg-primary border-primary text-white' : 'border-neutral-300'
+                      "w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0",
+                      selectedClasse === c.id ? 'bg-primary border-primary text-white' : 'border-neutral-300'
                     )}>
-                      {selectedRole === r.id && <Check className="w-3 h-3 stroke-[3]" />}
-                    </div>
-                    <div>
-                      <h4 className="font-black text-sm text-neutral-900 tracking-tight">{r.title}</h4>
-                      <p className="text-[11px] text-muted-foreground font-medium mt-0.5 leading-tight">{r.description}</p>
+                      {selectedClasse === c.id && <Check className="w-2.5 h-2.5 stroke-[3] text-white" />}
                     </div>
                   </div>
                 ))}
