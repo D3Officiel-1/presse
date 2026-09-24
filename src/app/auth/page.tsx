@@ -1,12 +1,12 @@
 'use client';
 
 import React from 'react';
-import Link from 'next/navigation';
+import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { Logo } from '@/components/logo';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { LogIn, UserPlus, Sparkles, Film, Award, Flame, Zap } from 'lucide-react';
+import { LogIn, UserPlus, Film, Award, Flame, Zap } from 'lucide-react';
 
 export default function AuthGatewayPage() {
   return (
@@ -40,7 +40,7 @@ export default function AuthGatewayPage() {
 
       <div className="w-full max-w-5xl grid grid-cols-1 md:grid-cols-12 gap-8 items-center relative z-10 px-2 sm:px-6">
         
-        {/* Column Left: Visual Storytelling Teaser (Hidden on smartphone, majestic on iPad/Desktop) */}
+        {/* Column Left: Visual Storytelling Teaser */}
         <motion.div
           initial={{ opacity: 0, x: -40 }}
           animate={{ opacity: 1, x: 0 }}
@@ -89,7 +89,7 @@ export default function AuthGatewayPage() {
           transition={{ duration: 0.9, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
           className="md:col-span-6 w-full max-w-md mx-auto"
         >
-          {/* Mobile Header Hero (Centered at the very top for mobile devices) */}
+          {/* Mobile Header Hero */}
           <div className="flex flex-col items-center text-center md:hidden mb-12 relative pt-2">
             <motion.div 
               animate={{ rotate: [0, 360] }}
