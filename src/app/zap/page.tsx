@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useRef, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import {
   Heart,
   MessageCircle,
@@ -19,7 +20,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 
-type Video = {
+export type Video = {
   id: string;
   title: string;
   creator: string;
@@ -64,7 +65,7 @@ const INITIAL_VIDEOS: Video[] = [
     videoUrl: 'https://storage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4',
     poster: 'https://picsum.photos/seed/zap2/600/1000',
     audioName: 'Tech Talk — Innovation Hub',
-    description: 'Comment nous allons changer la mobilité des étudiants à Abidjan. #tech #startup',
+    description: 'Comment nous allons changer la mobility des étudiants à Abidjan. #tech #startup',
   },
   {
     id: 'vid-3',
@@ -90,6 +91,7 @@ function formatCount(value: number) {
 }
 
 export default function FeedPage() {
+  const router = useRouter();
   const { toast } = useToast();
   const [videos, setVideos] = useState<Video[]>(INITIAL_VIDEOS);
   const [likedVideos, setLikedVideos] = useState<string[]>([]);
@@ -120,7 +122,6 @@ export default function FeedPage() {
   const feedRef = useRef<HTMLDivElement>(null);
   const videoRefs = useRef<Record<string, HTMLVideoElement | null>>({});
   
-  // Utilisation de useRef au lieu de window pour stocker l'état des taps sans provoquer d'erreur de sécurité Cross-Origin
   const pointerStartRef = useRef<{ time: number; x: number; y: number }>({ time: 0, x: 0, y: 0 });
   const doubleTapStateRef = useRef<{ lastTap: number; lastTapVideo: string }>({ lastTap: 0, lastTapVideo: '' });
 
@@ -415,6 +416,14 @@ export default function FeedPage() {
 
               {/* Action Side Rail */}
               <div className="absolute bottom-[130px] right-3 z-30 flex flex-col items-center gap-4">
+                {/* Micro Mute Trigger Button */}
+                <button
+                  onClick={() => setMuted(prev => !prev)}
+                  className="flex h-8 w-8 items-center justify-center rounded-full bg-black/40 border border-white/10 text-white active:scale-90 transition-transform mb-1"
+                >
+                  {muted ? <VolumeX className="w-3.5 h-3.5 text-white/80" /> : <Volume2 className="w-3.5 h-3.5 text-primary" />}
+                </button>
+
                 <div className="flex flex-col items-center">
                   <button
                     onClick={() => handleToggleLike(video.id)}
@@ -460,23 +469,19 @@ export default function FeedPage() {
                   </button>
                 </div>
 
+                {/* Vinyl Music Disc button - Navigates to TikTok audio style layout page */}
                 <div className="flex flex-col items-center pt-1">
                   <button
-                    onClick={() => setMuted((prev) => !prev)}
+                    onClick={() => router.push(`/zap/disque/${video.id}`)}
                     className={cn(
-                      "relative flex h-10 w-10 items-center justify-center rounded-full border-2 border-white/30 bg-neutral-900 shadow-xl overflow-hidden active:scale-90 transition-all outline-none duration-150 select-none",
-                      isActive && !paused ? "animate-spin" : ""
+                      "relative flex h-10 w-10 items-center justify-center rounded-full border-2 border-white/30 bg-neutral-900 shadow-xl overflow-hidden active:scale-90 transition-all outline-none select-none animate-spin"
                     )}
-                    style={{ animationDuration: isActive && !paused ? '50s' : '0s' }}
+                    style={{ animationDuration: isActive && !paused ? '3s' : '0s' }}
                   >
                     <div className="absolute inset-1 rounded-full border border-neutral-700/60 pointer-events-none" />
                     <div className="absolute inset-2 rounded-full border border-neutral-800 pointer-events-none" />
                     <div className="absolute w-4 h-4 rounded-full bg-primary flex items-center justify-center z-10 shadow-sm">
-                      {muted ? (
-                        <VolumeX className="h-2 w-2 text-white" />
-                      ) : (
-                        <Volume2 className="h-2 w-2 text-white animate-pulse" />
-                      )}
+                      <Music className="h-2 w-2 text-white animate-pulse" />
                     </div>
                     <img 
                       src={`https://picsum.photos/seed/${video.creator}/40/40`} 
