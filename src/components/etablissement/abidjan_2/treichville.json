@@ -1,0 +1,32 @@
+[
+  {
+    "code_etab": "000350",
+    "nom_etab": "INSTITUT LIBANAIS D'ENSEIGNEMENT TREICHVILLE",
+    "type_etab": "Prive"
+  },
+  {
+    "code_etab": "875115",
+    "nom_etab": "INSTITUT SUPERIEUR DES CARRIERES COMMERCIALES (ISCC) TREICHVILLE",
+    "type_etab": "Prive"
+  },
+  {
+    "code_etab": "000296",
+    "nom_etab": "COLLEGE SAINT JEAN BOSCO TREICHVILLE",
+    "type_etab": "Prive"
+  },
+  {
+    "code_etab": "000375",
+    "nom_etab": "CENTRE D'ENSEIGNEMENT TECHNIQUE FEMININ (CETF) NOTRE DAME DE LA PAIX TREICHVILLE",
+    "type_etab": "Prive"
+  },
+  {
+    "code_etab": "000404",
+    "nom_etab": "LYCEE MODERNE TREICHVILLE",
+    "type_etab": "Public"
+  },
+  {
+    "code_etab": "000208",
+    "nom_etab": "COLLEGE VOLTAIRE TREICHVILLE",
+    "type_etab": "Prive"
+  }
+]
