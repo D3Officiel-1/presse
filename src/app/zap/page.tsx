@@ -113,18 +113,38 @@ export default function FeedPage() {
 
             <div className="absolute right-3 bottom-[110px] md:right-4 md:bottom-[120px] z-20 flex flex-col items-center gap-4 md:gap-5 max-w-[60px]">
               
+              {/* Profile Avatar Reinvented */}
               <motion.div 
                 whileHover={{ scale: 1.05 }}
-                className="relative flex flex-col items-center mb-1"
+                className="relative flex flex-col items-center mb-3"
               >
-                <div className="w-11 h-11 md:w-12 md:h-12 rounded-full border-2 border-white overflow-hidden bg-neutral-800 shadow-[0_8px_25px_rgba(0,0,0,0.3)]">
-                  <img src={`https://picsum.photos/seed/${video.creator}/100/100`} alt="Avatar" className="w-full h-full object-cover" />
+                {/* Glowing Outer Ring */}
+                <motion.div
+                  animate={{ rotate: 360 }}
+                  transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
+                  className="absolute -inset-1.5 rounded-[1.6rem] bg-gradient-to-tr from-primary via-purple-500 to-orange-500 opacity-80 blur-[3px]"
+                />
+                
+                {/* Avatar Container (Squircle Shape) */}
+                <div className="relative w-12 h-12 md:w-14 md:h-14 rounded-[1.3rem] border-2 border-white/90 overflow-hidden bg-neutral-900 shadow-[0_12px_35px_rgba(0,0,0,0.5)] z-10 p-0.5">
+                  <div className="w-full h-full rounded-[1.1rem] overflow-hidden bg-neutral-800">
+                    <img 
+                      src={`https://picsum.photos/seed/${video.creator}/100/100`} 
+                      alt="Avatar" 
+                      className="w-full h-full object-cover" 
+                    />
+                  </div>
                 </div>
+
+                {/* Animated Plus Button */}
                 <motion.button 
                   whileTap={{ scale: 0.8 }}
-                  className="absolute -bottom-1.5 w-5 h-5 bg-primary rounded-full flex items-center justify-center shadow-lg border border-white"
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ delay: 0.2, type: "spring", stiffness: 260, damping: 20 }}
+                  className="absolute -bottom-2 w-6 h-6 bg-primary rounded-full flex items-center justify-center shadow-[0_4px_12px_rgba(255,39,0,0.6)] border-2 border-black z-20"
                 >
-                  <Plus className="w-3 h-3 text-white" />
+                  <Plus className="w-3.5 h-3.5 text-white stroke-[4]" />
                 </motion.button>
               </motion.div>
 
