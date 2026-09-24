@@ -172,9 +172,6 @@ export default function ZapPage(props: { params?: Promise<any>; searchParams?: P
             onClick={() => setActiveTab('profile')}
             className="absolute right-4 pointer-events-auto w-8 h-8 rounded-full border border-white/20 overflow-hidden"
           >
-            <div className="w-full h-full bg-primary/20 flex items-center justify-center">
-              <User className="w-4 h-4 text-white" />
-            </div>
           </button>
         </header>
       )}
