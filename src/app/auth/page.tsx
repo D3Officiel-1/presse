@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 
 export default function AuthGatewayPage() {
   return (
-    <div className="flex min-h-screen flex-col justify-between bg-[#F9F9FC] text-neutral-900 overflow-hidden relative">
+    <div className="flex flex-col h-[100dvh] w-full bg-[#F9F9FC] text-neutral-900 overflow-hidden relative">
       
       {/* Effets Aurora en arrière-plan */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
@@ -36,12 +36,12 @@ export default function AuthGatewayPage() {
         />
       </div>
 
-      {/* En-tête (Logo et Titre) centré en haut */}
+      {/* En-tête (Logo et Titre) ancré en haut */}
       <motion.div
         initial={{ opacity: 0, y: -40, filter: "blur(10px)" }}
         animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
         transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
-        className="w-full flex flex-col items-center pt-24 z-10"
+        className="w-full flex flex-col items-center pt-16 z-10"
       >
         <div className="flex flex-col items-center text-center relative">
           {/* Halo derrière le logo */}
@@ -57,38 +57,44 @@ export default function AuthGatewayPage() {
             className="absolute w-32 h-32 rounded-full bg-primary/20 blur-3xl"
           />
           
-          <div className="w-20 h-20 p-3 bg-gradient-to-tr from-white via-neutral-50 to-white shadow-[0_15px_35px_rgba(124,58,237,0.1)] rounded-[2.2rem] border border-neutral-200 mb-2 flex items-center justify-center relative overflow-hidden backdrop-blur-xl z-10">
+          <div className="w-24 h-24 p-4 bg-gradient-to-tr from-white via-neutral-50 to-white shadow-[0_15px_35px_rgba(124,58,237,0.1)] rounded-[2.5rem] border border-neutral-200 mb-4 flex items-center justify-center relative overflow-hidden backdrop-blur-xl z-10">
             <Logo className="w-full h-full" />
           </div>
           
-          <h1 className="text-4xl font-[1000] tracking-tight text-neutral-950 leading-none z-10">
+          <h1 className="text-5xl font-[1000] tracking-tighter text-neutral-950 leading-none z-10">
             ZAP<span className="text-primary italic font-serif">!</span>
           </h1>
         </div>
       </motion.div>
+
+      {/* Spacer flexible pour pousser le contenu suivant vers le bas */}
+      <div className="flex-1" />
 
       {/* Couche Violette 3D ancrée au bas */}
       <motion.div
         initial={{ opacity: 0, y: 150 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 1, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
-        className="w-full bg-gradient-to-br from-primary via-violet-600 to-purple-800 rounded-t-[3.5rem] shadow-[0_-20px_60px_rgba(124,58,237,0.3)] border-t border-white/10 relative z-20 px-6 sm:px-12 pt-10 pb-[calc(env(safe-area-inset-bottom,0px)+3rem)]"
+        className="w-full bg-gradient-to-br from-primary via-violet-600 to-purple-800 rounded-t-[3.5rem] shadow-[0_-20px_60px_rgba(124,58,237,0.3)] border-t border-white/10 relative z-20 px-6 pt-12 pb-[calc(env(safe-area-inset-bottom,0px)+3rem)]"
       >
-        <div className="max-w-md mx-auto space-y-5">
+        <div className="max-w-md mx-auto space-y-6">
           <div className="absolute top-0 inset-x-0 h-px bg-white/20" />
           
           <Link href="/auth/login" className="block w-full">
-            <Button size="lg" className="w-full bg-white text-primary hover:bg-neutral-50 rounded-2xl h-14 font-bold tracking-tight shadow-md transition-transform active:scale-[0.99]">
+            <Button size="lg" className="w-full bg-white text-primary hover:bg-neutral-50 rounded-2xl h-16 font-bold tracking-tight shadow-md transition-transform active:scale-[0.99]">
               Se connecter
             </Button>
           </Link>
 
-          <div className="relative flex py-1 items-center justify-center">
-            <span className="text-xs font-bold text-white/50">ou</span>
+          <div className="relative flex py-2 items-center justify-center">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-white/10"></div>
+            </div>
+            <span className="relative px-4 text-xs font-bold text-white/50 bg-transparent">ou</span>
           </div>
 
           <Link href="/auth/register" className="block w-full">
-            <Button size="lg" variant="outline" className="w-full rounded-2xl h-14 bg-transparent text-white border-white/30 hover:bg-white/10 transition-all font-bold">
+            <Button size="lg" variant="outline" className="w-full rounded-2xl h-16 bg-transparent text-white border-white/30 hover:bg-white/10 transition-all font-bold">
               Créer un compte
             </Button>
           </Link>
