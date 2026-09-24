@@ -7,8 +7,6 @@ import {
   MessageCircle,
   Bookmark,
   Play,
-  Volume2,
-  VolumeX,
   X,
   Send,
   Music,
@@ -65,7 +63,7 @@ const INITIAL_VIDEOS: Video[] = [
     videoUrl: 'https://storage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4',
     poster: 'https://picsum.photos/seed/zap2/600/1000',
     audioName: 'Tech Talk — Innovation Hub',
-    description: 'Comment nous allons changer la mobility des étudiants à Abidjan. #tech #startup',
+    description: 'Comment nous allons changer la mobilité des étudiants à Abidjan. #tech #startup',
   },
   {
     id: 'vid-3',
@@ -100,7 +98,7 @@ export default function FeedPage() {
   
   const [activeVideo, setActiveVideo] = useState('vid-1');
   const [paused, setPaused] = useState(false);
-  const [muted, setMuted] = useState(true);
+  const [muted] = useState(true);
 
   const [activeHeartAnimation, setActiveHeartAnimation] = useState<{ videoId: string; x: number; y: number } | null>(null);
   const [activeSheet, setActiveSheet] = useState<'comments' | 'menu' | null>(null);
@@ -416,14 +414,6 @@ export default function FeedPage() {
 
               {/* Action Side Rail */}
               <div className="absolute bottom-[130px] right-3 z-30 flex flex-col items-center gap-4">
-                {/* Micro Mute Trigger Button */}
-                <button
-                  onClick={() => setMuted(prev => !prev)}
-                  className="flex h-8 w-8 items-center justify-center rounded-full bg-black/40 border border-white/10 text-white active:scale-90 transition-transform mb-1"
-                >
-                  {muted ? <VolumeX className="w-3.5 h-3.5 text-white/80" /> : <Volume2 className="w-3.5 h-3.5 text-primary" />}
-                </button>
-
                 <div className="flex flex-col items-center">
                   <button
                     onClick={() => handleToggleLike(video.id)}
@@ -476,7 +466,7 @@ export default function FeedPage() {
                     className={cn(
                       "relative flex h-10 w-10 items-center justify-center rounded-full border-2 border-white/30 bg-neutral-900 shadow-xl overflow-hidden active:scale-90 transition-all outline-none select-none animate-spin"
                     )}
-                    style={{ animationDuration: isActive && !paused ? '3s' : '0s' }}
+                    style={{ animationDuration: '3s' }}
                   >
                     <div className="absolute inset-1 rounded-full border border-neutral-700/60 pointer-events-none" />
                     <div className="absolute inset-2 rounded-full border border-neutral-800 pointer-events-none" />
