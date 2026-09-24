@@ -62,7 +62,7 @@ const INITIAL_VIDEOS: Video[] = [
     videoUrl: 'https://storage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4',
     poster: 'https://picsum.photos/seed/zap2/600/1000',
     audioName: 'Tech Talk — Innovation Hub',
-    description: 'Comment nous allons changer la mobilité à Abidjan. #tech #startup #ivorycoast',
+    description: 'Comment nous allons changer la mobility à Abidjan. #tech #startup #ivorycoast',
   },
   {
     id: 'vid-3',
@@ -88,7 +88,6 @@ function formatCount(value: number) {
 }
 
 export default function FeedPage(props: { params: Promise<any>; searchParams: Promise<any> }) {
-  // Déballage Next.js 15 pour éviter les erreurs d'énumération
   React.use(props.params);
   React.use(props.searchParams);
 
@@ -102,7 +101,6 @@ export default function FeedPage(props: { params: Promise<any>; searchParams: Pr
   const [paused, setPaused] = useState(false);
   const [muted, setMuted] = useState(true);
   const [showHeart, setShowHeart] = useState<string | null>(null);
-  const [uiVisible, setUiVisible] = useState(true);
   
   const [videoProgress, setVideoProgress] = useState<Record<string, number>>({});
   const [videoDuration, setVideoDuration] = useState<Record<string, number>>({});
@@ -111,7 +109,6 @@ export default function FeedPage(props: { params: Promise<any>; searchParams: Pr
   const videoRefs = useRef<Record<string, HTMLVideoElement | null>>({});
   const lastTapRef = useRef<number>(0);
   const tapTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const scrollTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     const originalBg = document.body.style.backgroundColor;
@@ -120,19 +117,6 @@ export default function FeedPage(props: { params: Promise<any>; searchParams: Pr
       document.body.style.backgroundColor = originalBg;
     };
   }, []);
-
-  const handleScroll = () => {
-    if (uiVisible) {
-      setUiVisible(false);
-      window.dispatchEvent(new CustomEvent('zap-ui-visibility', { detail: { visible: false } }));
-    }
-    
-    if (scrollTimer.current) clearTimeout(scrollTimer.current);
-    scrollTimer.current = setTimeout(() => {
-      setUiVisible(true);
-      window.dispatchEvent(new CustomEvent('zap-ui-visibility', { detail: { visible: true } }));
-    }, 200);
-  };
 
   const handleToggleLike = (id: string) => {
     const alreadyLiked = likedVideos.includes(id);
@@ -236,25 +220,15 @@ export default function FeedPage(props: { params: Promise<any>; searchParams: Pr
 
   return (
     <div className="fixed inset-0 overflow-hidden bg-black text-white">
-      <AnimatePresence>
-        {uiVisible && (
-          <motion.header 
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className="pointer-events-none fixed inset-x-0 top-0 z-50 flex justify-center pt-3 md:pt-5"
-          >
-            <div className="pointer-events-auto flex items-center gap-1 rounded-full border border-white/10 bg-black/60 p-1.5 shadow-2xl backdrop-blur-2xl">
-              <button className="rounded-full px-4 py-2 text-[11px] font-bold tracking-wide text-white/55 transition hover:bg-white/10 hover:text-white">Abonnements</button>
-              <button className="rounded-full bg-white/10 px-5 py-2 text-[11px] font-black tracking-wide text-white shadow-inner">Pour toi</button>
-            </div>
-          </motion.header>
-        )}
-      </AnimatePresence>
+      <header className="pointer-events-none fixed inset-x-0 top-0 z-50 flex justify-center pt-3 md:pt-5">
+        <div className="pointer-events-auto flex items-center gap-1 rounded-full border border-white/10 bg-black/60 p-1.5 shadow-2xl backdrop-blur-2xl">
+          <button className="rounded-full px-4 py-2 text-[11px] font-bold tracking-wide text-white/55 transition hover:bg-white/10 hover:text-white">Abonnements</button>
+          <button className="rounded-full bg-white/10 px-5 py-2 text-[11px] font-black tracking-wide text-white shadow-inner">Pour toi</button>
+        </div>
+      </header>
 
       <main 
         ref={feedRef} 
-        onScroll={handleScroll}
         className="h-full w-full snap-y snap-mandatory overflow-y-auto overscroll-none [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
       >
         {videos.map((video) => {
@@ -292,12 +266,10 @@ export default function FeedPage(props: { params: Promise<any>; searchParams: Pr
                   preload={isActive ? 'auto' : 'metadata'}
                   className="h-full w-full object-cover"
                   onLoadedMetadata={(e) => {
-                    // Capture immédiate de la durée pour éviter le bug currentTarget null
                     const d = e.currentTarget.duration;
                     setVideoDuration(prev => ({ ...prev, [video.id]: d }));
                   }}
                   onTimeUpdate={(e) => {
-                    // Capture immédiate du temps pour éviter le bug currentTarget null
                     const t = e.currentTarget.currentTime;
                     setVideoProgress(prev => ({ ...prev, [video.id]: t }));
                   }}
@@ -336,65 +308,45 @@ export default function FeedPage(props: { params: Promise<any>; searchParams: Pr
                 )}
               </AnimatePresence>
 
-              {/* Barre latérale d'actions */}
-              <AnimatePresence>
-                {uiVisible && (
-                  <motion.div 
-                    initial={{ opacity: 0, x: 20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: 20 }}
-                    className="absolute bottom-[115px] right-3 z-30 flex w-14 flex-col items-center gap-4 md:right-5"
+              <div className="absolute bottom-[115px] right-3 z-30 flex w-14 flex-col items-center gap-4 md:right-5">
+                <div className="relative mb-1">
+                  <div className="absolute -inset-1 rounded-[19px] bg-gradient-to-tr from-primary via-fuchsia-500 to-orange-400 opacity-80 blur-[4px]" />
+                  <div className="relative h-12 w-12 overflow-hidden rounded-[16px] border-2 border-white bg-neutral-900 p-0.5 shadow-2xl">
+                    <img src={`https://picsum.photos/seed/${video.creator}/120/120`} alt={video.fullName} className="h-full w-full rounded-[12px] object-cover" />
+                  </div>
+                  <motion.button
+                    whileTap={{ scale: 0.75 }} onClick={(e) => { e.stopPropagation(); handleToggleFollow(video.creator); }}
+                    className={cn('absolute -bottom-2 left-1/2 flex h-6 w-6 -translate-x-1/2 items-center justify-center rounded-full border-2 border-black shadow-lg', isFollowed ? 'bg-white text-black' : 'bg-primary text-white')}
                   >
-                    <div className="relative mb-1">
-                      <div className="absolute -inset-1 rounded-[19px] bg-gradient-to-tr from-primary via-fuchsia-500 to-orange-400 opacity-80 blur-[4px]" />
-                      <div className="relative h-12 w-12 overflow-hidden rounded-[16px] border-2 border-white bg-neutral-900 p-0.5 shadow-2xl">
-                        <img src={`https://picsum.photos/seed/${video.creator}/120/120`} alt={video.fullName} className="h-full w-full rounded-[12px] object-cover" />
-                      </div>
-                      <motion.button
-                        whileTap={{ scale: 0.75 }} onClick={(e) => { e.stopPropagation(); handleToggleFollow(video.creator); }}
-                        className={cn('absolute -bottom-2 left-1/2 flex h-6 w-6 -translate-x-1/2 items-center justify-center rounded-full border-2 border-black shadow-lg', isFollowed ? 'bg-white text-black' : 'bg-primary text-white')}
-                      >
-                        {isFollowed ? <Check className="h-3.5 w-3.5 stroke-[4]" /> : <Plus className="h-3.5 w-3.5 stroke-[4]" />}
-                      </motion.button>
-                    </div>
+                    {isFollowed ? <Check className="h-3.5 w-3.5 stroke-[4]" /> : <Plus className="h-3.5 w-3.5 stroke-[4]" />}
+                  </motion.button>
+                </div>
 
-                    <ActionButton active={isLiked} activeClass="text-primary bg-primary/10 border-primary/30" onClick={(e) => { e.stopPropagation(); handleToggleLike(video.id); }} icon={<Heart className={cn('h-[22px] w-[22px]', isLiked && 'fill-primary stroke-primary')} />} count={formatCount(video.likes)} />
-                    <ActionButton onClick={(e) => { e.stopPropagation(); router.push('/zap/chat'); }} icon={<MessageCircle className="h-5 w-5" />} count={formatCount(video.comments)} />
-                    <ActionButton active={isBookmarked} activeClass="border-yellow-400/30 bg-yellow-400/10 text-yellow-400" onClick={(e) => { e.stopPropagation(); handleToggleBookmark(video.id); }} icon={<Bookmark className={cn('h-5 w-5', isBookmarked && 'fill-yellow-400 stroke-yellow-400')} />} count={formatCount(video.bookmarks)} />
-                    <ActionButton onClick={(e) => { e.stopPropagation(); handleShare(video); }} icon={<Share2 className="h-5 w-5" />} count={formatCount(video.shares)} />
-                    
-                    <motion.div animate={{ rotate: isActive && !paused ? 360 : 0 }} transition={{ duration: 5, repeat: isActive && !paused ? Infinity : 0, ease: 'linear' }} className="mt-1 flex h-10 w-10 items-center justify-center rounded-full border border-white/20 bg-black/70 p-2 shadow-xl backdrop-blur-xl">
-                      <Music className="h-4 w-4 text-primary" />
-                    </motion.div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
+                <ActionButton active={isLiked} activeClass="text-primary bg-primary/10 border-primary/30" onClick={(e) => { e.stopPropagation(); handleToggleLike(video.id); }} icon={<Heart className={cn('h-[22px] w-[22px]', isLiked && 'fill-primary stroke-primary')} />} count={formatCount(video.likes)} />
+                <ActionButton onClick={(e) => { e.stopPropagation(); router.push('/zap/chat'); }} icon={<MessageCircle className="h-5 w-5" />} count={formatCount(video.comments)} />
+                <ActionButton active={isBookmarked} activeClass="border-yellow-400/30 bg-yellow-400/10 text-yellow-400" onClick={(e) => { e.stopPropagation(); handleToggleBookmark(video.id); }} icon={<Bookmark className={cn('h-5 w-5', isBookmarked && 'fill-yellow-400 stroke-yellow-400')} />} count={formatCount(video.bookmarks)} />
+                <ActionButton onClick={(e) => { e.stopPropagation(); handleShare(video); }} icon={<Share2 className="h-5 w-5" />} count={formatCount(video.shares)} />
+                
+                <motion.div animate={{ rotate: isActive && !paused ? 360 : 0 }} transition={{ duration: 5, repeat: isActive && !paused ? Infinity : 0, ease: 'linear' }} className="mt-1 flex h-10 w-10 items-center justify-center rounded-full border border-white/20 bg-black/70 p-2 shadow-xl backdrop-blur-xl">
+                  <Music className="h-4 w-4 text-primary" />
+                </motion.div>
+              </div>
 
-              {/* Infos Vidéo */}
-              <AnimatePresence>
-                {uiVisible && (
-                  <motion.div 
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: 20 }}
-                    className="absolute bottom-[90px] left-4 right-20 z-20 md:left-6 md:right-24 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-4 rounded-3xl backdrop-blur-[2px] border border-white/5"
-                  >
-                    <div className="max-w-xl space-y-2">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <button onClick={(e) => { e.stopPropagation(); handleToggleFollow(video.creator); }} className="text-[15px] font-black tracking-tight drop-shadow-md text-white hover:opacity-80 transition">@{video.creator}</button>
-                      </div>
-                      <h2 className="line-clamp-1 text-sm font-black leading-snug text-neutral-100 drop-shadow-md">{video.title}</h2>
-                      <p className="line-clamp-2 text-xs font-medium leading-relaxed text-neutral-300 drop-shadow-sm">{video.description}</p>
-                      <div className="flex min-w-0 items-center gap-2 pt-0.5 text-[10px] text-primary font-black uppercase tracking-wider">
-                        <Music className="h-3.5 w-3.5 shrink-0 animate-pulse" />
-                        <span className="truncate font-mono">{video.audioName}</span>
-                        <span className="h-1 w-1 shrink-0 rounded-full bg-white/40" />
-                        <span className="text-white/60 lowercase font-sans">original</span>
-                      </div>
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
+              <div className="absolute bottom-[90px] left-4 right-20 z-20 md:left-6 md:right-24 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-4 rounded-3xl backdrop-blur-[2px] border border-white/5">
+                <div className="max-w-xl space-y-2">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <button onClick={(e) => { e.stopPropagation(); handleToggleFollow(video.creator); }} className="text-[15px] font-black tracking-tight drop-shadow-md text-white hover:opacity-80 transition">@{video.creator}</button>
+                  </div>
+                  <h2 className="line-clamp-1 text-sm font-black leading-snug text-neutral-100 drop-shadow-md">{video.title}</h2>
+                  <p className="line-clamp-2 text-xs font-medium leading-relaxed text-neutral-300 drop-shadow-sm">{video.description}</p>
+                  <div className="flex min-w-0 items-center gap-2 pt-0.5 text-[10px] text-primary font-black uppercase tracking-wider">
+                    <Music className="h-3.5 w-3.5 shrink-0 animate-pulse" />
+                    <span className="truncate font-mono">{video.audioName}</span>
+                    <span className="h-1 w-1 shrink-0 rounded-full bg-white/40" />
+                    <span className="text-white/60 lowercase font-sans">original</span>
+                  </div>
+                </div>
+              </div>
 
               <div className="absolute bottom-0 left-0 right-0 z-40 h-[3px] bg-white/20">
                 <div className="h-full bg-white transition-[width] duration-100 origin-left" style={{ width: `${progress}%` }} />
