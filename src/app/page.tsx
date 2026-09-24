@@ -105,7 +105,7 @@ export default function Home() {
         setTimeout(() => {
           setLoading(false);
           setShowSplash(false);
-        }, 3000);
+        }, 2000);
       }
     };
 
@@ -175,34 +175,28 @@ export default function Home() {
             transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
             className="absolute -bottom-[20%] -right-[20%] w-[80%] h-[80%] bg-orange-400/20 blur-[150px] rounded-full"
           />
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,rgba(255,255,255,0.4)_100%)]" />
         </div>
 
         <motion.div
           initial={{ opacity: 0, scale: 0.8, filter: "blur(30px)" }}
           animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
-          transition={{ duration: 1.6, ease: [0.22, 1, 0.36, 1] }}
+          transition={{ duration: 1.4, ease: [0.22, 1, 0.36, 1] }}
           className="relative"
         >
-          <div className="w-36 h-36 bg-gradient-to-br from-primary via-primary to-accent rounded-[2.5rem] flex items-center justify-center shadow-[0_30px_80px_rgba(124,58,237,0.2)] relative z-10 overflow-hidden border border-white/40">
-            <motion.div 
-              initial={{ scale: 0.8, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              transition={{ delay: 0.4, duration: 1 }}
-              className="w-20 h-20"
-            >
+          <div className="w-28 h-28 bg-gradient-to-br from-primary to-accent rounded-3xl flex items-center justify-center shadow-[0_20px_50px_rgba(124,58,237,0.15)] border border-white/20">
+            <div className="w-16 h-16">
               <Logo className="w-full h-full" />
-            </motion.div>
+            </div>
           </div>
         </motion.div>
 
         <motion.div
-          initial={{ opacity: 0, y: 30 }}
+          initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.8, duration: 1 }}
-          className="mt-12 text-center"
+          transition={{ delay: 0.5, duration: 0.8 }}
+          className="mt-8 text-center"
         >
-          <h1 className="text-6xl font-[1000] tracking-tighter text-neutral-900">
+          <h1 className="text-4xl font-black tracking-tighter text-neutral-900">
             ZAP<span className="text-primary italic">!</span>
           </h1>
         </motion.div>
@@ -212,25 +206,38 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-[#F4F4F9] text-neutral-900 pb-[calc(env(safe-area-inset-bottom,0px)+5rem)]">
-      {/* Dynamic Mobile Header */}
-      <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-xl border-b border-neutral-200/50 px-4 py-3 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 p-1 bg-gradient-to-br from-primary to-accent rounded-lg">
-            <Logo />
+      {/* Custom Designed Studio Native Header */}
+      <header className="sticky top-0 z-40 bg-white/90 backdrop-blur-xl border-b border-neutral-200/60 px-5 py-4 transition-all duration-300">
+        <div className="max-w-md mx-auto flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 p-2 bg-gradient-to-tr from-primary to-violet-600 rounded-xl shadow-sm text-white flex items-center justify-center">
+              <Logo />
+            </div>
+            <div className="flex flex-col">
+              <span className="text-lg font-black tracking-tight text-neutral-950">ZAP!</span>
+              <span className="text-[10px] text-muted-foreground uppercase font-black tracking-widest -mt-1">
+                {profile?.company ? profile.company : "Studio Créatif"}
+              </span>
+            </div>
           </div>
-          <span className="text-xl font-black tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-neutral-950 to-neutral-700">ZAP</span>
-        </div>
 
-        <div className="flex items-center gap-3">
-          <div className="bg-primary/5 px-2.5 py-1 rounded-full border border-primary/10">
-            <span className="text-[11px] font-black text-primary font-mono">{profile?.matricule}</span>
+          <div className="flex items-center gap-2">
+            <div className="flex flex-col items-end mr-1">
+              <span className="text-xs font-bold text-neutral-800 truncate max-w-[100px]">
+                {profile?.name ? profile.name.split(' ')[0] : 'Créateur'}
+              </span>
+              <span className="text-[9px] font-mono font-bold text-primary bg-primary/10 px-1.5 py-0.5 rounded-md border border-primary/10">
+                {profile?.matricule}
+              </span>
+            </div>
+            <button 
+              onClick={handleLogout}
+              className="w-10 h-10 flex items-center justify-center rounded-xl bg-neutral-100/80 text-neutral-600 hover:bg-neutral-200 hover:text-neutral-900 active:scale-95 transition-all"
+              title="Déconnexion"
+            >
+              <LogOut className="w-4 h-4" />
+            </button>
           </div>
-          <button 
-            onClick={handleLogout}
-            className="w-8 h-8 flex items-center justify-center rounded-xl bg-neutral-100 text-neutral-500 active:scale-95 transition-transform"
-          >
-            <LogOut className="w-4 h-4 text-neutral-600" />
-          </button>
         </div>
       </header>
 
