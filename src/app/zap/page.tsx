@@ -511,7 +511,7 @@ export default function FeedPage() {
 
                   <div className="space-y-0.5 text-white">
                     <h3 className="text-xs font-black drop-shadow-sm leading-tight truncate">
-                      {video.title} <span className="opacity-75 font-normal text-[11px]"> • {video.institution}</span>
+                      {video.title}
                     </h3>
                     <p className="text-[11px] font-medium text-white/90 drop-shadow-sm leading-snug line-clamp-2">{video.description}</p>
                     
