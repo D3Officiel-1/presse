@@ -79,7 +79,8 @@ export default function LoginPage(props: { params?: Promise<any>; searchParams?:
         description: 'Bon retour dans votre Studio ZAP.',
       });
 
-      router.push(isOnboarded ? '/' : '/auth/onboarding');
+      // Redirection vers /zap au lieu de / pour éviter de repasser par le splash screen
+      router.replace(isOnboarded ? '/zap' : '/auth/onboarding');
     } catch (error: any) {
       toast({
         variant: 'destructive',

@@ -69,7 +69,7 @@ export default function OnboardingPage(props: { params?: Promise<any>; searchPar
 
   useEffect(() => {
     if (!localStorage.getItem('userId')) {
-      router.push('/auth/login');
+      router.replace('/auth/login');
     }
   }, [router]);
 
@@ -194,7 +194,9 @@ export default function OnboardingPage(props: { params?: Promise<any>; searchPar
           title: 'Profil activé !',
           description: 'Bienvenue officiellement sur le Studio ZAP.',
         });
-        router.push('/');
+        
+        // Utilisation de replace pour éviter de revenir sur l'onboarding
+        router.replace('/zap');
       })
       .catch((error) => {
         toast({
