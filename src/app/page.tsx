@@ -9,15 +9,13 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { 
-  LogOut, User, Phone, BadgeCheck, Award, Briefcase, Sparkles, 
-  Film, Play, Flame, Heart, MessageSquare, Share2, Compass, 
-  Plus, TrendingUp, Zap, Tv, Eye, Sliders, MessageCircle, GraduationCap
+  LogOut, User, Briefcase, Flame, Heart, MessageSquare, Share2, Compass, 
+  Plus, Zap, Tv, Eye, Sliders, GraduationCap, Phone
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Logo } from '@/components/logo';
 import { generateSmartReplySuggestions } from '@/ai/flows/smart-reply-suggestions';
 
-// Projets vidéo simulés haut de gamme pour l'expérience élève
 const MOCK_VIDEOS = [
   {
     id: 'vid-1',
@@ -60,7 +58,10 @@ const MOCK_VIDEOS = [
   }
 ];
 
-export default function Home() {
+export default function Home(props: { params?: Promise<any>; searchParams?: Promise<any> }) {
+  if (props?.params) { React.use(props.params); }
+  if (props?.searchParams) { React.use(props.searchParams); }
+
   const router = useRouter();
   const fs = useFirestore();
   const { toast } = useToast();
@@ -71,7 +72,6 @@ export default function Home() {
   const [activeTab, setActiveTab] = useState('feed');
   const [likedVideos, setLikedVideos] = useState<string[]>([]);
   
-  // États pour l'IA Smart Reply intégrée
   const [sampleMessage, setSampleMessage] = useState("Félicitations pour ta vidéo ! Quel logiciel de montage as-tu utilisé ?");
   const [aiSuggestions, setAiSuggestions] = useState<string[]>([]);
   const [generatingAi, setGeneratingAi] = useState(false);
@@ -206,7 +206,6 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-[#F4F4F9] text-neutral-900 pb-[calc(env(safe-area-inset-bottom,0px)+5rem)]">
-      {/* Custom Designed Studio Native Header */}
       <header className="sticky top-0 z-40 bg-white/90 backdrop-blur-xl border-b border-neutral-200/60 px-5 py-4 transition-all duration-300">
         <div className="max-w-md mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -241,13 +240,9 @@ export default function Home() {
         </div>
       </header>
 
-      {/* Main Container */}
       <main className="px-4 py-4 max-w-md mx-auto space-y-5">
-        
-        {/* TAB 1: IMMERSIVE VIDEO FLUX */}
         {activeTab === 'feed' && (
           <div className="space-y-5 animate-fade-up">
-            {/* Live Tendance Pills */}
             <div className="flex gap-2 overflow-x-auto no-scrollbar py-1">
               <Badge className="bg-primary text-white border-none px-3 py-1 text-xs font-bold rounded-full shrink-0 flex items-center gap-1 shadow-sm">
                 <Flame className="w-3 h-3 fill-white" /> À la une
@@ -263,14 +258,12 @@ export default function Home() {
               </Badge>
             </div>
 
-            {/* Immersive Vertical Video Cards */}
             <div className="space-y-6">
               {MOCK_VIDEOS.map((video) => (
                 <div 
                   key={video.id}
                   className="bg-white rounded-[2rem] border border-neutral-200/80 overflow-hidden shadow-md relative"
                 >
-                  {/* Media Content Viewport */}
                   <div className="relative aspect-[4/5] w-full bg-neutral-950 overflow-hidden">
                     <img 
                       src={video.image} 
@@ -280,21 +273,18 @@ export default function Home() {
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/30" />
                     
-                    {/* Top Badge */}
                     <div className="absolute top-4 left-4">
                       <span className="text-[10px] bg-white/20 backdrop-blur-md border border-white/20 text-white font-black px-2.5 py-1 rounded-xl uppercase tracking-wider">
                         {video.tag}
                       </span>
                     </div>
 
-                    {/* Middle Play Action overlay */}
                     <div className="absolute inset-0 flex items-center justify-center">
                       <button className="w-14 h-14 rounded-full bg-primary/90 text-white shadow-xl flex items-center justify-center backdrop-blur-sm active:scale-90 transition-transform">
                         <Play className="w-6 h-6 fill-white ml-1" />
                       </button>
                     </div>
 
-                    {/* Immersive Overlay Info Text */}
                     <div className="absolute bottom-4 left-4 right-16 text-white space-y-1">
                       <div className="flex items-center gap-1.5 text-xs text-neutral-300 font-medium">
                         <Eye className="w-3.5 h-3.5" />
@@ -308,7 +298,6 @@ export default function Home() {
                       </p>
                     </div>
 
-                    {/* Right-Side Vertical Engagement Action Bar */}
                     <div className="absolute bottom-4 right-3 flex flex-col gap-4 items-center">
                       <button 
                         onClick={() => handleToggleLike(video.id)}
@@ -336,7 +325,6 @@ export default function Home() {
           </div>
         )}
 
-        {/* TAB 2: STUDIO LAB */}
         {activeTab === 'studio' && (
           <div className="space-y-5 animate-fade-up">
             <div className="p-5 bg-gradient-to-r from-neutral-950 via-neutral-900 to-orange-950 text-white rounded-[2rem] shadow-xl relative overflow-hidden">
@@ -353,7 +341,6 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Smart IA Interaction Card */}
             <Card className="border-primary/20 bg-gradient-to-b from-primary/5 to-accent/5 rounded-[2rem] shadow-sm relative overflow-hidden">
               <CardHeader className="pb-3">
                 <CardTitle className="text-xs uppercase tracking-widest text-primary font-black flex items-center gap-1.5">
@@ -402,7 +389,6 @@ export default function Home() {
               </CardContent>
             </Card>
 
-            {/* Studio Tools Grid */}
             <div className="grid grid-cols-2 gap-4">
               <div className="p-4 bg-white rounded-2xl border border-neutral-200/80 shadow-sm space-y-2">
                 <div className="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
@@ -423,10 +409,8 @@ export default function Home() {
           </div>
         )}
 
-        {/* TAB 3: PROFILE VIRTUAL PASS */}
         {activeTab === 'profile' && (
           <div className="space-y-5 animate-fade-up">
-            {/* Holographic Hologram look profile pass card */}
             <div className="bg-white border border-neutral-200 rounded-[2.5rem] shadow-xl overflow-hidden relative">
               <div className="bg-gradient-to-br from-primary/10 via-accent/5 to-orange-500/10 p-6 relative border-b border-neutral-100">
                 <div className="flex items-center gap-4">
@@ -481,7 +465,6 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Quick Metrics Bar */}
             <div className="grid grid-cols-3 gap-3 text-center">
               <div className="bg-white p-3 rounded-2xl border border-neutral-200/80 shadow-sm">
                 <span className="block text-lg font-black text-neutral-900">3.4k</span>
@@ -501,7 +484,6 @@ export default function Home() {
 
       </main>
 
-      {/* ULTRA STYLISH FLOATING GLASS BOTTOM NAVIGATION BAR BAR DEDIEE */}
       <nav className="fixed bottom-4 left-4 right-4 h-16 bg-white/80 backdrop-blur-xl border border-neutral-200/60 rounded-2xl shadow-xl flex items-center justify-around px-2 z-50">
         <button 
           onClick={() => setActiveTab('feed')}
@@ -513,7 +495,6 @@ export default function Home() {
           <span className="text-[9px] font-bold mt-0.5">Flux</span>
         </button>
 
-        {/* Center High-Action Trigger upload button */}
         <button 
           onClick={() => {
             setActiveTab('studio');

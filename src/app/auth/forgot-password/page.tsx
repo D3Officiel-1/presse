@@ -14,7 +14,10 @@ import { motion } from 'framer-motion';
 
 const AUTH_DOMAIN = "@leadersclub.ci";
 
-export default function ForgotPasswordPage() {
+export default function ForgotPasswordPage(props: { params?: Promise<any>; searchParams?: Promise<any> }) {
+  if (props?.params) { React.use(props.params); }
+  if (props?.searchParams) { React.use(props.searchParams); }
+
   const [matricule, setMatricule] = useState('');
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -49,8 +52,7 @@ export default function ForgotPasswordPage() {
   };
 
   return (
-    <div className="flex flex-col min-h-[100dvh] w-full bg-[#F9F9FC] text-neutral-900 overflow-y-auto px-4 pt-12 pb-[calc(env(safe-area-inset-bottom,0px)+2rem)] justify-start items-center relative">
-      
+    <div className="flex flex-col min-h-[100dvh] w-full bg-[#F9F9FC] text-neutral-900 overflow-y-auto px-4 pt-12 pb-[calc(env(safe-area-inset-bottom,0px)+2rem)] justify-start items-center relative relative">
       <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
         <div 
           className="absolute top-[-10%] right-[-10%] w-[70vw] h-[70vw] rounded-full blur-[100px]"

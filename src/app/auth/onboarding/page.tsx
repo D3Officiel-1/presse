@@ -25,7 +25,6 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 
-// Import des données d'établissements
 import MARCORY_DATA from '@/components/etablissement/abidjan_2/marcory.json';
 import KOUMASSI_DATA from '@/components/etablissement/abidjan_2/koumassi.json';
 import PORT_BOUET_DATA from '@/components/etablissement/abidjan_2/port_bouet.json';
@@ -48,14 +47,16 @@ const COMMUNES = [
   { id: 'treichville', name: 'Treichville', data: TREICHVILLE_DATA },
 ];
 
-export default function OnboardingPage() {
+export default function OnboardingPage(props: { params?: Promise<any>; searchParams?: Promise<any> }) {
+  if (props?.params) { React.use(props.params); }
+  if (props?.searchParams) { React.use(props.searchParams); }
+
   const [step, setStep] = useState(1);
   const [fullName, setFullName] = useState('');
   const [selectedClasse, setSelectedClasse] = useState('');
   const [username, setUsername] = useState('');
   const [phone, setPhone] = useState('');
   
-  // États pour l'étape École
   const [selectedCommune, setSelectedCommune] = useState<string | null>(null);
   const [schoolSearch, setSchoolSearch] = useState('');
   const [selectedSchool, setSelectedSchool] = useState<any | null>(null);
@@ -205,7 +206,6 @@ export default function OnboardingPage() {
 
   return (
     <div className="flex flex-col min-h-[100dvh] w-full bg-[#F9F9FC] text-neutral-900 px-6 pt-12 pb-[calc(env(safe-area-inset-bottom,0px)+2rem)] justify-start items-center relative overflow-y-auto">
-      
       <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
         <div 
           className="absolute top-[-10%] right-[-10%] w-[60vw] h-[60vw] rounded-full blur-[100px]"
