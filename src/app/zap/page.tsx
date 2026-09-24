@@ -64,7 +64,7 @@ const INITIAL_VIDEOS: Video[] = [
     videoUrl: 'https://storage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4',
     poster: 'https://picsum.photos/seed/zap2/600/1000',
     audioName: 'Tech Talk — Innovation Hub',
-    description: 'Comment nous allons changer la mobility des étudiants à Abidjan. #tech #startup',
+    description: 'Comment nous allons changer la mobilité des étudiants à Abidjan. #tech #startup',
   },
   {
     id: 'vid-3',
@@ -119,6 +119,8 @@ export default function FeedPage() {
 
   const feedRef = useRef<HTMLDivElement>(null);
   const videoRefs = useRef<Record<string, HTMLVideoElement | null>>({});
+  
+  // Utilisation de useRef au lieu de window pour stocker l'état des taps sans provoquer d'erreur de sécurité Cross-Origin
   const pointerStartRef = useRef<{ time: number; x: number; y: number }>({ time: 0, x: 0, y: 0 });
   const doubleTapStateRef = useRef<{ lastTap: number; lastTapVideo: string }>({ lastTap: 0, lastTapVideo: '' });
 
@@ -463,8 +465,9 @@ export default function FeedPage() {
                     onClick={() => setMuted((prev) => !prev)}
                     className={cn(
                       "relative flex h-10 w-10 items-center justify-center rounded-full border-2 border-white/30 bg-neutral-900 shadow-xl overflow-hidden active:scale-90 transition-all outline-none duration-150 select-none",
-                      isActive && !paused ? "animate-spin-slow" : ""
+                      isActive && !paused ? "animate-spin" : ""
                     )}
+                    style={{ animationDuration: isActive && !paused ? '50s' : '0s' }}
                   >
                     <div className="absolute inset-1 rounded-full border border-neutral-700/60 pointer-events-none" />
                     <div className="absolute inset-2 rounded-full border border-neutral-800 pointer-events-none" />
