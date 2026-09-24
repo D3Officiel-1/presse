@@ -117,7 +117,7 @@ export default function ZapPage() {
         }
       } catch (err) {
         console.error(err);
-      } finaly {
+      } finally {
         setLoading(false);
       }
     };
@@ -140,7 +140,7 @@ export default function ZapPage() {
         "Merci ! J'utilise principalement DaVinci Resolve.",
         "Le projet a pris 2 semaines de travail."
       ]);
-    } finaly {
+    } finally {
       setGeneratingAi(false);
     }
   };
