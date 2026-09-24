@@ -10,7 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { 
   LogOut, User, Briefcase, Flame, Heart, MessageSquare, Share2, Compass, 
-  Plus, Zap, Tv, Eye, Sliders, GraduationCap, Phone
+  Plus, Zap, Tv, Eye, Sliders, GraduationCap, Phone, Play, Film
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Logo } from '@/components/logo';
