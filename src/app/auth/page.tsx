@@ -9,7 +9,7 @@ import { LogIn, UserPlus } from 'lucide-react';
 
 export default function AuthGatewayPage() {
   return (
-    <div className="flex min-h-screen flex-col items-center justify-start p-4 bg-[#F9F9FC] text-neutral-900 overflow-hidden relative pt-20 pb-12">
+    <div className="flex min-h-screen flex-col justify-between bg-[#F9F9FC] text-neutral-900 overflow-hidden relative">
       
       {/* Effets Aurora en arrière-plan (Top 1% Design) */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
@@ -37,16 +37,14 @@ export default function AuthGatewayPage() {
         />
       </div>
 
-      {/* Container Principal Centré avec Animation Premium */}
+      {/* En-tête (Logo et Titre) centré en haut */}
       <motion.div
-        initial={{ opacity: 0, y: 80, scale: 0.92, filter: "blur(20px)" }}
-        animate={{ opacity: 1, y: 0, scale: 1, filter: "blur(0px)" }}
+        initial={{ opacity: 0, y: -40, filter: "blur(10px)" }}
+        animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
         transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
-        className="w-full max-w-sm mx-auto relative z-10 px-2 sm:px-6 flex flex-col items-center"
+        className="w-full flex flex-col items-center pt-24 z-10"
       >
-        
-        {/* En-tête avec Logo Flottant */}
-        <div className="flex flex-col items-center text-center mb-8 relative pt-2 w-full">
+        <div className="flex flex-col items-center text-center relative">
           {/* Halo derrière le logo */}
           <motion.div 
             animate={{
@@ -68,9 +66,16 @@ export default function AuthGatewayPage() {
             ZAP<span className="text-primary italic font-serif">!</span>
           </h1>
         </div>
+      </motion.div>
 
-        {/* Bloc Violet 3D Layer (Actions de Connexion) */}
-        <div className="w-full bg-gradient-to-br from-primary via-violet-600 to-purple-800 rounded-t-[3rem] rounded-b-[2rem] shadow-[0_40px_80px_rgba(124,58,237,0.45)] border border-white/10 overflow-hidden relative p-6 sm:p-8 space-y-4">
+      {/* Couche Violette 3D ancrée au bas (Actions de Connexion) */}
+      <motion.div
+        initial={{ opacity: 0, y: 150 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 1, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
+        className="w-full bg-gradient-to-br from-primary via-violet-600 to-purple-800 rounded-t-[3.5rem] shadow-[0_-20px_60px_rgba(124,58,237,0.3)] border-t border-white/10 relative z-20 px-6 sm:px-12 pt-10 pb-[calc(env(safe-area-inset-bottom,0px)+3rem)]"
+      >
+        <div className="max-w-md mx-auto space-y-5">
           <div className="absolute top-0 inset-x-0 h-px bg-white/20" />
           
           <Link href="/auth/login" className="block w-full">
@@ -91,8 +96,8 @@ export default function AuthGatewayPage() {
             </Button>
           </Link>
         </div>
-
       </motion.div>
+
     </div>
   );
 }
