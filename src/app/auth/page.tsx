@@ -1,145 +1,164 @@
 'use client';
 
 import React from 'react';
-import Link from 'next/link';
+import Link from 'next/navigation';
 import { motion } from 'framer-motion';
 import { Logo } from '@/components/logo';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { LogIn, UserPlus, Sparkles, Film, Award } from 'lucide-react';
+import { LogIn, UserPlus, Sparkles, Film, Award, Flame, Zap } from 'lucide-react';
 
 export default function AuthGatewayPage() {
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center p-4 bg-gradient-to-b from-[#FDFDFD] via-background to-secondary/20 overflow-hidden relative">
-      {/* Animated Immersive Background Blobs */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+    <div className="flex min-h-screen flex-col items-center justify-center p-4 bg-gradient-to-b from-[#0A0A14] via-[#121226] to-[#05050A] text-white overflow-hidden relative">
+      
+      {/* Immersive Cosmic & Artistic Background Glows */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
         <motion.div
           animate={{
-            x: [-50, 50, -50],
-            y: [-20, 40, -20],
-            scale: [1, 1.15, 1],
+            x: [-60, 60, -60],
+            y: [-30, 50, -30],
+            scale: [1, 1.25, 1],
+            opacity: [0.3, 0.45, 0.3],
+          }}
+          transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute -top-[15%] left-[5%] w-[80vw] h-[80vw] bg-primary/20 blur-[140px] rounded-full"
+        />
+        <motion.div
+          animate={{
+            x: [50, -50, 50],
+            y: [40, -40, 40],
+            scale: [1.2, 0.95, 1.2],
+            opacity: [0.2, 0.35, 0.2],
           }}
           transition={{ duration: 15, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute -top-[10%] left-[10%] w-[70vw] h-[70vw] bg-primary/10 blur-[130px] rounded-full opacity-70"
+          className="absolute -bottom-[15%] right-[5%] w-[70vw] h-[70vw] bg-accent/15 blur-[150px] rounded-full"
         />
-        <motion.div
-          animate={{
-            x: [40, -40, 40],
-            y: [30, -30, 30],
-            scale: [1.1, 0.9, 1.1],
-          }}
-          transition={{ duration: 18, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute -bottom-[10%] right-[10%] w-[60vw] h-[60vw] bg-accent/10 blur-[140px] rounded-full opacity-50"
-        />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,rgba(255,255,255,0.6)_100%)]" />
+        {/* Fine grid network pattern for high tech identity */}
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:24px_24px] opacity-70" />
       </div>
 
-      <div className="w-full max-w-4xl grid grid-cols-1 md:grid-cols-2 gap-8 items-center relative z-10 px-2 sm:px-4">
+      <div className="w-full max-w-5xl grid grid-cols-1 md:grid-cols-12 gap-8 items-center relative z-10 px-2 sm:px-6">
         
-        {/* Left Side: Desktop Branding & Value Prop */}
+        {/* Column Left: Visual Storytelling Teaser (Hidden on smartphone, majestic on iPad/Desktop) */}
         <motion.div
-          initial={{ opacity: 0, x: -30 }}
+          initial={{ opacity: 0, x: -40 }}
           animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-          className="space-y-6 text-left hidden md:block"
+          transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
+          className="md:col-span-6 space-y-6 text-left hidden md:block"
         >
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass border border-white/40 shadow-sm text-xs font-bold uppercase tracking-widest text-primary">
-            <Sparkles className="w-3.5 h-3.5" />
-            Plateforme Scolaire 2027
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/5 border border-white/10 backdrop-blur-md text-xs font-black uppercase tracking-[0.2em] text-accent">
+            <Flame className="w-3.5 h-3.5 fill-accent animate-pulse" />
+            ZAP Creator Studio 2027
           </div>
           
-          <h2 className="text-5xl font-[1000] tracking-tighter leading-none text-neutral-950">
-            Libérez votre <br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-accent italic">
-              Créativité.
+          <h2 className="text-6xl font-[1000] tracking-tighter leading-none text-white">
+            Propulse ton <br />
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-purple-400 to-accent italic">
+              Génie Vidéo.
             </span>
           </h2>
           
-          <p className="text-muted-foreground font-medium text-base leading-relaxed max-w-md">
-            Rejoignez la communauté sélective des talents scolaires de demain. Partagez, découvrez et brillez en vidéo courte.
+          <p className="text-neutral-400 font-medium text-base leading-relaxed max-w-md">
+            Le premier réseau vidéo taillé exclusivement pour les talents et créateurs scolaires. Partage tes projets, gagne des défis nationaux et forge ton pass digital.
           </p>
 
           <div className="grid grid-cols-2 gap-4 pt-4">
-            <div className="p-4 rounded-[24px] bg-white/60 dark:bg-black/20 border border-white/40 shadow-sm backdrop-blur-md space-y-2">
-              <div className="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
+            <div className="p-5 rounded-[2rem] bg-white/[0.03] border border-white/5 shadow-2xl backdrop-blur-xl space-y-3 hover:border-primary/20 transition-colors group">
+              <div className="w-9 h-9 rounded-2xl bg-primary/10 flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
                 <Film className="w-4 h-4" />
               </div>
-              <h4 className="font-bold text-sm">Studio Mobile</h4>
-              <p className="text-xs text-muted-foreground leading-normal">Publiez vos mini-métrages et créations en un instant.</p>
+              <h4 className="font-black text-sm tracking-tight text-white">Mini-Métrages</h4>
+              <p className="text-xs text-neutral-400 leading-normal">Publie tes pitchs, vlogs éducatifs ou talents artistiques en 60 secondes.</p>
             </div>
             
-            <div className="p-4 rounded-[24px] bg-white/60 dark:bg-black/20 border border-white/40 shadow-sm backdrop-blur-md space-y-2">
-              <div className="w-8 h-8 rounded-xl bg-accent/10 flex items-center justify-center text-accent">
+            <div className="p-5 rounded-[2rem] bg-white/[0.03] border border-white/5 shadow-2xl backdrop-blur-xl space-y-3 hover:border-accent/20 transition-colors group">
+              <div className="w-9 h-9 rounded-2xl bg-accent/10 flex items-center justify-center text-accent group-hover:scale-110 transition-transform">
                 <Award className="w-4 h-4" />
               </div>
-              <h4 className="font-bold text-sm">Talents Certifiés</h4>
-              <p className="text-xs text-muted-foreground leading-normal">Gagnez des badges d&apos;excellence et valorisez votre parcours.</p>
+              <h4 className="font-black text-sm tracking-tight text-white">Badges Certifiés</h4>
+              <p className="text-xs text-neutral-400 leading-normal">Rejoins ton lycée ou club créatif et décroche le précieux pass Éclair d'Or.</p>
             </div>
           </div>
         </motion.div>
 
-        {/* Right Side: Auth Card Centered for Mobile */}
+        {/* Column Right: Ultra Stylish High-Action Card */}
         <motion.div
-          initial={{ opacity: 0, y: 30 }}
+          initial={{ opacity: 0, y: 40 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
+          transition={{ duration: 0.9, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
+          className="md:col-span-6 w-full max-w-md mx-auto"
         >
-          {/* Mobile Header (Centered at Top) */}
-          <div className="flex flex-col items-center text-center md:hidden mb-10 pt-2 relative">
+          {/* Mobile Header Hero (Centered at the very top for mobile devices) */}
+          <div className="flex flex-col items-center text-center md:hidden mb-12 relative pt-2">
             <motion.div 
-              animate={{ scale: [1, 1.05, 1] }}
-              transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-              className="w-24 h-24 p-3 bg-gradient-to-tr from-white to-neutral-50/80 shadow-[0_20px_50px_rgba(124,58,237,0.15)] rounded-[2.5rem] border border-white mb-4 flex items-center justify-center relative overflow-hidden backdrop-blur-md"
+              animate={{ rotate: [0, 360] }}
+              transition={{ duration: 40, repeat: Infinity, ease: "linear" }}
+              className="absolute -top-8 w-32 h-32 bg-primary/10 blur-2xl rounded-full"
+            />
+            
+            <motion.div 
+              whileTap={{ scale: 0.95 }}
+              className="w-24 h-24 p-3.5 bg-gradient-to-tr from-neutral-900 via-neutral-950 to-neutral-900 shadow-[0_25px_60px_rgba(124,58,237,0.3)] rounded-[2.5rem] border border-white/10 mb-4 flex items-center justify-center relative overflow-hidden backdrop-blur-xl"
             >
-              <div className="absolute inset-0 bg-primary/5 pointer-events-none" />
-              <Logo />
+              <div className="absolute inset-0 bg-gradient-to-b from-white/10 to-transparent pointer-events-none" />
+              <Logo className="w-full h-full" />
             </motion.div>
-            <h1 className="text-5xl font-[1000] tracking-tight text-neutral-950 leading-none filter drop-shadow-sm">
-              ZAP<span className="text-primary">.</span>
+            
+            <h1 className="text-5xl font-[1000] tracking-tight text-white leading-none">
+              ZAP<span className="text-primary italic font-serif">!</span>
             </h1>
-            <p className="text-[11px] font-black uppercase tracking-[0.25em] text-primary/80 mt-2 bg-primary/5 px-3 py-1 rounded-full border border-primary/10">
+            <p className="text-[10px] font-black uppercase tracking-[0.3em] text-accent mt-2.5 bg-accent/10 px-4 py-1.5 rounded-full border border-accent/20 backdrop-blur-sm">
               Réseau Créatif Scolaire
             </p>
           </div>
 
-          <Card className="border-white/50 shadow-2xl backdrop-blur-xl bg-white/70 dark:bg-card/90 rounded-[2.5rem] overflow-hidden">
-            <CardHeader className="pb-4 pt-8 text-center md:text-left relative">
-              <div className="absolute top-6 right-6 hidden md:block w-12 h-12 p-1 bg-white dark:bg-neutral-800 rounded-2xl shadow-md border border-border/30">
+          {/* Holographic Action Card */}
+          <Card className="border-white/10 shadow-[0_32px_80px_rgba(0,0,0,0.5)] backdrop-blur-2xl bg-black/40 dark:bg-black/60 rounded-[3rem] overflow-hidden relative group">
+            {/* Top Glossy Gradient Highlight line */}
+            <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+            <div className="absolute -top-24 -right-24 w-48 h-48 bg-primary/20 blur-3xl rounded-full pointer-events-none group-hover:bg-primary/30 transition-colors duration-500" />
+
+            <CardHeader className="pb-2 pt-8 text-center md:text-left relative z-10 px-6 sm:px-8">
+              <div className="absolute top-6 right-8 hidden md:flex w-14 h-14 p-1.5 bg-neutral-900 rounded-2xl shadow-xl border border-white/10">
                 <Logo />
               </div>
-              <CardTitle className="text-2xl font-black tracking-tight text-neutral-900 md:pr-12">
-                Bienvenue dans ZAP
+              <CardTitle className="text-2xl font-black tracking-tight text-white md:pr-14">
+                Prêt pour l'impact ?
               </CardTitle>
             </CardHeader>
             
-            <CardContent className="space-y-4 pt-4 pb-8">
+            <CardContent className="space-y-5 pt-4 pb-8 px-6 sm:px-8 relative z-10">
+              
               <Link href="/auth/login" className="block w-full">
-                <Button size="lg" className="w-full group rounded-2xl h-14 relative overflow-hidden">
+                <Button size="lg" className="w-full group rounded-2xl h-14 relative overflow-hidden bg-primary text-white font-bold tracking-tight shadow-[0_10px_25px_rgba(124,58,237,0.3)] transition-all hover:shadow-[0_15px_35px_rgba(124,58,237,0.45)] hover:scale-[1.01]">
                   <LogIn className="w-4 h-4 mr-2 transition-transform group-hover:translate-x-1" />
                   Se connecter à mon espace
                 </Button>
               </Link>
 
               <div className="relative flex py-2 items-center">
-                <div className="flex-grow border-t border-border/60"></div>
-                <span className="flex-shrink mx-4 text-xs font-bold uppercase tracking-widest text-muted-foreground/40">ou</span>
-                <div className="flex-grow border-t border-border/60"></div>
+                <div className="flex-grow border-t border-white/5"></div>
+                <span className="flex-shrink mx-4 text-[10px] font-black uppercase tracking-[0.25em] text-neutral-500">ou rejoins l'aventure</span>
+                <div className="flex-grow border-t border-white/5"></div>
               </div>
 
               <Link href="/auth/register" className="block w-full">
-                <Button size="lg" variant="outline" className="w-full rounded-2xl h-14 bg-white/50 border-border/80 hover:bg-white/80 text-foreground transition-all">
-                  <UserPlus className="w-4 h-4 mr-2 text-primary" />
+                <Button size="lg" variant="outline" className="w-full rounded-2xl h-14 bg-white/[0.02] border-white/10 text-white font-bold hover:bg-white/5 hover:border-white/20 transition-all">
+                  <UserPlus className="w-4 h-4 mr-2 text-accent" />
                   Créer un accès membre
                 </Button>
               </Link>
+              
             </CardContent>
           </Card>
         </motion.div>
       </div>
 
-      {/* Footer Branding */}
-      <div className="absolute bottom-6 flex items-center justify-center gap-2 text-[10px] font-black text-muted-foreground/50 uppercase tracking-widest select-none">
-        <span>ZAP 2027</span>
+      {/* Futuristic Fixed Minimal Footer */}
+      <div className="absolute bottom-6 flex items-center justify-center gap-2 text-[9px] font-black text-neutral-600 uppercase tracking-[0.3em] select-none z-10">
+        <Zap className="w-3 h-3 text-neutral-600" />
+        <span>ZAP Studio Platform 2027</span>
       </div>
     </div>
   );
