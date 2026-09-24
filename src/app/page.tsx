@@ -183,7 +183,7 @@ export default function Home() {
           transition={{ duration: 1.4, ease: [0.22, 1, 0.36, 1] }}
           className="relative"
         >
-          <div className="w-28 h-28 bg-gradient-to-br from-primary to-accent rounded-3xl flex items-center justify-center shadow-[0_20px_50px_rgba(124,58,237,0.15)] border border-white/20">
+          <div className="w-28 h-28 bg-gradient-to-br from-primary to-accent rounded-3xl flex items-center justify-center shadow-[0_20px_50px_rgba(255,39,0,0.15)] border border-white/20">
             <div className="w-16 h-16">
               <Logo className="w-full h-full" />
             </div>
@@ -210,7 +210,7 @@ export default function Home() {
       <header className="sticky top-0 z-40 bg-white/90 backdrop-blur-xl border-b border-neutral-200/60 px-5 py-4 transition-all duration-300">
         <div className="max-w-md mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 p-2 bg-gradient-to-tr from-primary to-violet-600 rounded-xl shadow-sm text-white flex items-center justify-center">
+            <div className="w-10 h-10 p-2 bg-gradient-to-tr from-primary to-orange-600 rounded-xl shadow-sm text-white flex items-center justify-center">
               <Logo />
             </div>
             <div className="flex flex-col">
@@ -339,7 +339,7 @@ export default function Home() {
         {/* TAB 2: STUDIO LAB */}
         {activeTab === 'studio' && (
           <div className="space-y-5 animate-fade-up">
-            <div className="p-5 bg-gradient-to-r from-neutral-950 via-neutral-900 to-purple-950 text-white rounded-[2rem] shadow-xl relative overflow-hidden">
+            <div className="p-5 bg-gradient-to-r from-neutral-950 via-neutral-900 to-orange-950 text-white rounded-[2rem] shadow-xl relative overflow-hidden">
               <div className="absolute top-4 right-4 bg-white/10 px-2 py-0.5 rounded-full text-[9px] font-bold tracking-widest text-accent flex items-center gap-1">
                 <Flame className="w-3 h-3 fill-accent" /> CHALLENGE LANCE
               </div>
@@ -348,7 +348,7 @@ export default function Home() {
                 Le grand concours de vidéos courtes de la saison. Publie ton chef-d'œuvre et gagne le badge Éclair d'Or.
               </p>
               <div className="mt-4 pt-3 border-t border-white/10 flex justify-between items-center text-xs font-bold">
-                <span className="text-purple-300">142 participants actifs</span>
+                <span className="text-orange-300">142 participants actifs</span>
                 <span className="text-accent">Délai : 6 jours</span>
               </div>
             </div>
@@ -428,7 +428,7 @@ export default function Home() {
           <div className="space-y-5 animate-fade-up">
             {/* Holographic Hologram look profile pass card */}
             <div className="bg-white border border-neutral-200 rounded-[2.5rem] shadow-xl overflow-hidden relative">
-              <div className="bg-gradient-to-br from-primary/10 via-accent/5 to-purple-500/10 p-6 relative border-b border-neutral-100">
+              <div className="bg-gradient-to-br from-primary/10 via-accent/5 to-orange-500/10 p-6 relative border-b border-neutral-100">
                 <div className="flex items-center gap-4">
                   <div className="w-14 h-14 bg-gradient-to-br from-primary to-accent rounded-2xl flex items-center justify-center text-white shadow-md">
                     <User className="w-7 h-7" />
