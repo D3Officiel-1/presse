@@ -13,7 +13,8 @@ import {
   X,
   Send,
   AlertCircle,
-  BookmarkCheck
+  BookmarkCheck,
+  Music
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
@@ -198,7 +199,6 @@ export default function FeedPage() {
   const handlePointerUpGesture = (id: string, e: React.PointerEvent<HTMLDivElement>) => {
     const start = pointerStartRef.current;
     const now = Date.now();
-    const diffTime = now - start.time;
     const diffX = Math.abs(e.clientX - start.x);
     const diffY = Math.abs(e.clientY - start.y);
 
@@ -359,21 +359,15 @@ export default function FeedPage() {
                     }
                   }}
                   onTimeUpdate={(e) => {
-                    const currentT = e.currentTarget.currentTime;
-                    setVideoProgress(video.id, currentT);
+                    const timeVal = e.currentTarget.currentTime;
+                    setProgressState(prev => {
+                      if (prev[video.id] === timeVal) return prev;
+                      return { ...prev, [video.id]: timeVal };
+                    });
                   }}
                 />
-                <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent via-50% to-black/90 pointer-events-none" />
+                <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent via-50% to-black/80 pointer-events-none" />
               </div>
-
-              {/* Helper function simulation via directly scoped code block for multi-render state safety */}
-              {(() => {
-                function setVideoProgress(vId: string, timeVal: number) {
-                  if (progressState[vId] !== timeVal) {
-                    setProgressState(prev => ({ ...prev, [vId]: timeVal }));
-                  }
-                }
-              })()}
 
               <AnimatePresence>
                 {paused && isActive && (
@@ -410,7 +404,7 @@ export default function FeedPage() {
                 )}
               </AnimatePresence>
 
-              {/* Barre latérale d'actions isolée */}
+              {/* Action Side Rail */}
               <div 
                 className="absolute bottom-[130px] right-3 z-30 flex flex-col items-center gap-4"
                 onPointerDown={(e) => e.stopPropagation()}
@@ -466,20 +460,40 @@ export default function FeedPage() {
                   <span className="mt-1 text-[10px] font-bold text-white drop-shadow-md">{formatCount(video.shares)}</span>
                 </div>
 
-                <motion.button
-                  whileTap={{ scale: 0.8 }}
-                  onClick={() => setMuted((prev) => !prev)}
-                  className={cn(
-                    "flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-black/30 text-white backdrop-blur-md"
-                  )}
-                >
-                  {muted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
-                </motion.button>
+                {/* Spinning Music Vinyl Disc Button to toggle Mute/Unmute */}
+                <div className="flex flex-col items-center pt-1">
+                  <motion.button
+                    whileTap={{ scale: 0.9 }}
+                    onClick={() => setMuted((prev) => !prev)}
+                    className={cn(
+                      "relative flex h-10 w-10 items-center justify-center rounded-full border-2 border-white/30 bg-neutral-900 shadow-xl overflow-hidden",
+                      isActive && !paused ? "animate-spin-slow" : ""
+                    )}
+                  >
+                    {/* Vinyl grooves styling lines */}
+                    <div className="absolute inset-1 rounded-full border border-neutral-700/60 pointer-events-none" />
+                    <div className="absolute inset-2 rounded-full border border-neutral-800 pointer-events-none" />
+                    {/* Center album circle label */}
+                    <div className="absolute w-4 h-4 rounded-full bg-primary flex items-center justify-center z-10 shadow-sm">
+                      {muted ? (
+                        <VolumeX className="h-2 w-2 text-white" />
+                      ) : (
+                        <Volume2 className="h-2 w-2 text-white animate-pulse" />
+                      )}
+                    </div>
+                    {/* Fallback image background or decorative look */}
+                    <img 
+                      src={`https://picsum.photos/seed/${video.creator}/40/40`} 
+                      className="w-full h-full object-cover opacity-60 mix-blend-luminosity" 
+                      alt="Disc"
+                    />
+                  </motion.button>
+                </div>
               </div>
 
-              {/* Infos créateur hyper-épurées et surélevées pour éviter les collisions avec la barre nav */}
+              {/* Clean Minimal Text Info Layer */}
               <div className="absolute bottom-[125px] left-4 right-16 z-20 pointer-events-none">
-                <div className="space-y-1.5 pointer-events-auto max-w-[85%]">
+                <div className="space-y-1.5 pointer-events-auto max-w-[85%] text-left">
                   <div className="flex items-center gap-2">
                     <div className="w-6 h-6 rounded-full border border-white/30 overflow-hidden shrink-0 shadow-md">
                       <img 
@@ -505,10 +519,16 @@ export default function FeedPage() {
                   <div className="space-y-0.5">
                     <h2 className="text-xs font-black text-white drop-shadow-sm leading-tight truncate">{video.title}</h2>
                     <p className="text-[11px] font-medium text-white/90 drop-shadow-sm leading-snug line-clamp-2">{video.description}</p>
+                    
+                    <div className="flex items-center gap-1.5 text-[10px] text-white/80 font-medium pt-0.5">
+                      <Music className="w-3 h-3 text-white/70 animate-pulse shrink-0" />
+                      <span className="truncate max-w-[180px] drop-shadow-sm">{video.audioName}</span>
+                    </div>
                   </div>
                 </div>
               </div>
 
+              {/* Progress Bar overlay at section base */}
               <div className="absolute bottom-0 left-0 right-0 z-40 h-[3px] bg-white/10">
                 <div 
                   className="h-full bg-primary transition-[width] duration-100 origin-left" 
@@ -636,8 +656,4 @@ export default function FeedPage() {
       </AnimatePresence>
     </div>
   );
-}
-
-function setVideoProgress(vId: string, timeVal: number) {
-  throw new Error('Function not implemented.');
 }
