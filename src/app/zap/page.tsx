@@ -466,7 +466,7 @@ export default function ZapPage() {
                   placeholder="Partager une idée de tournage ou un besoin de monteur..."
                   value={newPostText}
                   onChange={(e) => setNewPostText(e.target.value)}
-                  className="border-none focus-visible:ring-0 px-0 placeholder:text-neutral-400 text-sm font-medium bg-transparent"
+                  className="border-none focus-visible:ring-0 px-0 placeholder:text-neutral-400 text-base font-medium bg-transparent"
                 />
               </div>
               <div className="flex justify-end pt-2 border-t border-neutral-100">
@@ -514,7 +514,7 @@ export default function ZapPage() {
                     placeholder="Rechercher un membre du club..."
                     value={chatSearch}
                     onChange={(e) => setChatSearch(e.target.value)}
-                    className="pl-9 h-11 bg-white border-neutral-200 rounded-2xl text-sm"
+                    className="pl-9 h-11 bg-white border-neutral-200 rounded-2xl text-base"
                   />
                 </div>
 
@@ -625,7 +625,7 @@ export default function ZapPage() {
                     placeholder="Votre réponse créative..."
                     value={typedMessage}
                     onChange={(e) => setTypedMessage(e.target.value)}
-                    className="flex-1 h-11 border-neutral-200 rounded-xl text-xs font-medium"
+                    className="flex-1 h-11 border-neutral-200 rounded-xl text-base font-medium"
                     onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
                   />
                   <Button size="icon" onClick={handleSendMessage} className="rounded-xl h-11 w-11 bg-neutral-950 text-white shrink-0">
@@ -665,7 +665,7 @@ export default function ZapPage() {
                     placeholder="Ex: Loi de la gravité, guerre de Troie, court-métrage SF..."
                     value={scriptIdeaInput}
                     onChange={(e) => setScriptIdeaInput(e.target.value)}
-                    className="h-11 text-xs border-neutral-200 rounded-xl font-medium"
+                    className="h-11 text-base border-neutral-200 rounded-xl font-medium"
                   />
                 </div>
 
@@ -745,7 +745,7 @@ export default function ZapPage() {
                     placeholder="Écrivez votre devise de vidéaste ou vos projets actuels..."
                     value={editBio}
                     onChange={(e) => setEditBio(e.target.value)}
-                    className="text-xs font-medium border-neutral-200 rounded-xl bg-neutral-50/50 min-h-[70px] focus-visible:ring-primary/20"
+                    className="text-base font-medium border-neutral-200 rounded-xl bg-neutral-50/50 min-h-[70px] focus-visible:ring-primary/20"
                   />
                 </div>
 

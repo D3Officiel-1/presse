@@ -346,7 +346,7 @@ export default function OnboardingPage(props: { params?: Promise<any>; searchPar
                         placeholder="Rechercher ton école..."
                         value={schoolSearch}
                         onChange={(e) => setSchoolSearch(e.target.value)}
-                        className="pl-10 h-12 bg-white border-neutral-200 rounded-xl text-sm font-bold"
+                        className="pl-10 h-12 bg-white border-neutral-200 rounded-xl text-base font-bold"
                         autoFocus
                       />
                     </div>
