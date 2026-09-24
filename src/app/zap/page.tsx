@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Heart, MessageSquare, Bookmark, Share2, Plus, Music } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Badge } from '@/components/ui/badge';
@@ -11,6 +11,16 @@ export default function FeedPage() {
   const router = useRouter();
   const [likedVideos, setLikedVideos] = useState<string[]>([]);
   const [bookmarkedVideos, setBookmarkedVideos] = useState<string[]>([]);
+
+  // Force le fond de page au niveau du body en noir uniquement pour cette page
+  useEffect(() => {
+    const originalBg = document.body.style.backgroundColor;
+    document.body.style.backgroundColor = '#000000';
+    return () => {
+      document.body.style.backgroundColor = originalBg;
+    };
+  }, []);
+
   const [videos, setVideos] = useState([
     {
       id: 'vid-1',
@@ -80,7 +90,7 @@ export default function FeedPage() {
   return (
     <div className="h-screen w-full bg-black text-white">
       <header className="fixed top-0 inset-x-0 z-50 flex items-center justify-center h-16 pointer-events-none">
-        <div className="flex items-center gap-6 pointer-events-auto bg-black/20 px-5 py-2 rounded-full backdrop-blur-md mt-2">
+        <div className="flex items-center gap-6 pointer-events-auto bg-black/60 px-5 py-2 rounded-full backdrop-blur-md mt-2 border border-white/5">
           <button className="text-xs font-black opacity-60 hover:opacity-100 transition-opacity uppercase tracking-widest text-white">Abonnements</button>
           <button className="text-xs font-black border-b-2 border-primary pb-0.5 uppercase tracking-widest text-white">Pour toi</button>
         </div>
@@ -90,7 +100,7 @@ export default function FeedPage() {
         {videos.map((video) => (
           <section 
             key={video.id} 
-            className="h-screen w-full snap-start relative flex flex-col items-center justify-center overflow-hidden bg-neutral-950"
+            className="h-screen w-full snap-start relative flex flex-col items-center justify-center overflow-hidden bg-black"
           >
             <div className="absolute inset-0 z-0">
               <img 
@@ -99,7 +109,7 @@ export default function FeedPage() {
                 className="w-full h-full object-cover opacity-95"
                 data-ai-hint={video.hint}
               />
-              <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/90" />
+              <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-transparent to-black/95" />
             </div>
 
             <div className="absolute right-4 bottom-[120px] z-20 flex flex-col items-center gap-5">

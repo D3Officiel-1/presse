@@ -34,7 +34,7 @@ export function ZapNavigation() {
     <nav className={cn(
       "fixed bottom-5 left-4 right-4 max-w-md mx-auto h-16 rounded-[2rem] flex items-center justify-between px-3 z-50 transition-all duration-300 shadow-[0_12px_35px_rgba(0,0,0,0.15)]",
       isFeedMode 
-        ? "bg-black/40 backdrop-blur-xl border border-white/10 text-white" 
+        ? "bg-black/60 backdrop-blur-xl border border-white/10 text-white" 
         : "bg-white/80 backdrop-blur-xl border border-neutral-200/80 text-neutral-900"
     )}>
       {navItems.map((item) => {
