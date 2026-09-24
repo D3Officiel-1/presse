@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Compass, Users, Plus, MessageCircle, User } from 'lucide-react';
+import { Home, Users, Plus, MessageCircle, User } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface ZapNavigationProps {
@@ -13,7 +13,7 @@ export function ZapNavigation({ activeTab, setActiveTab }: ZapNavigationProps) {
   const isFeedMode = activeTab === 'feed';
 
   const navItems = [
-    { id: 'feed', label: 'Flux', icon: Compass },
+    { id: 'feed', label: 'Flux', icon: Home },
     { id: 'friends', label: 'Amis', icon: Users },
     { id: 'studio', label: 'Studio', isCenter: true },
     { id: 'chat', label: 'Messages', icon: MessageCircle },
