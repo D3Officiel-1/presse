@@ -166,11 +166,6 @@ export default function RegisterPage() {
                 </>
               )}
             </h2>
-            <p className="text-sm text-muted-foreground font-medium px-4">
-              {step === 1 
-                ? 'Entrez le matricule officiel de votre pass scolaire ou de votre carte étudiante.' 
-                : 'Choisissez un accès sécurisé pour protéger vos productions et vos badges.'}
-            </p>
           </div>
 
           <div className="min-h-[160px] flex flex-col justify-center">
@@ -285,7 +280,7 @@ export default function RegisterPage() {
                     </>
                   ) : (
                     <>
-                      <CheckCircle2 className="w-4 h-4 mr-1" /> Finaliser l'inscription
+                      <CheckCircle2 className="w-4 h-4 mr-1" /> Finaliser l\'inscription
                     </>
                   )}
                 </Button>
