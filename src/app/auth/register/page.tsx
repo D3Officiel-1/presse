@@ -11,9 +11,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Progress } from '@/components/ui/progress';
 import { UserCircle, Lock, Loader2, ChevronRight, ChevronLeft, Sparkles, CheckCircle2, ShieldCheck, HelpCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { cn } from '@/lib/utils';
 
 const AUTH_DOMAIN = "@zap.ci";
 
@@ -122,8 +122,6 @@ export default function RegisterPage() {
     }
   };
 
-  const progressPercent = step === 1 ? 50 : 100;
-
   return (
     <div className="flex flex-col min-h-[100dvh] w-full bg-[#F9F9FC] text-neutral-900 overflow-y-auto px-4 pt-12 pb-[calc(env(safe-area-inset-bottom,0px)+2rem)] justify-start items-center relative">
       
@@ -141,17 +139,27 @@ export default function RegisterPage() {
 
       <div className="w-full max-w-md z-10 space-y-6">
         
-        {/* Global Progress Bar Indicator - Reinvented */}
-        <div className="bg-white/60 backdrop-blur-md rounded-2xl p-3 border border-neutral-200/60 shadow-sm w-full space-y-2">
-          <div className="flex justify-between items-center px-1">
-            <span className="text-[10px] font-black uppercase tracking-wider text-primary bg-primary/10 px-2 py-0.5 rounded-md">
-              Étape {step} sur 2
+        {/* Global Progress Indicator - Minimal Dots */}
+        <div className="w-full flex flex-col items-center gap-3">
+          <div className="flex gap-2">
+            {[1, 2].map((s) => (
+              <div 
+                key={s}
+                className={cn(
+                  "h-2 rounded-full transition-all duration-500",
+                  step === s ? "w-6 bg-primary" : "w-2 bg-neutral-200"
+                )}
+              />
+            ))}
+          </div>
+          <div className="flex justify-between w-full px-2">
+            <span className="text-[10px] font-black uppercase tracking-wider text-primary">
+              Étape {step} / 2
             </span>
-            <span className="text-[10px] font-black uppercase tracking-widest text-neutral-500">
+            <span className="text-[10px] font-black uppercase tracking-widest text-neutral-400">
               {step === 1 ? 'Vérification Pass' : 'Sécurisation'}
             </span>
           </div>
-          <Progress value={progressPercent} className="h-1.5 bg-neutral-100" />
         </div>
 
         {/* Step Interactive Card Container */}
