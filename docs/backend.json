@@ -1,4 +1,3 @@
-
 {
   "entities": {
     "User": {
@@ -13,6 +12,8 @@
         "role": { "type": "string", "enum": ["leader", "partner", "guest"] },
         "phone": { "type": "string" },
         "company": { "type": "string" },
+        "interests": { "type": "array", "items": { "type": "string" }, "description": "Centres d'intérêt créatifs de l'élève" },
+        "bio": { "type": "string", "description": "Biographie ou devise de créateur" },
         "onboarded": { "type": "boolean" },
         "deviceId": { "type": "string" },
         "online": { "type": "boolean" },
