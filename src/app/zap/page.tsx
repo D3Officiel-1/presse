@@ -6,20 +6,16 @@ import {
   MessageCircle,
   Bookmark,
   Share2,
-  Plus,
   Play,
   Volume2,
   VolumeX,
   X,
   Send,
-  AlertCircle,
-  BookmarkCheck,
-  Music
+  Music,
+  MoreVertical
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
-import { useRouter } from 'next/navigation';
-import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
@@ -125,8 +121,6 @@ export default function FeedPage() {
   const feedRef = useRef<HTMLDivElement>(null);
   const videoRefs = useRef<Record<string, HTMLVideoElement | null>>({});
   const pointerStartRef = useRef<{ time: number; x: number; y: number }>({ time: 0, x: 0, y: 0 });
-  
-  // Remplacement de window par un ref pour éviter les SecurityError en iframe
   const doubleTapStateRef = useRef<{ lastTap: number; lastTapVideo: string; timeout: NodeJS.Timeout | null }>({
     lastTap: 0,
     lastTapVideo: '',
@@ -287,6 +281,11 @@ export default function FeedPage() {
     setActiveSheet('comments');
   };
 
+  const openMenuSheet = (video: Video) => {
+    setSelectedVideo(video);
+    setActiveSheet('menu');
+  };
+
   const closeGlobalSheet = () => {
     setActiveSheet(null);
     setSelectedVideo(null);
@@ -315,8 +314,8 @@ export default function FeedPage() {
     <div className="fixed inset-0 overflow-hidden bg-black text-white select-none">
       <header className="pointer-events-none fixed inset-x-0 top-0 z-50 flex justify-center pt-4">
         <div className="pointer-events-auto flex items-center gap-1 rounded-full border border-white/10 bg-black/40 p-1.5 shadow-2xl backdrop-blur-xl">
-          <button className="rounded-full px-4 py-1.5 text-[11px] font-bold tracking-wide text-white/60 transition hover:text-white">Abonnements</button>
-          <button className="rounded-full bg-white/10 px-5 py-1.5 text-[11px] font-black tracking-wide text-white shadow-inner">Pour toi</button>
+          <button className="rounded-full px-4 py-1.5 text-[11px] font-bold tracking-wide text-white/60 transition hover:text-white outline-none">Abonnements</button>
+          <button className="rounded-full bg-white/10 px-5 py-1.5 text-[11px] font-black tracking-wide text-white shadow-inner outline-none">Pour toi</button>
         </div>
       </header>
 
@@ -403,72 +402,86 @@ export default function FeedPage() {
                     >
                       <Heart className="h-20 w-20 fill-white text-white drop-shadow-2xl" strokeWidth={1.5} />
                     </motion.div>
+                    {Array.from({ length: 8 }).map((_, idx) => (
+                      <motion.div
+                        key={idx}
+                        className="absolute h-2 w-2 rounded-full bg-white/80"
+                        initial={{ x: 0, y: 0, scale: 0, opacity: 1 }}
+                        animate={{
+                          x: Math.cos(idx * 0.785) * 80,
+                          y: Math.sin(idx * 0.785) * 80,
+                          scale: [0, 1.2, 0],
+                          opacity: [1, 1, 0]
+                        }}
+                        transition={{ duration: 0.6, delay: 0.02 }}
+                      />
+                    ))}
                   </div>
                 )}
               </AnimatePresence>
 
               {/* Action Side Rail */}
-              <div 
-                className="absolute bottom-[130px] right-3 z-30 flex flex-col items-center gap-4"
-                onPointerDown={(e) => e.stopPropagation()}
-                onPointerUp={(e) => e.stopPropagation()}
-              >
+              <div className="absolute bottom-[130px] right-3 z-30 flex flex-col items-center gap-4">
                 <div className="flex flex-col items-center">
-                  <motion.button
-                    whileTap={{ scale: 0.8 }}
+                  <button
                     onClick={() => handleToggleLike(video.id)}
                     className={cn(
-                      "flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-black/30 text-white shadow-lg backdrop-blur-md active:scale-90 transition-transform",
+                      "flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-black/30 text-white shadow-lg backdrop-blur-md active:scale-90 transition-all outline-none duration-150 select-none",
                       isLiked && "text-primary border-primary/40 bg-primary/10"
                     )}
                   >
                     <Heart className={cn("h-5 w-5", isLiked && "fill-primary stroke-primary")} />
-                  </motion.button>
-                  <span className="mt-1 text-[10px] font-bold text-white drop-shadow-md">{formatCount(video.likes)}</span>
+                  </button>
+                  <span className="mt-1 text-[10px] font-bold text-white drop-shadow-md select-none">{formatCount(video.likes)}</span>
                 </div>
 
                 <div className="flex flex-col items-center">
-                  <motion.button
-                    whileTap={{ scale: 0.8 }}
+                  <button
                     onClick={() => openCommentsSheet(video)}
-                    className="flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-black/30 text-white shadow-lg backdrop-blur-md active:scale-90 transition-transform"
+                    className="flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-black/30 text-white shadow-lg backdrop-blur-md active:scale-90 transition-all outline-none duration-150 select-none"
                   >
                     <MessageCircle className="h-5 w-5" />
-                  </motion.button>
-                  <span className="mt-1 text-[10px] font-bold text-white drop-shadow-md">{formatCount(video.comments)}</span>
+                  </button>
+                  <span className="mt-1 text-[10px] font-bold text-white drop-shadow-md select-none">{formatCount(video.comments)}</span>
                 </div>
 
                 <div className="flex flex-col items-center">
-                  <motion.button
-                    whileTap={{ scale: 0.8 }}
+                  <button
                     onClick={() => handleToggleBookmark(video.id)}
                     className={cn(
-                      "flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-black/30 text-white shadow-lg backdrop-blur-md active:scale-90 transition-transform",
+                      "flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-black/30 text-white shadow-lg backdrop-blur-md active:scale-90 transition-all outline-none duration-150 select-none",
                       isBookmarked && "text-yellow-400 border-yellow-400/40 bg-yellow-400/10"
                     )}
                   >
                     <Bookmark className={cn("h-5 w-5", isBookmarked && "fill-yellow-400 stroke-yellow-400")} />
-                  </motion.button>
-                  <span className="mt-1 text-[10px] font-bold text-white drop-shadow-md">{formatCount(video.bookmarks)}</span>
+                  </button>
+                  <span className="mt-1 text-[10px] font-bold text-white drop-shadow-md select-none">{formatCount(video.bookmarks)}</span>
                 </div>
 
                 <div className="flex flex-col items-center">
-                  <motion.button
-                    whileTap={{ scale: 0.8 }}
+                  <button
                     onClick={() => handleNativeShare(video)}
-                    className="flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-black/30 text-white shadow-lg backdrop-blur-md active:scale-90 transition-transform"
+                    className="flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-black/30 text-white shadow-lg backdrop-blur-md active:scale-90 transition-all outline-none duration-150 select-none"
                   >
                     <Share2 className="h-5 w-5" />
-                  </motion.button>
-                  <span className="mt-1 text-[10px] font-bold text-white drop-shadow-md">{formatCount(video.shares)}</span>
+                  </button>
+                  <span className="mt-1 text-[10px] font-bold text-white drop-shadow-md select-none">{formatCount(video.shares)}</span>
+                </div>
+
+                <div className="flex flex-col items-center">
+                  <button
+                    onClick={() => openMenuSheet(video)}
+                    className="flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-black/30 text-white shadow-lg backdrop-blur-md active:scale-90 transition-all outline-none duration-150 select-none"
+                  >
+                    <MoreVertical className="h-5 w-5" />
+                  </button>
                 </div>
 
                 <div className="flex flex-col items-center pt-1">
-                  <motion.button
-                    whileTap={{ scale: 0.9 }}
+                  <button
                     onClick={() => setMuted((prev) => !prev)}
                     className={cn(
-                      "relative flex h-10 w-10 items-center justify-center rounded-full border-2 border-white/30 bg-neutral-900 shadow-xl overflow-hidden active:scale-90 transition-transform",
+                      "relative flex h-10 w-10 items-center justify-center rounded-full border-2 border-white/30 bg-neutral-900 shadow-xl overflow-hidden active:scale-90 transition-all outline-none duration-150 select-none",
                       isActive && !paused ? "animate-spin-slow" : ""
                     )}
                   >
@@ -483,18 +496,18 @@ export default function FeedPage() {
                     </div>
                     <img 
                       src={`https://picsum.photos/seed/${video.creator}/40/40`} 
-                      className="w-full h-full object-cover opacity-60 mix-blend-luminosity" 
+                      className="w-full h-full object-cover opacity-60 mix-blend-luminosity pointer-events-none" 
                       alt="Disc"
                     />
-                  </motion.button>
+                  </button>
                 </div>
               </div>
 
-              {/* Info Block Overlay */}
-              <div className="absolute bottom-[125px] left-4 right-16 z-20 pointer-events-none">
-                <div className="space-y-1.5 pointer-events-auto max-w-[85%] text-left">
-                  <div className="flex items-center gap-2">
-                    <div className="w-6 h-6 rounded-full border border-white/30 overflow-hidden shrink-0 shadow-md">
+              {/* Minimal Text Content Overlay Stack */}
+              <div className="absolute bottom-[125px] left-4 right-16 z-20 text-left pointer-events-none">
+                <div className="space-y-1.5 max-w-[85%]">
+                  <div className="flex items-center gap-2 pointer-events-auto">
+                    <div className="w-7 h-7 rounded-full border border-white/30 overflow-hidden shrink-0 shadow-md">
                       <img 
                         src={`https://picsum.photos/seed/${video.creator}/48/48`} 
                         alt={video.fullName} 
@@ -504,30 +517,32 @@ export default function FeedPage() {
                     <div className="flex items-center gap-1.5">
                       <span className="text-xs font-black text-white drop-shadow-md">@{video.creator}</span>
                       <button
-                        onClick={(e) => { e.stopPropagation(); handleToggleFollow(video.creator); }}
+                        onClick={() => handleToggleFollow(video.creator)}
                         className={cn(
-                          "text-[9px] font-black px-1.5 py-0.5 rounded-full transition-all shrink-0 uppercase tracking-tighter active:scale-90",
+                          "text-[10px] font-black px-2.5 py-1 rounded-full transition-all shrink-0 uppercase tracking-tight active:scale-95 outline-none select-none",
                           isFollowed ? "bg-white/20 text-white/90" : "bg-primary text-white"
                         )}
                       >
-                        {isFollowed ? '✓' : 'Suivre'}
+                        {isFollowed ? 'Suivi ✓' : 'Suivre'}
                       </button>
                     </div>
                   </div>
 
-                  <div className="space-y-0.5">
-                    <h2 className="text-xs font-black text-white drop-shadow-sm leading-tight truncate">{video.title}</h2>
+                  <div className="space-y-0.5 text-white">
+                    <h3 className="text-xs font-black drop-shadow-sm leading-tight truncate">
+                      {video.title} <span className="opacity-75 font-normal text-[11px]"> • {video.institution}</span>
+                    </h3>
                     <p className="text-[11px] font-medium text-white/90 drop-shadow-sm leading-snug line-clamp-2">{video.description}</p>
                     
-                    <div className="flex items-center gap-1.5 text-[10px] text-white/80 font-medium pt-0.5">
+                    <div className="flex items-center gap-1.5 text-[10px] text-white/80 font-semibold pt-0.5">
                       <Music className="w-3 h-3 text-white/70 animate-pulse shrink-0" />
-                      <span className="truncate max-w-[180px] drop-shadow-sm">{video.audioName}</span>
+                      <span className="truncate max-w-[180px] drop-shadow-sm font-mono tracking-tight">{video.audioName}</span>
                     </div>
                   </div>
                 </div>
               </div>
 
-              {/* Progress Bar */}
+              {/* Real-time Video Stream Synchronized Progress Bar */}
               <div className="absolute bottom-0 left-0 right-0 z-40 h-[3px] bg-white/10">
                 <div 
                   className="h-full bg-primary transition-[width] duration-100 origin-left" 
@@ -565,32 +580,26 @@ export default function FeedPage() {
                     <span className="text-xs font-black uppercase tracking-widest text-neutral-400">
                       Commentaires créatifs ({selectedVideo.comments})
                     </span>
-                    <button onClick={closeGlobalSheet} className="p-1.5 rounded-xl bg-white/5 text-white/70">
+                    <button onClick={closeGlobalSheet} className="p-1.5 rounded-xl bg-white/5 text-white/70 active:scale-95 transition-transform outline-none">
                       <X className="w-4 h-4" />
                     </button>
                   </div>
 
                   <div className="flex-1 overflow-y-auto p-4 space-y-4">
-                    {(commentsStore[selectedVideo.id] || []).length > 0 ? (
-                      (commentsStore[selectedVideo.id] || []).map((comment) => (
-                        <div key={comment.id} className="flex gap-3 items-start text-xs text-neutral-200">
-                          <div className="w-8 h-8 rounded-xl bg-primary/20 text-primary border border-primary/20 font-black uppercase flex items-center justify-center shrink-0">
-                            {comment.user.substring(0, 2)}
-                          </div>
-                          <div className="space-y-0.5 flex-1">
-                            <div className="flex items-center justify-between">
-                              <span className="font-black text-white">@{comment.user}</span>
-                              <span className="text-[10px] text-neutral-500 font-mono">{comment.time}</span>
-                            </div>
-                            <p className="font-medium text-neutral-300 leading-relaxed">{comment.text}</p>
-                          </div>
+                    {(commentsStore[selectedVideo.id] || []).map((comment) => (
+                      <div key={comment.id} className="flex gap-3 items-start text-xs text-neutral-200">
+                        <div className="w-8 h-8 rounded-xl bg-primary/20 text-primary border border-primary/20 font-black uppercase flex items-center justify-center shrink-0 select-none">
+                          {comment.user.substring(0, 2)}
                         </div>
-                      ))
-                    ) : (
-                      <div className="py-16 text-center text-xs text-neutral-500 font-bold uppercase tracking-wider">
-                        Aucun commentaire.
+                        <div className="space-y-0.5 flex-1">
+                          <div className="flex items-center justify-between">
+                            <span className="font-black text-white">@{comment.user}</span>
+                            <span className="text-[10px] text-neutral-500 font-mono">{comment.time}</span>
+                          </div>
+                          <p className="font-medium text-neutral-300 leading-relaxed">{comment.text}</p>
+                        </div>
                       </div>
-                    )}
+                    ))}
                   </div>
 
                   <div className="p-3 border-t border-white/5 bg-neutral-900/60 flex gap-2 items-center pb-[calc(env(safe-area-inset-bottom,0px)+16px)]">
@@ -601,10 +610,41 @@ export default function FeedPage() {
                       onKeyDown={(e) => e.key === 'Enter' && submitComment()}
                       className="flex-1 h-11 bg-white/5 border-white/10 rounded-xl text-white placeholder:text-neutral-500 text-sm focus-visible:ring-primary/40"
                     />
-                    <Button onClick={submitComment} disabled={!newCommentInput.trim()} size="icon" className="rounded-xl h-11 w-11 bg-primary active:scale-90 transition-transform">
+                    <Button onClick={submitComment} disabled={!newCommentInput.trim()} size="icon" className="rounded-xl h-11 w-11 bg-primary active:scale-90 transition-transform outline-none">
                       <Send className="w-4 h-4" />
                     </Button>
                   </div>
+                </div>
+              )}
+
+              {activeSheet === 'menu' && (
+                <div className="p-5 space-y-2.5 pb-[calc(env(safe-area-inset-bottom,0px)+24px)] text-left">
+                  <p className="text-[10px] font-black uppercase tracking-widest text-neutral-400 px-2 mb-2">Options du projet</p>
+                  
+                  <button 
+                    onClick={() => { handleToggleBookmark(selectedVideo.id); closeGlobalSheet(); }}
+                    className="w-full p-4 bg-white/5 hover:bg-white/10 text-sm font-bold rounded-2xl flex items-center gap-3 transition-colors outline-none active:scale-[0.99]"
+                  >
+                    <Bookmark className="w-4 h-4 text-yellow-400" />
+                    {bookmarkedVideos.includes(selectedVideo.id) ? "Retirer des favoris" : "Enregistrer dans mes favoris"}
+                  </button>
+
+                  <button 
+                    onClick={() => { handleNativeShare(selectedVideo); closeGlobalSheet(); }}
+                    className="w-full p-4 bg-white/5 hover:bg-white/10 text-sm font-bold rounded-2xl flex items-center gap-3 transition-colors outline-none active:scale-[0.99]"
+                  >
+                    <Share2 className="w-4 h-4 text-primary" />
+                    Partager le projet créatif
+                  </button>
+
+                  <div className="h-px bg-white/5 my-2" />
+
+                  <button 
+                    onClick={() => { toast({ title: 'Signalement enregistré', description: 'Merci de maintenir la communauté saine.' }); closeGlobalSheet(); }}
+                    className="w-full p-4 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 text-sm font-black rounded-2xl flex items-center gap-3 transition-colors outline-none active:scale-[0.99]"
+                  >
+                    Signaler ce contenu
+                  </button>
                 </div>
               )}
             </motion.div>
