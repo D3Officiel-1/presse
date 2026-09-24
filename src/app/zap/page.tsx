@@ -69,7 +69,7 @@ const INITIAL_VIDEOS: Video[] = [
     videoUrl: 'https://storage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4',
     poster: 'https://picsum.photos/seed/zap2/600/1000',
     audioName: 'Tech Talk — Innovation Hub',
-    description: 'Comment nous allons changer la mobility des étudiants à Abidjan. #tech #startup',
+    description: 'Comment nous allons changer la mobilité des étudiants à Abidjan. #tech #startup',
   },
   {
     id: 'vid-3',
@@ -124,15 +124,23 @@ export default function FeedPage() {
 
   const feedRef = useRef<HTMLDivElement>(null);
   const videoRefs = useRef<Record<string, HTMLVideoElement | null>>({});
-
   const pointerStartRef = useRef<{ time: number; x: number; y: number }>({ time: 0, x: 0, y: 0 });
+  
+  // Remplacement de window par un ref pour éviter les SecurityError en iframe
+  const doubleTapStateRef = useRef<{ lastTap: number; lastTapVideo: string; timeout: NodeJS.Timeout | null }>({
+    lastTap: 0,
+    lastTapVideo: '',
+    timeout: null
+  });
 
   useEffect(() => {
-    const originalBg = document.body.style.backgroundColor;
-    document.body.style.backgroundColor = '#000000';
-    return () => {
-      document.body.style.backgroundColor = originalBg;
-    };
+    if (typeof document !== 'undefined') {
+      const originalBg = document.body.style.backgroundColor;
+      document.body.style.backgroundColor = '#000000';
+      return () => {
+        document.body.style.backgroundColor = originalBg;
+      };
+    }
   }, []);
 
   useEffect(() => {
@@ -210,27 +218,26 @@ export default function FeedPage() {
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
 
-    const globalLastTap = (window as any)._zapLastTap || 0;
-    const globalLastTapVideo = (window as any)._zapLastTapVideo || '';
-    const delta = now - globalLastTap;
+    const state = doubleTapStateRef.current;
+    const delta = now - state.lastTap;
 
-    if (delta < 300 && globalLastTapVideo === id) {
-      if ((window as any)._zapTapTimeout) {
-        clearTimeout((window as any)._zapTapTimeout);
-        (window as any)._zapTapTimeout = null;
+    if (delta < 300 && state.lastTapVideo === id) {
+      if (state.timeout) {
+        clearTimeout(state.timeout);
+        state.timeout = null;
       }
       if (!likedVideos.includes(id)) {
         handleToggleLike(id);
       }
       setActiveHeartAnimation({ videoId: id, x, y });
       setTimeout(() => setActiveHeartAnimation(null), 850);
-      (window as any)._zapLastTap = 0;
+      state.lastTap = 0;
     } else {
-      (window as any)._zapLastTap = now;
-      (window as any)._zapLastTapVideo = id;
-      (window as any)._zapTapTimeout = setTimeout(() => {
+      state.lastTap = now;
+      state.lastTapVideo = id;
+      state.timeout = setTimeout(() => {
         setPaused((prev) => !prev);
-        (window as any)._zapTapTimeout = null;
+        state.timeout = null;
       }, 250);
     }
   };
@@ -257,10 +264,11 @@ export default function FeedPage() {
   };
 
   const handleNativeShare = async (video: Video) => {
+    const origin = typeof window !== 'undefined' ? window.location.origin : '';
     const shareData = {
       title: video.title,
       text: `Regardez la création de @${video.creator} sur ZAP! : ${video.description}`,
-      url: `${typeof window !== 'undefined' ? window.location.origin : ''}/zap?video=${video.id}`,
+      url: `${origin}/zap?video=${video.id}`,
     };
 
     try {
@@ -277,11 +285,6 @@ export default function FeedPage() {
   const openCommentsSheet = (video: Video) => {
     setSelectedVideo(video);
     setActiveSheet('comments');
-  };
-
-  const openMenuSheet = (video: Video) => {
-    setSelectedVideo(video);
-    setActiveSheet('menu');
   };
 
   const closeGlobalSheet = () => {
@@ -415,7 +418,7 @@ export default function FeedPage() {
                     whileTap={{ scale: 0.8 }}
                     onClick={() => handleToggleLike(video.id)}
                     className={cn(
-                      "flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-black/30 text-white shadow-lg backdrop-blur-md",
+                      "flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-black/30 text-white shadow-lg backdrop-blur-md active:scale-90 transition-transform",
                       isLiked && "text-primary border-primary/40 bg-primary/10"
                     )}
                   >
@@ -428,7 +431,7 @@ export default function FeedPage() {
                   <motion.button
                     whileTap={{ scale: 0.8 }}
                     onClick={() => openCommentsSheet(video)}
-                    className="flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-black/30 text-white shadow-lg backdrop-blur-md"
+                    className="flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-black/30 text-white shadow-lg backdrop-blur-md active:scale-90 transition-transform"
                   >
                     <MessageCircle className="h-5 w-5" />
                   </motion.button>
@@ -440,7 +443,7 @@ export default function FeedPage() {
                     whileTap={{ scale: 0.8 }}
                     onClick={() => handleToggleBookmark(video.id)}
                     className={cn(
-                      "flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-black/30 text-white shadow-lg backdrop-blur-md",
+                      "flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-black/30 text-white shadow-lg backdrop-blur-md active:scale-90 transition-transform",
                       isBookmarked && "text-yellow-400 border-yellow-400/40 bg-yellow-400/10"
                     )}
                   >
@@ -453,27 +456,24 @@ export default function FeedPage() {
                   <motion.button
                     whileTap={{ scale: 0.8 }}
                     onClick={() => handleNativeShare(video)}
-                    className="flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-black/30 text-white shadow-lg backdrop-blur-md"
+                    className="flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-black/30 text-white shadow-lg backdrop-blur-md active:scale-90 transition-transform"
                   >
                     <Share2 className="h-5 w-5" />
                   </motion.button>
                   <span className="mt-1 text-[10px] font-bold text-white drop-shadow-md">{formatCount(video.shares)}</span>
                 </div>
 
-                {/* Spinning Music Vinyl Disc Button to toggle Mute/Unmute */}
                 <div className="flex flex-col items-center pt-1">
                   <motion.button
                     whileTap={{ scale: 0.9 }}
                     onClick={() => setMuted((prev) => !prev)}
                     className={cn(
-                      "relative flex h-10 w-10 items-center justify-center rounded-full border-2 border-white/30 bg-neutral-900 shadow-xl overflow-hidden",
+                      "relative flex h-10 w-10 items-center justify-center rounded-full border-2 border-white/30 bg-neutral-900 shadow-xl overflow-hidden active:scale-90 transition-transform",
                       isActive && !paused ? "animate-spin-slow" : ""
                     )}
                   >
-                    {/* Vinyl grooves styling lines */}
                     <div className="absolute inset-1 rounded-full border border-neutral-700/60 pointer-events-none" />
                     <div className="absolute inset-2 rounded-full border border-neutral-800 pointer-events-none" />
-                    {/* Center album circle label */}
                     <div className="absolute w-4 h-4 rounded-full bg-primary flex items-center justify-center z-10 shadow-sm">
                       {muted ? (
                         <VolumeX className="h-2 w-2 text-white" />
@@ -481,7 +481,6 @@ export default function FeedPage() {
                         <Volume2 className="h-2 w-2 text-white animate-pulse" />
                       )}
                     </div>
-                    {/* Fallback image background or decorative look */}
                     <img 
                       src={`https://picsum.photos/seed/${video.creator}/40/40`} 
                       className="w-full h-full object-cover opacity-60 mix-blend-luminosity" 
@@ -491,7 +490,7 @@ export default function FeedPage() {
                 </div>
               </div>
 
-              {/* Clean Minimal Text Info Layer */}
+              {/* Info Block Overlay */}
               <div className="absolute bottom-[125px] left-4 right-16 z-20 pointer-events-none">
                 <div className="space-y-1.5 pointer-events-auto max-w-[85%] text-left">
                   <div className="flex items-center gap-2">
@@ -507,7 +506,7 @@ export default function FeedPage() {
                       <button
                         onClick={(e) => { e.stopPropagation(); handleToggleFollow(video.creator); }}
                         className={cn(
-                          "text-[9px] font-black px-1.5 py-0.5 rounded-full transition-all shrink-0 uppercase tracking-tighter",
+                          "text-[9px] font-black px-1.5 py-0.5 rounded-full transition-all shrink-0 uppercase tracking-tighter active:scale-90",
                           isFollowed ? "bg-white/20 text-white/90" : "bg-primary text-white"
                         )}
                       >
@@ -528,7 +527,7 @@ export default function FeedPage() {
                 </div>
               </div>
 
-              {/* Progress Bar overlay at section base */}
+              {/* Progress Bar */}
               <div className="absolute bottom-0 left-0 right-0 z-40 h-[3px] bg-white/10">
                 <div 
                   className="h-full bg-primary transition-[width] duration-100 origin-left" 
@@ -602,51 +601,9 @@ export default function FeedPage() {
                       onKeyDown={(e) => e.key === 'Enter' && submitComment()}
                       className="flex-1 h-11 bg-white/5 border-white/10 rounded-xl text-white placeholder:text-neutral-500 text-sm focus-visible:ring-primary/40"
                     />
-                    <Button onClick={submitComment} disabled={!newCommentInput.trim()} size="icon" className="rounded-xl h-11 w-11 bg-primary">
+                    <Button onClick={submitComment} disabled={!newCommentInput.trim()} size="icon" className="rounded-xl h-11 w-11 bg-primary active:scale-90 transition-transform">
                       <Send className="w-4 h-4" />
                     </Button>
-                  </div>
-                </div>
-              )}
-
-              {activeSheet === 'menu' && (
-                <div className="p-5 space-y-4 pb-[calc(env(safe-area-inset-bottom,0px)+24px)]">
-                  <div className="pb-2 border-b border-white/5 flex items-center justify-between">
-                    <div>
-                      <h4 className="text-sm font-black truncate max-w-[280px]">{selectedVideo.title}</h4>
-                      <p className="text-[10px] text-neutral-400 font-medium">@{selectedVideo.creator}</p>
-                    </div>
-                    <button onClick={closeGlobalSheet} className="p-1.5 rounded-xl bg-white/5 text-white/70">
-                      <X className="w-4 h-4" />
-                    </button>
-                  </div>
-
-                  <div className="grid grid-cols-1 gap-2">
-                    <button 
-                      onClick={() => { handleToggleBookmark(selectedVideo.id); closeGlobalSheet(); }}
-                      className="w-full h-12 bg-white/5 rounded-2xl flex items-center px-4 gap-3 text-xs font-bold hover:bg-white/10 text-left transition-all"
-                    >
-                      <BookmarkCheck className="w-4 h-4 text-yellow-400" />
-                      {bookmarkedVideos.includes(selectedVideo.id) ? "Retirer des favoris" : "Enregistrer"}
-                    </button>
-
-                    <button 
-                      onClick={() => { handleNativeShare(selectedVideo); closeGlobalSheet(); }}
-                      className="w-full h-12 bg-white/5 rounded-2xl flex items-center px-4 gap-3 text-xs font-bold hover:bg-white/10 text-left transition-all"
-                    >
-                      <Share2 className="w-4 h-4 text-primary" />
-                      Partager
-                    </button>
-
-                    <div className="h-px bg-white/5 my-1" />
-
-                    <button 
-                      onClick={() => { toast({ title: 'Signalement transmis' }); closeGlobalSheet(); }}
-                      className="w-full h-12 bg-rose-500/10 border border-rose-500/20 text-rose-400 rounded-2xl flex items-center px-4 gap-3 text-xs font-bold text-left transition-all"
-                    >
-                      <AlertCircle className="w-4 h-4" />
-                      Signaler ce contenu
-                    </button>
                   </div>
                 </div>
               )}
