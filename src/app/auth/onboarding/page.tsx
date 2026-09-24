@@ -9,9 +9,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Progress } from '@/components/ui/progress';
 import { ChevronRight, ChevronLeft, Loader2, Sparkles, Check, User, Camera, Film, PenTool, Music, Quote } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { cn } from '@/lib/utils';
 
 const ROLES = [
   { id: 'leader', title: 'Créateur Étoile', description: 'Élève publiant des projets, courts-métrages et tutoriels.' },
@@ -118,8 +118,6 @@ export default function OnboardingPage() {
       });
   };
 
-  const progressValue = (step / 5) * 100;
-
   return (
     <div className="flex flex-col min-h-[100dvh] w-full bg-[#F9F9FC] text-neutral-900 px-6 pt-12 pb-[calc(env(safe-area-inset-bottom,0px)+2rem)] justify-start items-center relative overflow-y-auto">
       
@@ -131,25 +129,29 @@ export default function OnboardingPage() {
       </div>
 
       <div className="w-full max-w-md z-10 space-y-8 mt-4">
-        <div className="space-y-3">
-          <Progress value={progressValue} className="h-1.5 bg-neutral-200" />
-          <div className="flex justify-between items-center px-1">
-            <span className="text-[10px] font-black uppercase tracking-widest text-primary flex items-center gap-1.5">
-              <Sparkles className="w-3.5 h-3.5" /> Étape {step}/5
-            </span>
-            <span className="text-[9px] font-bold text-neutral-400 uppercase tracking-widest">Configuration du Pass</span>
-          </div>
+        {/* Indicateur sous forme de puces circulaires identiques au Register */}
+        <div className="flex justify-center gap-2">
+          {[1, 2, 3, 4, 5].map((s) => (
+            <div 
+              key={s}
+              className={cn(
+                "h-2 w-2 rounded-full transition-all duration-300",
+                step === s ? "bg-primary scale-125" : "bg-neutral-200"
+              )}
+            />
+          ))}
         </div>
 
-        <div className="space-y-1">
-          <h2 className="text-2xl font-black tracking-tight text-neutral-950 leading-tight">
+        <div className="space-y-1 text-center">
+          <h2 className="text-xl font-black tracking-tight text-neutral-900 leading-tight flex items-center justify-center gap-2">
+            <Sparkles className="w-4 h-4 text-primary shrink-0" />
             {step === 1 && 'Faisons connaissance'}
             {step === 2 && 'Votre rôle au Studio'}
             {step === 3 && 'École & Contact'}
             {step === 4 && 'Vos super-pouvoirs'}
             {step === 5 && 'Votre univers'}
           </h2>
-          <p className="text-xs text-muted-foreground font-medium leading-relaxed">
+          <p className="text-xs text-muted-foreground font-medium leading-relaxed max-w-xs mx-auto">
             {step === 1 && 'Entrez votre nom complet pour votre pass scolaire.'}
             {step === 2 && 'Sélectionnez le statut qui correspond à votre profil.'}
             {step === 3 && 'Aidez le club et vos camarades à vous identifier.'}
@@ -163,9 +165,9 @@ export default function OnboardingPage() {
             {step === 1 && (
               <motion.div
                 key="step1"
-                initial={{ opacity: 0, x: 10 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -10 }}
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
                 className="space-y-4"
               >
                 <div className="space-y-2">
@@ -188,24 +190,26 @@ export default function OnboardingPage() {
             {step === 2 && (
               <motion.div
                 key="step2"
-                initial={{ opacity: 0, x: 10 }}
+                initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -10 }}
+                exit={{ opacity: 0, x: -20 }}
                 className="space-y-3"
               >
                 {ROLES.map((r) => (
                   <div
                     key={r.id}
                     onClick={() => setSelectedRole(r.id)}
-                    className={`p-4 rounded-2xl border-2 cursor-pointer transition-all duration-200 flex items-start gap-4 ${
+                    className={cn(
+                      "p-4 rounded-2xl border-2 cursor-pointer transition-all duration-200 flex items-start gap-4 text-left",
                       selectedRole === r.id
                         ? 'border-primary bg-primary/5 shadow-sm'
                         : 'border-neutral-200 bg-white hover:border-neutral-300'
-                    }`}
+                    )}
                   >
-                    <div className={`mt-0.5 w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 ${
+                    <div className={cn(
+                      "mt-0.5 w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0",
                       selectedRole === r.id ? 'bg-primary border-primary text-white' : 'border-neutral-300'
-                    }`}>
+                    )}>
                       {selectedRole === r.id && <Check className="w-3 h-3 stroke-[3]" />}
                     </div>
                     <div>
@@ -220,9 +224,9 @@ export default function OnboardingPage() {
             {step === 3 && (
               <motion.div
                 key="step3"
-                initial={{ opacity: 0, x: 10 }}
+                initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -10 }}
+                exit={{ opacity: 0, x: -20 }}
                 className="space-y-4"
               >
                 <div className="space-y-2">
@@ -252,9 +256,9 @@ export default function OnboardingPage() {
             {step === 4 && (
               <motion.div
                 key="step4"
-                initial={{ opacity: 0, x: 10 }}
+                initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -10 }}
+                exit={{ opacity: 0, x: -20 }}
                 className="space-y-3"
               >
                 <div className="grid grid-cols-1 gap-2.5">
@@ -265,21 +269,23 @@ export default function OnboardingPage() {
                       <div
                         key={option.id}
                         onClick={() => toggleInterest(option.id)}
-                        className={`p-4 rounded-2xl border-2 cursor-pointer transition-all duration-200 flex items-center justify-between ${
+                        className={cn(
+                          "p-4 rounded-2xl border-2 cursor-pointer transition-all duration-200 flex items-center justify-between",
                           isSelected
                             ? 'border-primary bg-primary/5 text-neutral-950 font-black'
                             : 'border-neutral-200 bg-white hover:border-neutral-300 text-neutral-700 font-bold'
-                        }`}
+                        )}
                       >
                         <div className="flex items-center gap-3">
-                          <div className={`p-2 rounded-xl ${isSelected ? 'bg-primary/10 text-primary' : 'bg-neutral-100 text-neutral-500'}`}>
+                          <div className={cn("p-2 rounded-xl", isSelected ? 'bg-primary/10 text-primary' : 'bg-neutral-100 text-neutral-500')}>
                             <IconComponent className="w-5 h-5" />
                           </div>
                           <span className="text-sm tracking-tight">{option.title}</span>
                         </div>
-                        <div className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all ${
+                        <div className={cn(
+                          "w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all",
                           isSelected ? 'bg-primary border-primary text-white' : 'border-neutral-300'
-                        }`}>
+                        )}>
                           {isSelected && <Check className="w-4 h-4 stroke-[3]" />}
                         </div>
                       </div>
@@ -292,13 +298,13 @@ export default function OnboardingPage() {
             {step === 5 && (
               <motion.div
                 key="step5"
-                initial={{ opacity: 0, x: 10 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -10 }}
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
                 className="space-y-4"
               >
                 <div className="space-y-2">
-                  <Label htmlFor="bio" className="text-[10px] font-black uppercase tracking-widest text-neutral-400 ml-1 flex items-center gap-1.5">
+                  <Label htmlFor="bio" className="text-[10px] font-black uppercase tracking-widest text-neutral-400 ml-1 flex items-center gap-1.5 justify-center">
                     <Quote className="w-3 h-3 text-primary" /> Devise de Créateur
                   </Label>
                   <Textarea
@@ -307,7 +313,7 @@ export default function OnboardingPage() {
                     placeholder="Ex: Passionné de courts-métrages et de montage rythmé sur CapCut !"
                     value={bio}
                     onChange={(e) => setBio(e.target.value)}
-                    className="min-h-[140px] bg-white border-neutral-200 rounded-2xl text-base focus-visible:ring-primary/10 transition-all font-medium resize-none"
+                    className="min-h-[140px] bg-white border-neutral-200 rounded-2xl text-base focus-visible:ring-primary/10 transition-all font-medium resize-none text-center"
                   />
                   <p className="text-[10px] text-right text-muted-foreground font-black uppercase tracking-wider">
                     {bio.length} / 160 caractères
