@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { doc, getDoc } from 'firebase/firestore';
 import { useFirestore } from '@/firebase/provider';
@@ -10,51 +10,58 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { 
   LogOut, User, Briefcase, Flame, Heart, MessageSquare, Share2, Compass, 
-  Plus, Zap, Tv, Eye, Sliders, GraduationCap, Phone, Play, Film
+  Plus, Zap, Tv, Eye, Sliders, GraduationCap, Phone, Play, Film, MoreVertical, Music, Bookmark
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Logo } from '@/components/logo';
 import { generateSmartReplySuggestions } from '@/ai/flows/smart-reply-suggestions';
+import { cn } from '@/lib/utils';
 
 const MOCK_VIDEOS = [
   {
     id: 'vid-1',
     title: 'Court-métrage : "L\'Énigme du Code 2027"',
-    creator: 'Yannick Koffi',
-    role: 'Créateur Étoile',
+    creator: 'yannick_vfx',
+    fullName: 'Yannick Koffi',
     institution: 'Lycée Scientifique',
-    views: '1.2k',
-    likes: 342,
-    comments: 48,
-    image: 'https://picsum.photos/seed/zap1/600/400',
+    likes: '12.4k',
+    comments: '856',
+    bookmarks: '2.1k',
+    shares: '432',
+    image: 'https://picsum.photos/seed/zap1/600/1000',
     hint: 'cyberpunk student coding movie',
-    tag: 'Cinéma'
+    audioName: 'Original Audio - Yannick VFX',
+    description: 'Premier test de rendu 3D sur le campus. #vfx #coding #zapstudio'
   },
   {
     id: 'vid-2',
-    title: 'Pitch d\'Avenir : Révolutionner le transport vert à Abidjan',
-    creator: 'Aminata Diop',
-    role: 'Visiteur Inspiré',
+    title: 'Pitch d\'Avenir : Révolutionner le transport',
+    creator: 'amina_diop',
+    fullName: 'Aminata Diop',
     institution: 'Espaces Créatifs CTI',
-    views: '920',
-    likes: 215,
-    comments: 32,
-    image: 'https://picsum.photos/seed/zap2/600/400',
+    likes: '8.2k',
+    comments: '420',
+    bookmarks: '1.2k',
+    shares: '128',
+    image: 'https://picsum.photos/seed/zap2/600/1000',
     hint: 'african young woman speech presentation',
-    tag: 'Tech Challenge'
+    audioName: 'Tech Talk - Innovation Hub',
+    description: 'Comment nous allons changer la mobilité à Abidjan. #tech #startup #ivorycoast'
   },
   {
     id: 'vid-3',
-    title: 'Performance Art : Danse Urbaine Traditionnelle réinventée',
-    creator: 'Marc-Aurèle Yao',
-    role: 'Partenaire Club',
+    title: 'Danse Urbaine réinventée',
+    creator: 'marc_dance',
+    fullName: 'Marc-Aurèle Yao',
     institution: 'Académie des Arts',
-    views: '2.5k',
-    likes: 890,
-    comments: 112,
-    image: 'https://picsum.photos/seed/zap3/600/400',
+    likes: '45.1k',
+    comments: '2.3k',
+    bookmarks: '8.4k',
+    shares: '1.5k',
+    image: 'https://picsum.photos/seed/zap3/600/1000',
     hint: 'urban artistic modern dance',
-    tag: 'Art & Culture'
+    audioName: 'Coupé Décalé Remix 2024',
+    description: 'La fusion entre tradition et modernité. #dance #culture #zap'
   }
 ];
 
@@ -112,14 +119,14 @@ export default function ZapPage(props: { params?: Promise<any>; searchParams?: P
       const result = await generateSmartReplySuggestions({ messageContent: sampleMessage });
       setAiSuggestions(result.suggestions || []);
       toast({
-        title: 'Suggestions ZAP IA générées',
-        description: 'Trois réponses percutantes créées avec Gemini.',
+        title: 'IA ZAP générée',
+        description: 'Suggestions prêtes à être publiées.',
       });
     } catch (error) {
       setAiSuggestions([
-        "Incroyable réalisation, hâte de voir la suite !",
-        "Merci beaucoup ! J'ai principalement travaillé sur DaVinci Resolve.",
-        "Le projet a nécessité 2 semaines de script intense !"
+        "Incroyable réalisation !",
+        "Merci ! J'utilise principalement DaVinci Resolve.",
+        "Le projet a pris 2 semaines de travail."
       ]);
     } finally {
       setGeneratingAi(false);
@@ -138,200 +145,174 @@ export default function ZapPage(props: { params?: Promise<any>; searchParams?: P
     localStorage.removeItem('userId');
     localStorage.removeItem('deviceId');
     localStorage.removeItem('user');
-    toast({
-      title: 'Déconnexion',
-      description: 'Session ZAP terminée de façon sécurisée.',
-    });
+    toast({ title: 'Déconnexion réussie' });
     router.replace('/auth');
   };
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-[#F4F4F9]">
-        <div className="flex flex-col items-center gap-4">
-          <Logo className="w-12 h-12 animate-pulse text-primary" />
-          <span className="text-[10px] font-black uppercase tracking-widest text-neutral-400">Chargement du Studio...</span>
-        </div>
+      <div className="flex items-center justify-center min-h-screen bg-black">
+        <Logo className="w-12 h-12 animate-pulse text-primary" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#F4F4F9] text-neutral-900 pb-[calc(env(safe-area-inset-bottom,0px)+5rem)]">
-      <header className="sticky top-0 z-40 bg-white/90 backdrop-blur-xl border-b border-neutral-200/60 px-5 py-4 transition-all duration-300">
-        <div className="max-w-md mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 p-2 bg-gradient-to-tr from-primary to-orange-600 rounded-xl shadow-sm text-white flex items-center justify-center">
-              <Logo />
-            </div>
-            <div className="flex flex-col">
-              <span className="text-lg font-black tracking-tight text-neutral-950">ZAP!</span>
-              <span className="text-[10px] text-muted-foreground uppercase font-black tracking-widest -mt-1">
-                {profile?.company ? profile.company : "Studio Créatif"}
-              </span>
+    <div className={cn("min-h-screen bg-black text-white", activeTab !== 'feed' && "bg-[#F4F4F9] text-neutral-900")}>
+      {/* Barre de navigation simplifiée pour le flux */}
+      {activeTab === 'feed' && (
+        <header className="fixed top-0 inset-x-0 z-50 flex items-center justify-center h-16 pointer-events-none">
+          <div className="flex items-center gap-6 pointer-events-auto">
+            <button className="text-sm font-black opacity-60 hover:opacity-100 transition-opacity">Suivis</button>
+            <div className="relative">
+              <button className="text-sm font-black border-b-2 border-primary pb-1">Pour toi</button>
             </div>
           </div>
-
-          <div className="flex items-center gap-2">
-            <div className="flex flex-col items-end mr-1">
-              <span className="text-xs font-bold text-neutral-800 truncate max-w-[100px]">
-                {profile?.name ? profile.name.split(' ')[0] : 'Créateur'}
-              </span>
-              <span className="text-[9px] font-mono font-bold text-primary bg-primary/10 px-1.5 py-0.5 rounded-md border border-primary/10">
-                {profile?.matricule}
-              </span>
+          <button 
+            onClick={() => setActiveTab('profile')}
+            className="absolute right-4 pointer-events-auto w-8 h-8 rounded-full border border-white/20 overflow-hidden"
+          >
+            <div className="w-full h-full bg-primary/20 flex items-center justify-center">
+              <User className="w-4 h-4 text-white" />
             </div>
-            <button 
-              onClick={handleLogout}
-              className="w-10 h-10 flex items-center justify-center rounded-xl bg-neutral-100/80 text-neutral-600 hover:bg-neutral-200 hover:text-neutral-900 active:scale-95 transition-all"
-              title="Déconnexion"
-            >
-              <LogOut className="w-4 h-4" />
-            </button>
-          </div>
-        </div>
-      </header>
+          </button>
+        </header>
+      )}
 
-      <main className="px-4 py-4 max-w-md mx-auto space-y-5">
-        {activeTab === 'feed' && (
-          <div className="space-y-5 animate-fade-up">
-            <div className="flex gap-2 overflow-x-auto no-scrollbar py-1">
-              <Badge className="bg-primary text-white border-none px-3 py-1 text-xs font-bold rounded-full shrink-0 flex items-center gap-1 shadow-sm">
-                <Flame className="w-3 h-3 fill-white" /> À la une
-              </Badge>
-              <Badge variant="outline" className="bg-white border-neutral-200 text-neutral-700 px-3 py-1 text-xs font-bold rounded-full shrink-0">
-                🎬 Cinéma
-              </Badge>
-              <Badge variant="outline" className="bg-white border-neutral-200 text-neutral-700 px-3 py-1 text-xs font-bold rounded-full shrink-0">
-                💡 Pitchs
-              </Badge>
-              <Badge variant="outline" className="bg-white border-neutral-200 text-neutral-700 px-3 py-1 text-xs font-bold rounded-full shrink-0">
-                🎨 Arts
-              </Badge>
-            </div>
+      {/* Main Content Area */}
+      <main className={cn(
+        "h-screen w-full relative",
+        activeTab !== 'feed' && "h-auto overflow-y-auto pb-[calc(env(safe-area-inset-bottom,0px)+5rem)]"
+      )}>
+        {activeTab === 'feed' ? (
+          <div className="h-full w-full overflow-y-scroll snap-y snap-mandatory no-scrollbar">
+            {MOCK_VIDEOS.map((video) => (
+              <section 
+                key={video.id} 
+                className="h-screen w-full snap-start relative flex flex-col items-center justify-center overflow-hidden"
+              >
+                {/* Background Video/Image */}
+                <div className="absolute inset-0 z-0">
+                  <img 
+                    src={video.image} 
+                    alt={video.title} 
+                    className="w-full h-full object-cover"
+                    data-ai-hint={video.hint}
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/80" />
+                </div>
 
-            <div className="space-y-6">
-              {MOCK_VIDEOS.map((video) => (
-                <div 
-                  key={video.id}
-                  className="bg-white rounded-[2rem] border border-neutral-200/80 overflow-hidden shadow-md relative"
-                >
-                  <div className="relative aspect-[4/5] w-full bg-neutral-950 overflow-hidden">
-                    <img 
-                      src={video.image} 
-                      alt={video.title}
-                      className="w-full h-full object-cover opacity-95"
-                      data-ai-hint={video.hint}
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/30" />
-                    
-                    <div className="absolute top-4 left-4">
-                      <span className="text-[10px] bg-white/20 backdrop-blur-md border border-white/20 text-white font-black px-2.5 py-1 rounded-xl uppercase tracking-wider">
-                        {video.tag}
-                      </span>
+                {/* Right Interaction Bar */}
+                <div className="absolute right-3 bottom-[120px] z-20 flex flex-col items-center gap-5">
+                  <div className="relative flex flex-col items-center">
+                    <div className="w-12 h-12 rounded-full border-2 border-white overflow-hidden bg-neutral-800">
+                      <img src={`https://picsum.photos/seed/${video.creator}/100/100`} alt="Avatar" className="w-full h-full object-cover" />
                     </div>
+                    <button className="absolute -bottom-2 w-5 h-5 bg-primary rounded-full flex items-center justify-center shadow-lg">
+                      <Plus className="w-3 h-3 text-white" />
+                    </button>
+                  </div>
 
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <button className="w-14 h-14 rounded-full bg-primary/90 text-white shadow-xl flex items-center justify-center backdrop-blur-sm active:scale-90 transition-transform">
-                        <Play className="w-6 h-6 fill-white ml-1" />
-                      </button>
-                    </div>
+                  <div className="flex flex-col items-center">
+                    <button 
+                      onClick={() => handleToggleLike(video.id)}
+                      className={cn(
+                        "w-12 h-12 flex items-center justify-center rounded-full transition-transform active:scale-75",
+                        likedVideos.includes(video.id) ? "text-primary" : "text-white"
+                      )}
+                    >
+                      <Heart className={cn("w-8 h-8", likedVideos.includes(video.id) && "fill-primary")} />
+                    </button>
+                    <span className="text-[10px] font-bold mt-1 shadow-sm">{video.likes}</span>
+                  </div>
 
-                    <div className="absolute bottom-4 left-4 right-16 text-white space-y-1">
-                      <div className="flex items-center gap-1.5 text-xs text-neutral-300 font-medium">
-                        <Eye className="w-3.5 h-3.5" />
-                        <span>{video.views} vues</span>
-                      </div>
-                      <h3 className="font-black text-lg tracking-tight text-white leading-tight">
-                        {video.title}
-                      </h3>
-                      <p className="text-[11px] text-neutral-300 font-semibold">
-                        @{video.creator} • <span className="text-accent font-bold">{video.institution}</span>
-                      </p>
-                    </div>
+                  <div className="flex flex-col items-center">
+                    <button className="w-12 h-12 flex items-center justify-center text-white active:scale-75 transition-transform">
+                      <MessageSquare className="w-8 h-8 fill-none" />
+                    </button>
+                    <span className="text-[10px] font-bold mt-1 shadow-sm">{video.comments}</span>
+                  </div>
 
-                    <div className="absolute bottom-4 right-3 flex flex-col gap-4 items-center">
-                      <button 
-                        onClick={() => handleToggleLike(video.id)}
-                        className={`w-11 h-11 rounded-full flex flex-col items-center justify-center backdrop-blur-md shadow-lg active:scale-75 transition-all ${
-                          likedVideos.includes(video.id) ? 'bg-rose-500 text-white' : 'bg-black/30 text-white border border-white/10'
-                        }`}
+                  <div className="flex flex-col items-center">
+                    <button className="w-12 h-12 flex items-center justify-center text-white active:scale-75 transition-transform">
+                      <Bookmark className="w-8 h-8" />
+                    </button>
+                    <span className="text-[10px] font-bold mt-1 shadow-sm">{video.bookmarks}</span>
+                  </div>
+
+                  <div className="flex flex-col items-center">
+                    <button className="w-12 h-12 flex items-center justify-center text-white active:scale-75 transition-transform">
+                      <Share2 className="w-8 h-8" />
+                    </button>
+                    <span className="text-[10px] font-bold mt-1 shadow-sm">{video.shares}</span>
+                  </div>
+
+                  <motion.div 
+                    animate={{ rotate: 360 }}
+                    transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
+                    className="w-10 h-10 rounded-full border-4 border-neutral-700/50 bg-neutral-900 flex items-center justify-center overflow-hidden p-1 mt-4"
+                  >
+                     <Music className="w-4 h-4 text-white/50" />
+                  </motion.div>
+                </div>
+
+                {/* Bottom Info Overlay */}
+                <div className="absolute left-4 bottom-[120px] right-20 z-20 text-white space-y-3">
+                  <div className="flex items-center gap-2">
+                    <span className="font-black text-lg tracking-tight">@{video.creator}</span>
+                    <Badge className="bg-white/20 text-white border-none font-bold text-[9px]">
+                      {video.institution}
+                    </Badge>
+                  </div>
+                  <p className="text-sm font-medium leading-snug drop-shadow-md">
+                    {video.description}
+                  </p>
+                  <div className="flex items-center gap-2 text-xs font-bold text-white/90">
+                    <Music className="w-3.5 h-3.5" />
+                    <div className="overflow-hidden whitespace-nowrap w-40">
+                      <motion.div 
+                        animate={{ x: [-160, 160] }}
+                        transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
                       >
-                        <Heart className={`w-5 h-5 ${likedVideos.includes(video.id) ? 'fill-white' : ''}`} />
-                        <span className="text-[9px] font-bold mt-0.5">{video.likes + (likedVideos.includes(video.id) ? 1 : 0)}</span>
-                      </button>
-
-                      <button className="w-11 h-11 rounded-full bg-black/30 backdrop-blur-md border border-white/10 text-white flex flex-col items-center justify-center shadow-lg active:scale-75 transition-all">
-                        <MessageSquare className="w-5 h-5" />
-                        <span className="text-[9px] font-bold mt-0.5">{video.comments}</span>
-                      </button>
-
-                      <button className="w-11 h-11 rounded-full bg-black/30 backdrop-blur-md border border-white/10 text-white flex items-center justify-center shadow-lg active:scale-75 transition-all">
-                        <Share2 className="w-5 h-5" />
-                      </button>
+                        {video.audioName}
+                      </motion.div>
                     </div>
                   </div>
                 </div>
-              ))}
-            </div>
+              </section>
+            ))}
           </div>
-        )}
-
-        {activeTab === 'studio' && (
-          <div className="space-y-5 animate-fade-up">
-            <div className="p-5 bg-gradient-to-r from-neutral-950 via-neutral-900 to-orange-950 text-white rounded-[2rem] shadow-xl relative overflow-hidden">
-              <div className="absolute top-4 right-4 bg-white/10 px-2 py-0.5 rounded-full text-[9px] font-bold tracking-widest text-accent flex items-center gap-1">
-                <Flame className="w-3 h-3 fill-accent" /> CHALLENGE LANCE
-              </div>
-              <h2 className="text-xl font-black tracking-tight mt-2">"Mon lycée en 60s"</h2>
-              <p className="text-xs text-neutral-300 font-medium mt-1 leading-relaxed">
-                Le grand concours de vidéos courtes de la saison. Publie ton chef-d'œuvre et gagne le badge Éclair d'Or.
-              </p>
-              <div className="mt-4 pt-3 border-t border-white/10 flex justify-between items-center text-xs font-bold">
-                <span className="text-orange-300">142 participants actifs</span>
-                <span className="text-accent">Délai : 6 jours</span>
-              </div>
+        ) : activeTab === 'studio' ? (
+          <div className="p-6 space-y-6 max-w-md mx-auto animate-fade-up text-neutral-900">
+             <div className="p-5 bg-gradient-to-r from-neutral-950 to-orange-950 text-white rounded-[2rem] shadow-xl">
+              <h2 className="text-xl font-black tracking-tight">ZAP Studio</h2>
+              <p className="text-xs text-neutral-300 mt-1">Génère tes idées de vidéos avec l'IA.</p>
             </div>
 
-            <Card className="border-primary/20 bg-gradient-to-b from-primary/5 to-accent/5 rounded-[2rem] shadow-sm relative overflow-hidden">
+            <Card className="border-primary/20 bg-white rounded-[2rem] shadow-sm">
               <CardHeader className="pb-3">
                 <CardTitle className="text-xs uppercase tracking-widest text-primary font-black flex items-center gap-1.5">
                   <Zap className="w-3.5 h-3.5 fill-primary" /> Assistant Répliques IA
                 </CardTitle>
-                <CardDescription className="normal-case text-neutral-600 font-medium text-xs mt-1">
-                  Génère instantanément des commentaires intelligents pour booster l'engagement sur ton réseau créatif.
-                </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-3.5">
-                <div className="p-3 bg-white rounded-2xl border border-neutral-200 text-xs text-neutral-700 italic relative">
-                  <span className="absolute -top-2 left-3 bg-neutral-100 text-[9px] font-black uppercase text-neutral-400 px-1 rounded">Message simulé</span>
+              <CardContent className="space-y-4">
+                <div className="p-3 bg-neutral-50 rounded-2xl border border-neutral-200 text-xs text-neutral-700 italic">
                   "{sampleMessage}"
                 </div>
 
                 <Button 
                   onClick={handleAiSmartReply}
                   disabled={generatingAi}
-                  className="w-full bg-neutral-900 text-white hover:bg-neutral-800 rounded-xl text-xs font-bold h-11"
+                  className="w-full bg-neutral-900 text-white rounded-xl font-bold h-12"
                 >
-                  {generatingAi ? "Analyse Gemini en cours..." : "Suggérer des réponses avec l'IA"}
+                  {generatingAi ? "Gemini réfléchit..." : "Générer des réponses"}
                 </Button>
 
                 <AnimatePresence>
                   {aiSuggestions.length > 0 && (
-                    <motion.div 
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      className="space-y-2 pt-1"
-                    >
-                      <p className="text-[10px] uppercase font-black tracking-wider text-neutral-400">Options créées :</p>
+                    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-2">
                       {aiSuggestions.map((sug, i) => (
-                        <div 
-                          key={i} 
-                          onClick={() => {
-                            toast({ title: "Copié !", description: "Réponse sélectionnée avec succès." });
-                          }}
-                          className="p-2.5 bg-white hover:bg-primary/5 border border-neutral-200 rounded-xl text-xs font-medium cursor-pointer transition-colors text-neutral-800"
-                        >
+                        <div key={i} className="p-3 bg-neutral-100 hover:bg-primary/5 border border-neutral-200 rounded-xl text-xs font-medium cursor-pointer transition-colors">
                           {sug}
                         </div>
                       ))}
@@ -342,140 +323,106 @@ export default function ZapPage(props: { params?: Promise<any>; searchParams?: P
             </Card>
 
             <div className="grid grid-cols-2 gap-4">
-              <div className="p-4 bg-white rounded-2xl border border-neutral-200/80 shadow-sm space-y-2">
-                <div className="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
-                  <Film className="w-4 h-4" />
-                </div>
-                <h4 className="font-bold text-sm">Générateur Scripts</h4>
-                <p className="text-[11px] text-neutral-500 leading-snug">Crée tes scripts vidéo minutés via l'IA.</p>
+              <div className="p-4 bg-white rounded-2xl border border-neutral-200 shadow-sm space-y-2">
+                <Film className="w-5 h-5 text-primary" />
+                <h4 className="font-bold text-sm">Scripts IA</h4>
+                <p className="text-[10px] text-neutral-500">Prépare tes tournages.</p>
               </div>
-
-              <div className="p-4 bg-white rounded-2xl border border-neutral-200/80 shadow-sm space-y-2">
-                <div className="w-8 h-8 rounded-lg bg-accent/10 text-accent flex items-center justify-center">
-                  <Tv className="w-4 h-4" />
-                </div>
-                <h4 className="font-bold text-sm">Prompteur Vocal</h4>
-                <p className="text-[11px] text-neutral-500 leading-snug">Défilement calé sur le rythme de ta voix.</p>
+              <div className="p-4 bg-white rounded-2xl border border-neutral-200 shadow-sm space-y-2">
+                <Sliders className="w-5 h-5 text-accent" />
+                <h4 className="font-bold text-sm">Réglages</h4>
+                <p className="text-[10px] text-neutral-500">Optimise tes vidéos.</p>
               </div>
             </div>
           </div>
-        )}
-
-        {activeTab === 'profile' && (
-          <div className="space-y-5 animate-fade-up">
-            <div className="bg-white border border-neutral-200 rounded-[2.5rem] shadow-xl overflow-hidden relative">
-              <div className="bg-gradient-to-br from-primary/10 via-accent/5 to-orange-500/10 p-6 relative border-b border-neutral-100">
-                <div className="flex items-center gap-4">
-                  <div className="w-14 h-14 bg-gradient-to-br from-primary to-accent rounded-2xl flex items-center justify-center text-white shadow-md">
-                    <User className="w-7 h-7" />
+        ) : (
+          <div className="p-6 space-y-6 max-w-md mx-auto animate-fade-up text-neutral-900">
+            <div className="bg-white border border-neutral-200 rounded-[2.5rem] shadow-xl overflow-hidden">
+              <div className="bg-gradient-to-br from-primary/10 to-accent/10 p-8 border-b border-neutral-100">
+                <div className="flex flex-col items-center gap-4 text-center">
+                  <div className="w-20 h-20 bg-gradient-to-br from-primary to-accent rounded-[2rem] flex items-center justify-center text-white shadow-lg">
+                    <User className="w-10 h-10" />
                   </div>
-                  <div className="space-y-1">
-                    <Badge variant="outline" className="border-primary/30 text-primary bg-primary/5 font-bold rounded-lg text-[9px]">
-                      Pass Scolaire Certifié
-                    </Badge>
-                    <h3 className="text-xl font-black text-neutral-950 tracking-tight">{profile?.name || 'Artiste ZAP'}</h3>
-                    <p className="text-[10px] text-neutral-500 font-bold tracking-wider font-mono">
-                      ID: {profile?.matricule}
-                    </p>
+                  <div>
+                    <h3 className="text-xl font-black text-neutral-950">{profile?.name || 'Créateur ZAP'}</h3>
+                    <p className="text-[10px] text-neutral-400 font-bold uppercase tracking-widest mt-1">ID: {profile?.matricule}</p>
                   </div>
                 </div>
               </div>
 
               <div className="p-6 space-y-4">
-                <div className="space-y-2.5">
-                  <div className="flex items-center gap-3 p-3 rounded-xl bg-neutral-50 border border-neutral-100">
-                    <GraduationCap className="w-4 h-4 text-primary shrink-0" />
-                    <div className="flex flex-col">
-                      <span className="text-[9px] text-neutral-400 font-bold uppercase tracking-wider">Classe</span>
-                      <span className="font-bold text-neutral-800 text-xs uppercase">{profile?.classe || 'Non spécifiée'}</span>
-                    </div>
+                <div className="space-y-3">
+                  <div className="flex items-center gap-3 p-3 bg-neutral-50 rounded-2xl">
+                    <GraduationCap className="w-4 h-4 text-primary" />
+                    <span className="font-bold text-xs uppercase">{profile?.classe}</span>
                   </div>
-
-                  <div className="flex items-center gap-3 p-3 rounded-xl bg-neutral-50 border border-neutral-100">
-                    <Briefcase className="w-4 h-4 text-primary shrink-0" />
-                    <div className="flex flex-col">
-                      <span className="text-[9px] text-neutral-400 font-bold uppercase tracking-wider">Établissement Lycée</span>
-                      <span className="font-bold text-neutral-800 text-xs truncate max-w-[240px]">{profile?.company || 'Non renseigné'}</span>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-3 p-3 rounded-xl bg-neutral-50 border border-neutral-100">
-                    <Phone className="w-4 h-4 text-primary shrink-0" />
-                    <div className="flex flex-col">
-                      <span className="text-[9px] text-neutral-400 font-bold uppercase tracking-wider">WhatsApp</span>
-                      <span className="font-bold text-neutral-800 text-xs">{profile?.phone || 'Non renseigné'}</span>
-                    </div>
+                  <div className="flex items-center gap-3 p-3 bg-neutral-50 rounded-2xl">
+                    <Briefcase className="w-4 h-4 text-primary" />
+                    <span className="font-bold text-xs truncate">{profile?.company}</span>
                   </div>
                 </div>
 
-                <div className="pt-4 border-t border-neutral-100">
-                  <span className="text-[9px] uppercase tracking-widest font-black text-neutral-400 block mb-1">Canal Technique Unique</span>
-                  <code className="text-xs bg-neutral-50 p-2.5 rounded-xl block font-mono text-neutral-600 border border-neutral-100 overflow-x-auto">
-                    {profile?.email}
-                  </code>
+                <div className="pt-4 flex flex-col gap-3">
+                  <Button variant="outline" className="rounded-xl h-12 font-bold border-neutral-200">Éditer le Pass</Button>
+                  <Button onClick={handleLogout} variant="destructive" className="rounded-xl h-12 font-bold bg-rose-500 text-white border-none shadow-md">
+                    <LogOut className="w-4 h-4 mr-2" /> Déconnexion
+                  </Button>
                 </div>
               </div>
             </div>
 
-            <div className="grid grid-cols-3 gap-3 text-center">
-              <div className="bg-white p-3 rounded-2xl border border-neutral-200/80 shadow-sm">
-                <span className="block text-lg font-black text-neutral-900">3.4k</span>
-                <span className="text-[9px] text-neutral-400 font-bold uppercase tracking-wider">Vues</span>
+            <div className="grid grid-cols-3 gap-3">
+              <div className="bg-white p-4 rounded-2xl border border-neutral-200 text-center">
+                <span className="block text-lg font-black">2.4k</span>
+                <span className="text-[9px] text-neutral-400 font-bold uppercase">Likes</span>
               </div>
-              <div className="bg-white p-3 rounded-2xl border border-neutral-200/80 shadow-sm">
-                <span className="block text-lg font-black text-accent">18</span>
-                <span className="text-[9px] text-neutral-400 font-bold uppercase tracking-wider">Zaps d'Or</span>
+              <div className="bg-white p-4 rounded-2xl border border-neutral-200 text-center">
+                <span className="block text-lg font-black text-primary">12</span>
+                <span className="text-[9px] text-neutral-400 font-bold uppercase">Projets</span>
               </div>
-              <div className="bg-white p-3 rounded-2xl border border-neutral-200/80 shadow-sm">
-                <span className="block text-lg font-black text-primary">#1</span>
-                <span className="text-[9px] text-neutral-400 font-bold uppercase tracking-wider">Rang</span>
+              <div className="bg-white p-4 rounded-2xl border border-neutral-200 text-center">
+                <span className="block text-lg font-black">1.1k</span>
+                <span className="text-[9px] text-neutral-400 font-bold uppercase">Abonnés</span>
               </div>
             </div>
           </div>
         )}
-
       </main>
 
-      <nav className="fixed bottom-4 left-4 right-4 h-16 bg-white/80 backdrop-blur-xl border border-neutral-200/60 rounded-2xl shadow-xl flex items-center justify-around px-2 z-50">
+      {/* Modern Floating Bottom Nav */}
+      <nav className={cn(
+        "fixed bottom-6 left-6 right-6 h-16 rounded-[2rem] flex items-center justify-around px-4 z-50 transition-all duration-300",
+        activeTab === 'feed' 
+          ? "bg-black/20 backdrop-blur-md border border-white/10" 
+          : "bg-white/80 backdrop-blur-xl border border-neutral-200/60 shadow-xl"
+      )}>
         <button 
           onClick={() => setActiveTab('feed')}
-          className={`flex flex-col items-center justify-center w-12 h-12 rounded-xl transition-all ${
-            activeTab === 'feed' ? 'text-primary scale-110' : 'text-neutral-400 hover:text-neutral-600'
-          }`}
+          className={cn(
+            "flex flex-col items-center justify-center transition-all",
+            activeTab === 'feed' ? "text-white scale-110" : "text-neutral-400"
+          )}
         >
-          <Compass className="w-5 h-5" />
-          <span className="text-[9px] font-bold mt-0.5">Flux</span>
-        </button>
-
-        <button 
-          onClick={() => {
-            setActiveTab('studio');
-            toast({ title: "ZAP Studio ouvert", description: "Préparez votre enregistrement mobile." });
-          }}
-          className="w-12 h-12 bg-gradient-to-br from-primary to-accent rounded-full text-white shadow-lg flex items-center justify-center -translate-y-3 active:scale-90 transition-transform relative"
-        >
-          <Plus className="w-6 h-6" />
-          <span className="absolute -inset-1 bg-primary/20 blur-md rounded-full -z-10" />
+          <Compass className="w-6 h-6" />
+          <span className="text-[8px] font-black mt-1 uppercase">Flux</span>
         </button>
 
         <button 
           onClick={() => setActiveTab('studio')}
-          className={`flex flex-col items-center justify-center w-12 h-12 rounded-xl transition-all ${
-            activeTab === 'studio' ? 'text-primary scale-110' : 'text-neutral-400 hover:text-neutral-600'
-          }`}
+          className="w-12 h-12 bg-primary rounded-full text-white shadow-[0_0_20px_rgba(255,39,0,0.4)] flex items-center justify-center -translate-y-4 active:scale-90 transition-transform"
         >
-          <Sliders className="w-5 h-5" />
-          <span className="text-[9px] font-bold mt-0.5">Studio</span>
+          <Plus className="w-6 h-6" />
         </button>
 
         <button 
           onClick={() => setActiveTab('profile')}
-          className={`flex flex-col items-center justify-center w-12 h-12 rounded-xl transition-all ${
-            activeTab === 'profile' ? 'text-primary scale-110' : 'text-neutral-400 hover:text-neutral-600'
-          }`}
+          className={cn(
+            "flex flex-col items-center justify-center transition-all",
+            activeTab === 'profile' ? (activeTab === 'feed' ? "text-white scale-110" : "text-primary scale-110") : "text-neutral-400"
+          )}
         >
-          <User className="w-5 h-5" />
-          <span className="text-[9px] font-bold mt-0.5">Mon Pass</span>
+          <User className="w-6 h-6" />
+          <span className="text-[8px] font-black mt-1 uppercase">Profil</span>
         </button>
       </nav>
     </div>
