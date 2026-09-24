@@ -8,8 +8,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { ChevronRight, ChevronLeft, Loader2, Sparkles, Check, Quote, AtSign, Phone, User } from 'lucide-react';
+import { ChevronRight, ChevronLeft, Loader2, Sparkles, Check, AtSign, Phone, User, GraduationCap, School } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 
@@ -29,7 +28,7 @@ export default function OnboardingPage() {
   const [selectedClasse, setSelectedClasse] = useState('');
   const [username, setUsername] = useState('');
   const [phone, setPhone] = useState('');
-  const [bio, setBio] = useState('');
+  const [school, setSchool] = useState('');
   const [loading, setLoading] = useState(false);
   
   const firestoreInstance = useFirestore();
@@ -119,17 +118,22 @@ export default function OnboardingPage() {
   };
 
   const handleCompleteOnboarding = () => {
+    if (!school.trim()) {
+      toast({ variant: 'destructive', title: 'Champs requis', description: 'Veuillez préciser le nom de votre établissement.' });
+      return;
+    }
+
     const uid = localStorage.getItem('userId');
     if (!uid) return;
 
     setLoading(true);
     const userDocRef = doc(firestoreInstance, 'users', uid);
     const updateData = {
-      name: fullName,
+      name: fullName.trim(),
       classe: selectedClasse,
       username: username.trim().toLowerCase(),
       phone: phone,
-      bio: bio.trim(),
+      company: school.trim(),
       onboarded: true,
       updatedAt: new Date()
     };
@@ -139,7 +143,7 @@ export default function OnboardingPage() {
         const cachedUser = localStorage.getItem('user');
         if (cachedUser) {
           const parsed = JSON.parse(cachedUser);
-          localStorage.setItem('user', JSON.stringify({ ...parsed, name: fullName, username: username.trim().toLowerCase() }));
+          localStorage.setItem('user', JSON.stringify({ ...parsed, name: fullName.trim(), username: username.trim().toLowerCase() }));
         }
 
         toast({
@@ -212,7 +216,7 @@ export default function OnboardingPage() {
             {step === 5 && (
               <>
                 <Sparkles className="w-4 h-4 text-primary" />
-                Votre univers
+                Ton établissement scolaire
               </>
             )}
           </h2>
@@ -344,20 +348,21 @@ export default function OnboardingPage() {
                 className="space-y-4"
               >
                 <div className="space-y-2">
-                  <Label htmlFor="bio" className="text-[10px] font-black uppercase tracking-widest text-neutral-400 ml-1 flex items-center gap-1.5 justify-center">
-                    <Quote className="w-3 h-3 text-primary" /> Devise de Créateur
-                  </Label>
-                  <Textarea
-                    id="bio"
-                    maxLength={160}
-                    placeholder="Ex: Passionné de courts-métrages et de montage rythmé sur CapCut !"
-                    value={bio}
-                    onChange={(e) => setBio(e.target.value)}
-                    className="min-h-[140px] bg-white border-neutral-200 rounded-2xl text-base focus-visible:ring-primary/10 transition-all font-medium resize-none text-center"
-                  />
-                  <p className="text-[10px] text-right text-muted-foreground font-black uppercase tracking-wider">
-                    {bio.length} / 160 caractères
-                  </p>
+                  <Label htmlFor="school" className="text-[10px] font-black uppercase tracking-widest text-neutral-400 ml-1">Nom du Collège ou Lycée</Label>
+                  <div className="relative">
+                    <School className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-neutral-400" />
+                    <Input
+                      id="school"
+                      placeholder="Ex: Lycée Classique d'Abidjan"
+                      value={school}
+                      onChange={(e) => setSchool(e.target.value)}
+                      className="pl-12 h-14 bg-white border-neutral-200 rounded-2xl text-base focus-visible:ring-primary/10 transition-all font-bold"
+                      autoFocus
+                    />
+                  </div>
+                  <span className="text-[10px] text-muted-foreground font-medium block px-1">
+                    Ajoutez le nom de votre établissement actuel pour rejoindre votre communauté.
+                  </span>
                 </div>
               </motion.div>
             )}
