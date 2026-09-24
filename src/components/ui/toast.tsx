@@ -3,7 +3,7 @@
 import * as React from "react"
 import * as ToastPrimitives from "@radix-ui/react-toast"
 import { cva, type VariantProps } from "class-variance-authority"
-import { X, AlertCircle, CheckCircle2 } from "lucide-react"
+import { X } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 
@@ -16,7 +16,7 @@ const ToastViewport = React.forwardRef<
   <ToastPrimitives.Viewport
     ref={ref}
     className={cn(
-      "fixed bottom-0 left-0 right-0 z-[100] flex max-h-screen w-full flex-col p-4 sm:bottom-6 sm:right-6 sm:left-auto md:max-w-[380px] gap-2",
+      "fixed top-0 left-0 right-0 z-[100] flex max-h-screen w-full flex-col p-4 items-center gap-2 pointer-events-none",
       className
     )}
     {...props}
@@ -25,12 +25,12 @@ const ToastViewport = React.forwardRef<
 ToastViewport.displayName = ToastPrimitives.Viewport.displayName
 
 const toastVariants = cva(
-  "group pointer-events-auto relative flex w-full items-center justify-between space-x-3 overflow-hidden rounded-2xl p-4 shadow-[0_12px_32px_rgba(0,0,0,0.06)] border transition-all data-[swipe=cancel]:translate-x-0 data-[swipe=end]:translate-x-[var(--radix-toast-swipe-end-x)] data-[swipe=move]:translate-x-[var(--radix-toast-swipe-move-x)] data-[swipe=move]:transition-none data-[state=open]:animate-in data-[state=closed]:animate-out data-[swipe=end]:animate-out data-[state=closed]:fade-out-80 data-[state=closed]:slide-out-to-right-full data-[state=open]:slide-in-from-bottom-full sm:data-[state=open]:slide-in-from-bottom-full bg-white/80 dark:bg-black/80 backdrop-blur-xl",
+  "group pointer-events-auto relative flex w-full max-w-sm items-center justify-between space-x-3 overflow-hidden rounded-2xl p-4 shadow-[0_20px_40px_rgba(0,0,0,0.1)] border transition-all data-[swipe=cancel]:translate-x-0 data-[swipe=end]:translate-x-[var(--radix-toast-swipe-end-x)] data-[swipe=move]:translate-x-[var(--radix-toast-swipe-move-x)] data-[swipe=move]:transition-none data-[state=open]:animate-in data-[state=closed]:animate-out data-[swipe=end]:animate-out data-[state=closed]:fade-out-80 data-[state=closed]:slide-out-to-top-full data-[state=open]:slide-in-from-top-full bg-white/90 dark:bg-black/90 backdrop-blur-xl",
   {
     variants: {
       variant: {
         default: "border-neutral-200/80 text-neutral-900",
-        destructive: "border-primary/20 bg-white/90 text-neutral-900",
+        destructive: "border-primary/20 bg-white/95 text-neutral-900",
       },
     },
     defaultVariants: {
