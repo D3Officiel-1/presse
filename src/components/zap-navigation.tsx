@@ -1,23 +1,33 @@
 'use client';
 
 import React from 'react';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { Home, Users, Plus, MessageCircle, User } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-interface ZapNavigationProps {
-  activeTab: string;
-  setActiveTab: (tab: string) => void;
-}
+export function ZapNavigation() {
+  const pathname = usePathname();
 
-export function ZapNavigation({ activeTab, setActiveTab }: ZapNavigationProps) {
+  // Déterminer l'onglet actif basé sur le chemin URL
+  const getActiveTab = () => {
+    if (pathname === '/zap') return 'feed';
+    if (pathname.startsWith('/zap/friends')) return 'friends';
+    if (pathname.startsWith('/zap/studio')) return 'studio';
+    if (pathname.startsWith('/zap/chat')) return 'chat';
+    if (pathname.startsWith('/zap/profile')) return 'profile';
+    return 'feed';
+  };
+
+  const activeTab = getActiveTab();
   const isFeedMode = activeTab === 'feed';
 
   const navItems = [
-    { id: 'feed', label: 'Flux', icon: Home },
-    { id: 'friends', label: 'Amis', icon: Users },
-    { id: 'studio', label: 'Studio', isCenter: true },
-    { id: 'chat', label: 'Messages', icon: MessageCircle },
-    { id: 'profile', label: 'Profil', icon: User },
+    { id: 'feed', href: '/zap', icon: Home },
+    { id: 'friends', href: '/zap/friends', icon: Users },
+    { id: 'studio', href: '/zap/studio', isCenter: true },
+    { id: 'chat', href: '/zap/chat', icon: MessageCircle },
+    { id: 'profile', href: '/zap/profile', icon: User },
   ];
 
   return (
@@ -30,16 +40,16 @@ export function ZapNavigation({ activeTab, setActiveTab }: ZapNavigationProps) {
       {navItems.map((item) => {
         if (item.isCenter) {
           return (
-            <button 
+            <Link 
               key={item.id}
-              onClick={() => setActiveTab('studio')}
+              href={item.href}
               className={cn(
                 "w-12 h-12 bg-primary rounded-full text-white shadow-[0_4px_20px_rgba(255,39,0,0.4)] flex items-center justify-center -translate-y-4 active:scale-90 transition-all duration-200 hover:scale-105 shrink-0",
                 activeTab === 'studio' && "ring-4 ring-primary/30"
               )}
             >
               <Plus className="w-6 h-6 stroke-[3.5]" />
-            </button>
+            </Link>
           );
         }
 
@@ -47,9 +57,9 @@ export function ZapNavigation({ activeTab, setActiveTab }: ZapNavigationProps) {
         const isActive = activeTab === item.id;
 
         return (
-          <button
+          <Link
             key={item.id}
-            onClick={() => setActiveTab(item.id)}
+            href={item.href}
             className="flex flex-col items-center justify-center flex-1 py-1 group relative transition-all active:scale-95 text-center"
           >
             <div className={cn(
@@ -65,7 +75,7 @@ export function ZapNavigation({ activeTab, setActiveTab }: ZapNavigationProps) {
                 )} 
               />
             </div>
-          </button>
+          </Link>
         );
       })}
     </nav>
