@@ -67,9 +67,6 @@ export default function AuthGatewayPage() {
           <h1 className="text-4xl font-[1000] tracking-tight text-neutral-950 leading-none z-10">
             ZAP<span className="text-primary italic font-serif">!</span>
           </h1>
-          <p className="text-[9px] font-black uppercase tracking-[0.25em] text-primary mt-2 bg-primary/10 px-3.5 py-1 rounded-full border border-primary/20 backdrop-blur-sm z-10">
-            Réseau Créatif Scolaire
-          </p>
         </div>
 
         {/* Bloc Violet 3D Layer (Actions de Connexion) */}
