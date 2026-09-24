@@ -217,7 +217,7 @@ export default function RegisterPage() {
                       placeholder="Mot de passe secret (min 6)"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      className="h-12 bg-white border-neutral-200 rounded-xl pr-12 pl-4 text-sm focus-visible:ring-primary/20"
+                      className="h-12 bg-white border-neutral-200 rounded-xl pr-12 pl-4 text-base focus-visible:ring-primary/20"
                       disabled={loading}
                       autoFocus
                     />
@@ -237,7 +237,7 @@ export default function RegisterPage() {
                       placeholder="Confirmez le mot de passe"
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
-                      className="h-12 bg-white border-neutral-200 rounded-xl pr-12 px-4 text-sm focus-visible:ring-primary/20"
+                      className="h-12 bg-white border-neutral-200 rounded-xl pr-12 px-4 text-base focus-visible:ring-primary/20"
                       disabled={loading}
                     />
                     <button
