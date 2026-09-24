@@ -9,7 +9,7 @@ import { LogIn, UserPlus } from 'lucide-react';
 
 export default function AuthGatewayPage() {
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center p-4 bg-[#F9F9FC] text-neutral-900 overflow-hidden relative pt-12 pb-12">
+    <div className="flex min-h-screen flex-col items-center justify-start p-4 bg-[#F9F9FC] text-neutral-900 overflow-hidden relative pt-20 pb-12">
       
       {/* Effets Aurora en arrière-plan (Top 1% Design) */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
