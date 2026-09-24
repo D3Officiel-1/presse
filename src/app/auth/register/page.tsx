@@ -10,7 +10,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { UserCircle, Lock, Loader2, ChevronRight, ChevronLeft, Sparkles, CheckCircle2, ShieldCheck, HelpCircle } from 'lucide-react';
+import { UserCircle, Lock, Loader2, ChevronRight, ChevronLeft, Sparkles, CheckCircle2, ShieldCheck } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 
@@ -194,11 +194,6 @@ export default function RegisterPage() {
                       />
                     </div>
                   </div>
-
-                  <div className="flex gap-2.5 p-4 bg-primary/5 rounded-2xl border border-primary/10 text-[11px] leading-relaxed text-neutral-600 font-medium">
-                    <HelpCircle className="w-4 h-4 text-primary shrink-0 mt-0.5" />
-                    <span>Ce matricule sert d'identifiant unique. Vos futurs projets et films courts y seront directement associés.</span>
-                  </div>
                 </motion.div>
               ) : (
                 <motion.div
@@ -280,7 +275,7 @@ export default function RegisterPage() {
                     </>
                   ) : (
                     <>
-                      <CheckCircle2 className="w-4 h-4 mr-1" /> Finaliser l\'inscription
+                      <CheckCircle2 className="w-4 h-4 mr-1" /> Finaliser l'inscription
                     </>
                   )}
                 </Button>
