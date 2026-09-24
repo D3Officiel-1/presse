@@ -90,13 +90,6 @@ const INITIAL_VIDEOS: Video[] = [
   },
 ];
 
-type CommentData = {
-  id: string;
-  user: string;
-  text: string;
-  time: string;
-};
-
 function formatCount(value: number) {
   if (value >= 1000000) return `${(value / 1000000).toFixed(1).replace('.0', '')} M`;
   if (value >= 1000) return `${(value / 1000).toFixed(1).replace('.0', '')} K`;
@@ -114,19 +107,13 @@ export default function FeedPage() {
   const [paused, setPaused] = useState(false);
   const [muted, setMuted] = useState(true);
 
-  // États pour les animations de double tap
   const [activeHeartAnimation, setActiveHeartAnimation] = useState<{ videoId: string; x: number; y: number } | null>(null);
-
-  // Gestionnaire global de Bottom Sheets
   const [activeSheet, setActiveSheet] = useState<'comments' | 'menu' | null>(null);
   const [selectedVideo, setSelectedVideo] = useState<Video | null>(null);
-
-  // États de progression réelle par ID vidéo
   const [progressState, setProgressState] = useState<Record<string, number>>({});
   const [durationState, setDurationState] = useState<Record<string, number>>({});
 
-  // Commentaires simulés en local (Structure prête pour Firestore)
-  const [commentsStore, setCommentsStore] = useState<Record<string, CommentData[]>>({
+  const [commentsStore, setCommentsStore] = useState<Record<string, any[]>>({
     'vid-1': [
       { id: 'c1', user: 'fatim_creative', text: 'Incroyable les effets de lumière ! 🔥', time: 'Il y a 2h' },
       { id: 'c2', user: 'gilles_art', text: 'Quel logiciel pour le tracking ? Beau travail !', time: 'Il y a 1h' }
@@ -139,8 +126,6 @@ export default function FeedPage() {
 
   const feedRef = useRef<HTMLDivElement>(null);
   const videoRefs = useRef<Record<string, HTMLVideoElement | null>>({});
-  
-  // Références pour la détection robuste du double tap sans conflits
   const lastTapRef = useRef<{ time: number; videoId: string }>({ time: 0, videoId: '' });
   const tapTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -152,7 +137,6 @@ export default function FeedPage() {
     };
   }, []);
 
-  // Déclencheur du play/pause intelligent de la vidéo active
   useEffect(() => {
     Object.entries(videoRefs.current).forEach(([id, video]) => {
       if (!video) return;
@@ -164,12 +148,11 @@ export default function FeedPage() {
         }
       } else {
         video.pause();
-        video.currentTime = 0; // Reset pour économiser le CPU et la mémoire
+        video.currentTime = 0;
       }
     });
   }, [activeVideo, paused]);
 
-  // Observer natif hautement optimisé
   useEffect(() => {
     const container = feedRef.current;
     if (!container) return;
@@ -217,7 +200,6 @@ export default function FeedPage() {
     setTimeout(() => setActiveHeartAnimation(null), 900);
   };
 
-  // Détecteur de geste hautement robuste pour distinguer simple tap et double tap
   const handleMediaGesture = (id: string, e: React.MouseEvent<HTMLDivElement>) => {
     const now = Date.now();
     const delta = now - lastTapRef.current.time;
@@ -296,7 +278,7 @@ export default function FeedPage() {
 
   const submitComment = () => {
     if (!newCommentInput.trim() || !selectedVideo) return;
-    const newComment: CommentData = {
+    const newComment = {
       id: `c-custom-${Date.now()}`,
       user: 'moi_createur',
       text: newCommentInput.trim(),
@@ -314,7 +296,6 @@ export default function FeedPage() {
 
   return (
     <div className="fixed inset-0 overflow-hidden bg-black text-white select-none">
-      {/* En-tête de navigation du flux */}
       <header className="pointer-events-none fixed inset-x-0 top-0 z-50 flex justify-center pt-4">
         <div className="pointer-events-auto flex items-center gap-1 rounded-full border border-white/10 bg-black/40 p-1.5 shadow-2xl backdrop-blur-xl">
           <button className="rounded-full px-4 py-1.5 text-[11px] font-bold tracking-wide text-white/60 transition hover:text-white">Abonnements</button>
@@ -322,7 +303,6 @@ export default function FeedPage() {
         </div>
       </header>
 
-      {/* Zone de défilement natif fluide et performante */}
       <main
         ref={feedRef}
         className="h-[100dvh] w-full snap-y snap-mandatory overflow-y-auto overscroll-y-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden bg-black"
@@ -332,8 +312,6 @@ export default function FeedPage() {
           const isBookmarked = bookmarkedVideos.includes(video.id);
           const isFollowed = followedCreators.includes(video.creator);
           const isActive = activeVideo === video.id;
-
-          // Calcul intelligent de la distance pour le préchargement agressif
           const isNearActive = Math.abs(videos.findIndex(v => v.id === activeVideo) - index) <= 1;
 
           const currentTime = progressState[video.id] ?? 0;
@@ -346,7 +324,6 @@ export default function FeedPage() {
               data-video-id={video.id}
               className="relative h-[100dvh] min-h-[100dvh] w-full snap-start snap-always overflow-hidden bg-black"
             >
-              {/* Lecteur Média Vidéo Optimizé */}
               <div 
                 className="absolute inset-0 bg-black cursor-pointer"
                 onClick={(e) => handleMediaGesture(video.id, e)}
@@ -371,10 +348,9 @@ export default function FeedPage() {
                     setProgressState(prev => ({ ...prev, [video.id]: t }));
                   }}
                 />
-                <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent via-30% to-black/90 pointer-events-none" />
+                <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent via-50% to-black/80 pointer-events-none" />
               </div>
 
-              {/* Indicateur visuel d'état Pause discret */}
               <AnimatePresence>
                 {paused && isActive && (
                   <div className="absolute left-1/2 top-1/2 z-20 flex h-16 w-16 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-white/10 bg-black/50 backdrop-blur-sm pointer-events-none">
@@ -383,7 +359,6 @@ export default function FeedPage() {
                 )}
               </AnimatePresence>
 
-              {/* Animation cinématique de coeur au double-clic */}
               <AnimatePresence>
                 {activeHeartAnimation && activeHeartAnimation.videoId === video.id && (
                   <div 
@@ -407,36 +382,21 @@ export default function FeedPage() {
                     >
                       <Heart className="h-24 w-24 fill-white text-white drop-shadow-2xl" strokeWidth={1.5} />
                     </motion.div>
-                    {Array.from({ length: 8 }).map((_, i) => (
-                      <motion.div
-                        key={i}
-                        className="absolute h-1.5 w-1.5 rounded-full bg-primary"
-                        initial={{ x: 0, y: 0, scale: 0 }}
-                        animate={{
-                          x: Math.cos(i * 0.785) * 75,
-                          y: Math.sin(i * 0.785) * 75,
-                          scale: [0, 1, 0],
-                        }}
-                        transition={{ duration: 0.6, delay: 0.04 }}
-                      />
-                    ))}
                   </div>
                 )}
               </AnimatePresence>
 
-              {/* Rail latéral des boutons d'actions tactiles isolés */}
               <div 
-                className="absolute bottom-[130px] right-3.5 z-30 flex flex-col items-center gap-4.5"
+                className="absolute bottom-[110px] right-3 z-30 flex flex-col items-center gap-5"
                 onPointerDown={(e) => e.stopPropagation()}
                 onPointerUp={(e) => e.stopPropagation()}
               >
-                {/* Bouton Like */}
                 <div className="flex flex-col items-center">
                   <motion.button
                     whileTap={{ scale: 0.8 }}
                     onClick={() => handleToggleLike(video.id)}
                     className={cn(
-                      "flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-black/40 text-white shadow-xl backdrop-blur-md",
+                      "flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-black/30 text-white shadow-lg backdrop-blur-md",
                       isLiked && "text-primary border-primary/40 bg-primary/10"
                     )}
                   >
@@ -445,25 +405,23 @@ export default function FeedPage() {
                   <span className="mt-1 text-[10px] font-bold text-white drop-shadow-md">{formatCount(video.likes)}</span>
                 </div>
 
-                {/* Bouton Commentaires */}
                 <div className="flex flex-col items-center">
                   <motion.button
                     whileTap={{ scale: 0.8 }}
                     onClick={() => openCommentsSheet(video)}
-                    className="flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-black/40 text-white shadow-xl backdrop-blur-md"
+                    className="flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-black/30 text-white shadow-lg backdrop-blur-md"
                   >
                     <MessageCircle className="h-5 w-5" />
                   </motion.button>
                   <span className="mt-1 text-[10px] font-bold text-white drop-shadow-md">{formatCount(video.comments)}</span>
                 </div>
 
-                {/* Bouton Favoris / Bookmark */}
                 <div className="flex flex-col items-center">
                   <motion.button
                     whileTap={{ scale: 0.8 }}
                     onClick={() => handleToggleBookmark(video.id)}
                     className={cn(
-                      "flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-black/40 text-white shadow-xl backdrop-blur-md",
+                      "flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-black/30 text-white shadow-lg backdrop-blur-md",
                       isBookmarked && "text-yellow-400 border-yellow-400/40 bg-yellow-400/10"
                     )}
                   >
@@ -472,89 +430,70 @@ export default function FeedPage() {
                   <span className="mt-1 text-[10px] font-bold text-white drop-shadow-md">{formatCount(video.bookmarks)}</span>
                 </div>
 
-                {/* Bouton Partage */}
                 <div className="flex flex-col items-center">
                   <motion.button
                     whileTap={{ scale: 0.8 }}
                     onClick={() => handleNativeShare(video)}
-                    className="flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-black/40 text-white shadow-xl backdrop-blur-md"
+                    className="flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-black/30 text-white shadow-lg backdrop-blur-md"
                   >
                     <Share2 className="h-5 w-5" />
                   </motion.button>
                   <span className="mt-1 text-[10px] font-bold text-white drop-shadow-md">{formatCount(video.shares)}</span>
                 </div>
 
-                {/* Bouton Options Menu */}
-                <motion.button
-                  whileTap={{ scale: 0.8 }}
-                  onClick={() => openMenuSheet(video)}
-                  className="flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-black/40 text-white shadow-xl backdrop-blur-md"
-                >
-                  <MoreHorizontal className="h-5 w-5" />
-                </motion.button>
-
-                {/* Bouton Son Mute / Unmute Global */}
                 <motion.button
                   whileTap={{ scale: 0.8 }}
                   onClick={() => setMuted((prev) => !prev)}
                   className={cn(
-                    "flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-black/50 text-white backdrop-blur-sm",
-                    !muted && "border-primary/30 text-primary"
+                    "flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-black/30 text-white backdrop-blur-md",
+                    !muted && "text-primary"
                   )}
                 >
                   {muted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
                 </motion.button>
               </div>
 
-              {/* Bloc de description réinventé et placé idéalement au-dessus du menu inférieur */}
+              {/* Nouveau Bloc d'infos minimaliste et épuré */}
               <div 
-                className="absolute bottom-[90px] left-4 right-16 z-20 bg-gradient-to-t from-black/80 via-black/30 to-transparent p-4 rounded-2xl border border-white/5 backdrop-blur-[2px]"
-                onPointerDown={(e) => e.stopPropagation()}
-                onPointerUp={(e) => e.stopPropagation()}
+                className="absolute bottom-[80px] left-4 right-16 z-20 pointer-events-none"
               >
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    {/* Squircle Premium Avatar aux couleurs ZAP */}
-                    <div className="relative h-11 w-11 shrink-0 p-0.5 rounded-[14px] bg-gradient-to-tr from-primary to-purple-600 shadow-md">
-                      <div className="w-full h-full rounded-[11px] overflow-hidden bg-neutral-900">
-                        <img 
-                          src={`https://picsum.photos/seed/${video.creator}/100/100`} 
+                <div className="space-y-1.5 pointer-events-auto max-w-[85%]">
+                  <div className="flex items-center gap-2 mb-1">
+                    <div className="w-8 h-8 rounded-full border border-white/40 overflow-hidden shrink-0 shadow-lg">
+                       <img 
+                          src={`https://picsum.photos/seed/${video.creator}/64/64`} 
                           alt={video.fullName} 
                           className="w-full h-full object-cover" 
                         />
-                      </div>
                     </div>
-
-                    <div className="flex-1 min-w-0">
+                    <div className="flex flex-col">
                       <div className="flex items-center gap-1.5">
-                        <span className="text-xs font-black text-white truncate">@{video.creator}</span>
+                        <span className="text-xs font-black text-white drop-shadow-md">@{video.creator}</span>
                         <button
-                          onClick={() => handleToggleFollow(video.creator)}
+                          onClick={(e) => { e.stopPropagation(); handleToggleFollow(video.creator); }}
                           className={cn(
-                            "text-[10px] font-black px-2 py-0.5 rounded-full transition-all tracking-tight shrink-0",
-                            isFollowed ? "bg-white/20 text-white" : "bg-primary text-white shadow-sm"
+                            "text-[9px] font-black px-1.5 py-0.5 rounded-full transition-all shrink-0 uppercase tracking-tighter",
+                            isFollowed ? "bg-white/10 text-white/70" : "bg-primary text-white"
                           )}
                         >
-                          {isFollowed ? 'Suivi ✓' : 'Suivre'}
+                          {isFollowed ? '✓' : 'Suivre'}
                         </button>
                       </div>
-                      <p className="text-[10px] text-white/60 font-medium truncate">{video.fullName} • {video.institution}</p>
                     </div>
                   </div>
 
-                  <h2 className="text-xs font-black text-neutral-100 line-clamp-1">{video.title}</h2>
-                  <p className="text-xs font-medium text-neutral-300 leading-relaxed line-clamp-2">{video.description}</p>
+                  <div className="space-y-0.5">
+                    <h2 className="text-[13px] font-black text-white drop-shadow-md leading-tight line-clamp-1">{video.title}</h2>
+                    <p className="text-[11px] font-medium text-white/80 drop-shadow-sm leading-snug line-clamp-2">{video.description}</p>
+                  </div>
 
-                  <div className="flex items-center gap-1.5 pt-0.5 text-[10px] text-primary font-black uppercase tracking-wider">
-                    <Music className="h-3 w-3 shrink-0 animate-pulse" />
-                    <span className="truncate font-mono">{video.audioName}</span>
-                    <span className="h-0.5 w-0.5 rounded-full bg-white/40" />
-                    <span className="text-white/50 lowercase font-sans font-normal">original</span>
+                  <div className="flex items-center gap-1.5 pt-1 text-[10px] text-white/60 font-bold uppercase tracking-widest drop-shadow-sm">
+                    <Music className="h-3 w-3 shrink-0 text-primary" />
+                    <span className="truncate max-w-[150px] font-mono">{video.audioName}</span>
                   </div>
                 </div>
               </div>
 
-              {/* Ligne de progression fine en temps réel basé sur timeupdate */}
               <div className="absolute bottom-0 left-0 right-0 z-40 h-[3px] bg-white/10">
                 <div 
                   className="h-full bg-primary transition-[width] duration-100 origin-left" 
@@ -566,11 +505,9 @@ export default function FeedPage() {
         })}
       </main>
 
-      {/* SYSTÈME DE BOTTOM SHEETS PREMIUM ARCHITECTURÉ GLOBALEMENT */}
       <AnimatePresence>
         {activeSheet && selectedVideo && (
           <>
-            {/* Voile arrière-plan transparent cliquable pour fermer */}
             <motion.div
               className="fixed inset-0 z-[90] bg-black/60 backdrop-blur-[2px]"
               initial={{ opacity: 0 }}
@@ -579,30 +516,26 @@ export default function FeedPage() {
               onClick={closeGlobalSheet}
             />
 
-            {/* Panneau coulissant */}
             <motion.div
-              className="fixed inset-x-0 bottom-0 z-[100] max-h-[75dvh] overflow-hidden rounded-t-[2.5rem] border-t border-white/10 bg-[#121214]/95 shadow-[0_-15px_40px_rgba(0,0,0,0.7)] backdrop-blur-3xl text-white flex flex-col"
+              className="fixed inset-x-0 bottom-0 z-[100] max-h-[75dvh] overflow-hidden rounded-t-[2.5rem] border-t border-white/10 bg-[#121214]/95 shadow-2xl backdrop-blur-3xl text-white flex flex-col"
               initial={{ y: '100%' }}
               animate={{ y: 0 }}
               exit={{ y: '100%' }}
               transition={{ type: 'spring', damping: 30, stiffness: 340 }}
             >
-              {/* Barre supérieure ergonomique de fermeture tactille */}
               <div className="mx-auto mt-3 h-1.5 w-12 rounded-full bg-white/20 shrink-0 cursor-pointer" onClick={closeGlobalSheet} />
 
-              {/* CONTENU OPTION 1 : COMMENTAIRES (Lazy Loaded au clic) */}
               {activeSheet === 'comments' && (
                 <div className="flex-1 flex flex-col overflow-hidden">
                   <div className="px-5 py-3.5 border-b border-white/5 flex items-center justify-between">
                     <span className="text-xs font-black uppercase tracking-widest text-neutral-400">
                       Commentaires créatifs ({selectedVideo.comments})
                     </span>
-                    <button onClick={closeGlobalSheet} className="p-1.5 rounded-xl bg-white/5 text-white/70 hover:text-white transition-colors">
+                    <button onClick={closeGlobalSheet} className="p-1.5 rounded-xl bg-white/5 text-white/70">
                       <X className="w-4 h-4" />
                     </button>
                   </div>
 
-                  {/* Liste défilante des commentaires */}
                   <div className="flex-1 overflow-y-auto p-4 space-y-4">
                     {(commentsStore[selectedVideo.id] || []).length > 0 ? (
                       (commentsStore[selectedVideo.id] || []).map((comment) => (
@@ -621,39 +554,32 @@ export default function FeedPage() {
                       ))
                     ) : (
                       <div className="py-16 text-center text-xs text-neutral-500 font-bold uppercase tracking-wider">
-                        Aucun commentaire pour le moment.
+                        Aucun commentaire.
                       </div>
                     )}
                   </div>
 
-                  {/* Zone fixe de saisie */}
                   <div className="p-3 border-t border-white/5 bg-neutral-900/60 flex gap-2 items-center pb-[calc(env(safe-area-inset-bottom,0px)+16px)]">
                     <Input
-                      placeholder="Exprimer votre avis de créateur..."
+                      placeholder="Commenter..."
                       value={newCommentInput}
                       onChange={(e) => setNewCommentInput(e.target.value)}
                       onKeyDown={(e) => e.key === 'Enter' && submitComment()}
                       className="flex-1 h-11 bg-white/5 border-white/10 rounded-xl text-white placeholder:text-neutral-500 text-sm focus-visible:ring-primary/40"
                     />
-                    <Button 
-                      onClick={submitComment} 
-                      disabled={!newCommentInput.trim()} 
-                      size="icon" 
-                      className="rounded-xl h-11 w-11 bg-primary text-white"
-                    >
+                    <Button onClick={submitComment} disabled={!newCommentInput.trim()} size="icon" className="rounded-xl h-11 w-11 bg-primary">
                       <Send className="w-4 h-4" />
                     </Button>
                   </div>
                 </div>
               )}
 
-              {/* CONTENU OPTION 2 : MENU OPTIONS AVANCÉES ⋯ */}
               {activeSheet === 'menu' && (
                 <div className="p-5 space-y-4 pb-[calc(env(safe-area-inset-bottom,0px)+24px)]">
                   <div className="pb-2 border-b border-white/5 flex items-center justify-between">
                     <div>
                       <h4 className="text-sm font-black truncate max-w-[280px]">{selectedVideo.title}</h4>
-                      <p className="text-[10px] text-neutral-400 font-medium">Créé par @{selectedVideo.creator}</p>
+                      <p className="text-[10px] text-neutral-400 font-medium">@{selectedVideo.creator}</p>
                     </div>
                     <button onClick={closeGlobalSheet} className="p-1.5 rounded-xl bg-white/5 text-white/70">
                       <X className="w-4 h-4" />
@@ -666,7 +592,7 @@ export default function FeedPage() {
                       className="w-full h-12 bg-white/5 rounded-2xl flex items-center px-4 gap-3 text-xs font-bold hover:bg-white/10 text-left transition-all"
                     >
                       <BookmarkCheck className="w-4 h-4 text-yellow-400" />
-                      {bookmarkedVideos.includes(selectedVideo.id) ? "Retirer de mes favoris" : "Enregistrer le projet"}
+                      {bookmarkedVideos.includes(selectedVideo.id) ? "Retirer des favoris" : "Enregistrer"}
                     </button>
 
                     <button 
@@ -674,24 +600,17 @@ export default function FeedPage() {
                       className="w-full h-12 bg-white/5 rounded-2xl flex items-center px-4 gap-3 text-xs font-bold hover:bg-white/10 text-left transition-all"
                     >
                       <Share2 className="w-4 h-4 text-primary" />
-                      Partager via le système natif
+                      Partager
                     </button>
 
                     <div className="h-px bg-white/5 my-1" />
 
                     <button 
-                      onClick={() => { toast({ title: 'Contenu masqué', description: 'Nous adapterons vos suggestions.' }); closeGlobalSheet(); }}
-                      className="w-full h-12 bg-white/5 text-neutral-400 rounded-2xl flex items-center px-4 gap-3 text-xs font-bold hover:bg-white/10 text-left transition-all"
-                    >
-                      Pas intéressé par ce thème
-                    </button>
-
-                    <button 
-                      onClick={() => { toast({ title: 'Signalement transmis', description: 'Merci pour votre contribution à la sécurité.' }); closeGlobalSheet(); }}
-                      className="w-full h-12 bg-rose-500/10 border border-rose-500/20 text-rose-400 rounded-2xl flex items-center px-4 gap-3 text-xs font-bold hover:bg-rose-500/20 text-left transition-all"
+                      onClick={() => { toast({ title: 'Signalement transmis' }); closeGlobalSheet(); }}
+                      className="w-full h-12 bg-rose-500/10 border border-rose-500/20 text-rose-400 rounded-2xl flex items-center px-4 gap-3 text-xs font-bold text-left transition-all"
                     >
                       <AlertCircle className="w-4 h-4" />
-                      Signaler ce contenu inapproprié
+                      Signaler ce contenu
                     </button>
                   </div>
                 </div>
