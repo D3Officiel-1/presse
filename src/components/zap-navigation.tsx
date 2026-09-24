@@ -38,7 +38,7 @@ export function ZapNavigation({ activeTab, setActiveTab }: ZapNavigationProps) {
                 activeTab === 'studio' && "ring-4 ring-primary/30"
               )}
             >
-              <Plus className="w-6 h-6 stroke-[3]" />
+              <Plus className="w-6 h-6 stroke-[3.5]" />
             </button>
           );
         }
@@ -58,11 +58,13 @@ export function ZapNavigation({ activeTab, setActiveTab }: ZapNavigationProps) {
                 ? "text-primary scale-110" 
                 : (isFeedMode ? "text-white/60 group-hover:text-white" : "text-neutral-400 group-hover:text-neutral-700")
             )}>
-              <Icon className="w-5 h-5" />
+              <Icon 
+                className={cn(
+                  "w-5 h-5 transition-all duration-300", 
+                  isActive ? "stroke-[3.5]" : "stroke-[2]"
+                )} 
+              />
             </div>
-            {isActive && (
-              <span className="absolute bottom-1 w-1 h-1 bg-primary rounded-full" />
-            )}
           </button>
         );
       })}
