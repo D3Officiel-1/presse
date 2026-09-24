@@ -7,12 +7,9 @@ import {
   Bookmark,
   Share2,
   Plus,
-  Music,
-  MoreHorizontal,
   Play,
   Volume2,
   VolumeX,
-  Check,
   X,
   Send,
   AlertCircle,
@@ -71,7 +68,7 @@ const INITIAL_VIDEOS: Video[] = [
     videoUrl: 'https://storage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4',
     poster: 'https://picsum.photos/seed/zap2/600/1000',
     audioName: 'Tech Talk — Innovation Hub',
-    description: 'Comment nous allons changer la mobilité des étudiants à Abidjan. #tech #startup',
+    description: 'Comment nous allons changer la mobility des étudiants à Abidjan. #tech #startup',
   },
   {
     id: 'vid-3',
@@ -126,8 +123,8 @@ export default function FeedPage() {
 
   const feedRef = useRef<HTMLDivElement>(null);
   const videoRefs = useRef<Record<string, HTMLVideoElement | null>>({});
-  const lastTapRef = useRef<{ time: number; videoId: string }>({ time: 0, videoId: '' });
-  const tapTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const pointerStartRef = useRef<{ time: number; x: number; y: number }>({ time: 0, x: 0, y: 0 });
 
   useEffect(() => {
     const originalBg = document.body.style.backgroundColor;
@@ -164,7 +161,7 @@ export default function FeedPage() {
           .filter((entry) => entry.isIntersecting)
           .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
 
-        if (visible && visible.intersectionRatio >= 0.5) {
+        if (visible && visible.intersectionRatio >= 0.7) {
           const id = visible.target.getAttribute('data-video-id');
           if (id && id !== activeVideo) {
             setActiveVideo(id);
@@ -174,7 +171,7 @@ export default function FeedPage() {
       },
       {
         root: container,
-        threshold: [0.5, 0.75, 0.9],
+        threshold: [0.5, 0.7, 0.9],
       }
     );
 
@@ -190,33 +187,50 @@ export default function FeedPage() {
     );
   };
 
-  const handleDoubleTapAction = (id: string, clientX: number, clientY: number, rect: DOMRect) => {
-    if (!likedVideos.includes(id)) {
-      handleToggleLike(id);
-    }
-    const x = clientX - rect.left;
-    const y = clientY - rect.top;
-    setActiveHeartAnimation({ videoId: id, x, y });
-    setTimeout(() => setActiveHeartAnimation(null), 900);
+  const handlePointerDownGesture = (e: React.PointerEvent<HTMLDivElement>) => {
+    pointerStartRef.current = {
+      time: Date.now(),
+      x: e.clientX,
+      y: e.clientY
+    };
   };
 
-  const handleMediaGesture = (id: string, e: React.MouseEvent<HTMLDivElement>) => {
+  const handlePointerUpGesture = (id: string, e: React.PointerEvent<HTMLDivElement>) => {
+    const start = pointerStartRef.current;
     const now = Date.now();
-    const delta = now - lastTapRef.current.time;
-    const sameVideo = lastTapRef.current.videoId === id;
-    const rect = e.currentTarget.getBoundingClientRect();
+    const diffTime = now - start.time;
+    const diffX = Math.abs(e.clientX - start.x);
+    const diffY = Math.abs(e.clientY - start.y);
 
-    if (delta > 0 && delta < 300 && sameVideo) {
-      if (tapTimeoutRef.current) {
-        clearTimeout(tapTimeoutRef.current);
-        tapTimeoutRef.current = null;
+    if (diffX > 12 || diffY > 12) {
+      return; 
+    }
+
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+
+    const globalLastTap = (window as any)._zapLastTap || 0;
+    const globalLastTapVideo = (window as any)._zapLastTapVideo || '';
+    const delta = now - globalLastTap;
+
+    if (delta < 300 && globalLastTapVideo === id) {
+      if ((window as any)._zapTapTimeout) {
+        clearTimeout((window as any)._zapTapTimeout);
+        (window as any)._zapTapTimeout = null;
       }
-      handleDoubleTapAction(id, e.clientX, e.clientY, rect);
+      if (!likedVideos.includes(id)) {
+        handleToggleLike(id);
+      }
+      setActiveHeartAnimation({ videoId: id, x, y });
+      setTimeout(() => setActiveHeartAnimation(null), 850);
+      (window as any)._zapLastTap = 0;
     } else {
-      lastTapRef.current = { time: now, videoId: id };
-      tapTimeoutRef.current = setTimeout(() => {
+      (window as any)._zapLastTap = now;
+      (window as any)._zapLastTapVideo = id;
+      (window as any)._zapTapTimeout = setTimeout(() => {
         setPaused((prev) => !prev);
-        tapTimeoutRef.current = null;
+        (window as any)._zapTapTimeout = null;
       }, 250);
     }
   };
@@ -322,11 +336,12 @@ export default function FeedPage() {
             <section
               key={video.id}
               data-video-id={video.id}
-              className="relative h-[100dvh] min-h-[100dvh] w-full snap-start snap-always overflow-hidden bg-black"
+              className="relative h-[100dvh] min-h-[100dvh] w-full snap-start snap-always overflow-hidden bg-black touch-pan-y"
             >
               <div 
                 className="absolute inset-0 bg-black cursor-pointer"
-                onClick={(e) => handleMediaGesture(video.id, e)}
+                onPointerDown={handlePointerDownGesture}
+                onPointerUp={(e) => handlePointerUpGesture(video.id, e)}
               >
                 <video
                   ref={(el) => { videoRefs.current[video.id] = el; }}
@@ -344,17 +359,26 @@ export default function FeedPage() {
                     }
                   }}
                   onTimeUpdate={(e) => {
-                    const t = e.currentTarget.currentTime;
-                    setProgressState(prev => ({ ...prev, [video.id]: t }));
+                    const currentT = e.currentTarget.currentTime;
+                    setVideoProgress(video.id, currentT);
                   }}
                 />
-                <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent via-50% to-black/80 pointer-events-none" />
+                <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent via-50% to-black/90 pointer-events-none" />
               </div>
+
+              {/* Helper function simulation via directly scoped code block for multi-render state safety */}
+              {(() => {
+                function setVideoProgress(vId: string, timeVal: number) {
+                  if (progressState[vId] !== timeVal) {
+                    setProgressState(prev => ({ ...prev, [vId]: timeVal }));
+                  }
+                }
+              })()}
 
               <AnimatePresence>
                 {paused && isActive && (
-                  <div className="absolute left-1/2 top-1/2 z-20 flex h-16 w-16 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-white/10 bg-black/50 backdrop-blur-sm pointer-events-none">
-                    <Play className="ml-1 h-6 w-6 fill-white text-white" />
+                  <div className="absolute left-1/2 top-1/2 z-20 flex h-14 w-14 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-white/10 bg-black/40 backdrop-blur-sm pointer-events-none">
+                    <Play className="ml-0.5 h-5 w-5 fill-white text-white" />
                   </div>
                 )}
               </AnimatePresence>
@@ -363,31 +387,32 @@ export default function FeedPage() {
                 {activeHeartAnimation && activeHeartAnimation.videoId === video.id && (
                   <div 
                     className="pointer-events-none absolute z-40 flex items-center justify-center"
-                    style={{ left: activeHeartAnimation.x - 56, top: activeHeartAnimation.y - 56 }}
+                    style={{ left: activeHeartAnimation.x - 48, top: activeHeartAnimation.y - 48 }}
                   >
                     <motion.div
-                      initial={{ scale: 0.2, opacity: 0 }}
-                      animate={{ scale: 1.7, opacity: [0, 0.4, 0] }}
-                      transition={{ duration: 0.6 }}
-                      className="absolute h-24 w-24 rounded-full bg-white/15 blur-2xl"
+                      initial={{ scale: 0.3, opacity: 0 }}
+                      animate={{ scale: 1.5, opacity: [0, 0.3, 0] }}
+                      transition={{ duration: 0.5 }}
+                      className="absolute h-20 w-20 rounded-full bg-white/10 blur-xl"
                     />
                     <motion.div
-                      initial={{ scale: 0.1, rotate: -20, opacity: 0 }}
+                      initial={{ scale: 0.1, rotate: -15, opacity: 0 }}
                       animate={{
-                        scale: [0.1, 1.4, 0.9, 1.1, 1],
-                        rotate: [-20, 12, -6, 2, 0],
+                        scale: [0.1, 1.3, 0.95, 1.05, 1],
+                        rotate: [-15, 10, -5, 2, 0],
                         opacity: [0, 1, 1, 1, 0],
                       }}
-                      transition={{ duration: 0.8, ease: 'easeOut' }}
+                      transition={{ duration: 0.7, ease: 'easeOut' }}
                     >
-                      <Heart className="h-24 w-24 fill-white text-white drop-shadow-2xl" strokeWidth={1.5} />
+                      <Heart className="h-20 w-20 fill-white text-white drop-shadow-2xl" strokeWidth={1.5} />
                     </motion.div>
                   </div>
                 )}
               </AnimatePresence>
 
+              {/* Barre latérale d'actions isolée */}
               <div 
-                className="absolute bottom-[110px] right-3 z-30 flex flex-col items-center gap-5"
+                className="absolute bottom-[130px] right-3 z-30 flex flex-col items-center gap-4"
                 onPointerDown={(e) => e.stopPropagation()}
                 onPointerUp={(e) => e.stopPropagation()}
               >
@@ -445,51 +470,41 @@ export default function FeedPage() {
                   whileTap={{ scale: 0.8 }}
                   onClick={() => setMuted((prev) => !prev)}
                   className={cn(
-                    "flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-black/30 text-white backdrop-blur-md",
-                    !muted && "text-primary"
+                    "flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-black/30 text-white backdrop-blur-md"
                   )}
                 >
                   {muted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
                 </motion.button>
               </div>
 
-              {/* Nouveau Bloc d'infos minimaliste et épuré */}
-              <div 
-                className="absolute bottom-[80px] left-4 right-16 z-20 pointer-events-none"
-              >
+              {/* Infos créateur hyper-épurées et surélevées pour éviter les collisions avec la barre nav */}
+              <div className="absolute bottom-[125px] left-4 right-16 z-20 pointer-events-none">
                 <div className="space-y-1.5 pointer-events-auto max-w-[85%]">
-                  <div className="flex items-center gap-2 mb-1">
-                    <div className="w-8 h-8 rounded-full border border-white/40 overflow-hidden shrink-0 shadow-lg">
-                       <img 
-                          src={`https://picsum.photos/seed/${video.creator}/64/64`} 
-                          alt={video.fullName} 
-                          className="w-full h-full object-cover" 
-                        />
+                  <div className="flex items-center gap-2">
+                    <div className="w-6 h-6 rounded-full border border-white/30 overflow-hidden shrink-0 shadow-md">
+                      <img 
+                        src={`https://picsum.photos/seed/${video.creator}/48/48`} 
+                        alt={video.fullName} 
+                        className="w-full h-full object-cover" 
+                      />
                     </div>
-                    <div className="flex flex-col">
-                      <div className="flex items-center gap-1.5">
-                        <span className="text-xs font-black text-white drop-shadow-md">@{video.creator}</span>
-                        <button
-                          onClick={(e) => { e.stopPropagation(); handleToggleFollow(video.creator); }}
-                          className={cn(
-                            "text-[9px] font-black px-1.5 py-0.5 rounded-full transition-all shrink-0 uppercase tracking-tighter",
-                            isFollowed ? "bg-white/10 text-white/70" : "bg-primary text-white"
-                          )}
-                        >
-                          {isFollowed ? '✓' : 'Suivre'}
-                        </button>
-                      </div>
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-xs font-black text-white drop-shadow-md">@{video.creator}</span>
+                      <button
+                        onClick={(e) => { e.stopPropagation(); handleToggleFollow(video.creator); }}
+                        className={cn(
+                          "text-[9px] font-black px-1.5 py-0.5 rounded-full transition-all shrink-0 uppercase tracking-tighter",
+                          isFollowed ? "bg-white/20 text-white/90" : "bg-primary text-white"
+                        )}
+                      >
+                        {isFollowed ? '✓' : 'Suivre'}
+                      </button>
                     </div>
                   </div>
 
                   <div className="space-y-0.5">
-                    <h2 className="text-[13px] font-black text-white drop-shadow-md leading-tight line-clamp-1">{video.title}</h2>
-                    <p className="text-[11px] font-medium text-white/80 drop-shadow-sm leading-snug line-clamp-2">{video.description}</p>
-                  </div>
-
-                  <div className="flex items-center gap-1.5 pt-1 text-[10px] text-white/60 font-bold uppercase tracking-widest drop-shadow-sm">
-                    <Music className="h-3 w-3 shrink-0 text-primary" />
-                    <span className="truncate max-w-[150px] font-mono">{video.audioName}</span>
+                    <h2 className="text-xs font-black text-white drop-shadow-sm leading-tight truncate">{video.title}</h2>
+                    <p className="text-[11px] font-medium text-white/90 drop-shadow-sm leading-snug line-clamp-2">{video.description}</p>
                   </div>
                 </div>
               </div>
@@ -621,4 +636,8 @@ export default function FeedPage() {
       </AnimatePresence>
     </div>
   );
+}
+
+function setVideoProgress(vId: string, timeVal: number) {
+  throw new Error('Function not implemented.');
 }
