@@ -93,6 +93,7 @@ export default function TikTokProfilePage() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isSimulatingFollow, setIsSimulatingFollow] = useState(false);
   const [isFavorited, setIsFavorited] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
 
   // Formulaire d'édition
   const [editName, setEditName] = useState('');
@@ -105,6 +106,18 @@ export default function TikTokProfilePage() {
   const [savingProfile, setSavingProfile] = useState(false);
 
   const mediaImages = placeholderData.placeholderImages.filter(img => img.id.startsWith('media-'));
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.scrollY > 15) {
+        setIsScrolled(true);
+      } else {
+        setIsScrolled(false);
+      }
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   useEffect(() => {
     const uid = localStorage.getItem('userId');
@@ -225,21 +238,29 @@ export default function TikTokProfilePage() {
   return (
     <div className="min-h-screen bg-white text-neutral-900 pb-28 font-sans transition-all duration-300">
       
-      {/* Barre de navigation haute */}
-      <header className="sticky top-0 bg-white/95 backdrop-blur-md z-40 flex items-center justify-between px-4 h-14 border-b border-neutral-100 max-w-4xl mx-auto w-full">
+      {/* Barre de navigation haute adaptative au défilement */}
+      <header className={cn(
+        "sticky top-0 z-40 flex items-center justify-between px-4 h-14 max-w-4xl mx-auto w-full transition-all duration-300",
+        isScrolled 
+          ? "bg-white border-b border-neutral-100 shadow-sm" 
+          : "bg-transparent border-b border-transparent shadow-none"
+      )}>
         <div className="flex items-center">
           <Button
             onClick={() => setIsEditModalOpen(true)}
             variant="ghost"
             size="icon"
-            className="h-8 w-8 rounded-xl text-neutral-600 active:scale-75 transition-all p-0"
+            className="h-8 w-8 rounded-xl text-neutral-600 active:scale-90 transition-all p-0 hover:bg-neutral-100"
             title="Modifier le profil"
           >
             <Edit2 className="w-4 h-4" />
           </Button>
         </div>
         
-        <h1 className="font-black text-sm tracking-tight text-neutral-950 flex items-center gap-1">
+        <h1 className={cn(
+          "font-black text-sm tracking-tight text-neutral-950 flex items-center gap-1 transition-opacity duration-300",
+          isScrolled ? "opacity-100" : "opacity-0 pointer-events-none"
+        )}>
           {profile.name || 'Mon Profil'}
           <span className="w-3.5 h-3.5 bg-primary rounded-full flex items-center justify-center text-white shrink-0">
             <Check className="w-2.5 h-2.5 stroke-[4]" />
@@ -290,7 +311,7 @@ export default function TikTokProfilePage() {
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Identité et En-tête Adaptatif */}
-        <div className="flex flex-col md:flex-row md:items-start md:gap-8 pt-8 pb-6">
+        <div className="flex flex-col md:flex-row md:items-start md:gap-8 pt-4 pb-6">
           
           {/* Avatar Section */}
           <div className="flex justify-center md:justify-start shrink-0">
@@ -377,7 +398,7 @@ export default function TikTokProfilePage() {
               <div className="flex flex-wrap justify-center md:justify-start gap-x-4 gap-y-2 pt-1 text-[11px] md:text-xs font-bold text-neutral-500">
                 <span className="flex items-center gap-1 text-primary hover:underline cursor-pointer">
                   <Link2 className="w-3.5 h-3.5 text-primary shrink-0" />
-                  {profile.link || 'zap.ci/studio'}
+                  {profile.link || 'zap.ci/portfolio'}
                 </span>
                 <span className="flex items-center gap-1">
                   <MapPin className="w-3.5 h-3.5 text-neutral-400 shrink-0" />
