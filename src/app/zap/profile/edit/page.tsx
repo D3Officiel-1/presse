@@ -191,18 +191,6 @@ export default function EditProfilePage() {
           </div>
 
         </div>
-
-        {/* Bouton de validation principal en bas */}
-        <div className="pt-4">
-          <Button 
-            onClick={handleSave} 
-            disabled={saving}
-            className="w-full h-12 rounded-xl bg-neutral-900 text-white font-bold text-xs uppercase tracking-wider shadow-md hover:bg-neutral-800 transition-all active:scale-[0.98]"
-          >
-            {saving ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
-            Enregistrer les modifications
-          </Button>
-        </div>
       </main>
     </div>
   );
