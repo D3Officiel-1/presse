@@ -124,7 +124,7 @@ export default function EditProfilePage() {
         >
           <ChevronLeft className="w-6 h-6" />
         </button>
-        <h1 className="text-sm font-black uppercase tracking-widest text-neutral-900">Modifier mon profil</h1>
+        <h1 className="text-sm font-black uppercase tracking-widest text-neutral-900">modifier le profil</h1>
       </header>
 
       <main className="max-w-md mx-auto p-6 space-y-8">
