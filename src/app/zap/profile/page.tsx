@@ -25,7 +25,9 @@ import {
   Video,
   ShieldAlert,
   EyeOff,
-  UserX
+  UserX,
+  UserPlus,
+  Menu
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -171,13 +173,6 @@ export default function TikTokProfilePage() {
     router.replace('/auth');
   };
 
-  const handleShareProfile = () => {
-    if (typeof window !== 'undefined' && navigator.clipboard) {
-      navigator.clipboard.writeText(`${window.location.origin}/zap/profile`);
-      toast({ title: 'Lien copié !', description: "L'adresse URL du profil est dans le presse-papiers." });
-    }
-  };
-
   const toggleFavorite = () => {
     setIsFavorited(!isFavorited);
     toast({
@@ -244,12 +239,32 @@ export default function TikTokProfilePage() {
           </span>
         </h1>
 
-        <div className="flex items-center gap-1">
-          <button onClick={handleShareProfile} className="p-2 text-neutral-800 hover:bg-neutral-50 rounded-full transition" title="Partager le profil">
-            <Share2 className="w-4 h-4" />
+        <div className="flex items-center gap-1.5">
+          <button 
+            onClick={() => {
+              setActiveTab('insights');
+              toast({ title: "Vues du profil", description: "42 membres ont visité votre pass cette semaine." });
+            }} 
+            className="p-2 text-neutral-800 hover:bg-neutral-50 rounded-full transition active:scale-90" 
+            title="Vue de profil"
+          >
+            <Eye className="w-5 h-5" />
           </button>
-          <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="p-2 text-neutral-800 hover:bg-neutral-50 rounded-full transition relative" title="Plus d'options">
-            <MoreHorizontal className="w-4 h-4" />
+          
+          <button 
+            onClick={() => router.push('/zap/friends')} 
+            className="p-2 text-neutral-800 hover:bg-neutral-50 rounded-full transition active:scale-90" 
+            title="Trouver des amis"
+          >
+            <UserPlus className="w-5 h-5" />
+          </button>
+
+          <button 
+            onClick={() => setIsMenuOpen(!isMenuOpen)} 
+            className="p-2 text-neutral-800 hover:bg-neutral-50 rounded-full transition relative active:scale-90" 
+            title="Menu"
+          >
+            <Menu className="w-5 h-5" />
           </button>
 
           <AnimatePresence>
