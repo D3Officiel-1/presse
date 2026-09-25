@@ -23,13 +23,13 @@ export function ProfileVideoGrid({ items }: ProfileVideoGridProps) {
       {items.map((img) => (
         <div 
           key={img.id} 
-          className="relative aspect-[3/4] bg-neutral-900 overflow-hidden cursor-pointer group rounded-sm md:rounded-lg"
+          className="relative aspect-[3/4] bg-neutral-900 overflow-hidden cursor-pointer"
           onClick={() => router.push('/zap')}
         >
           <img 
             src={img.imageUrl} 
             alt={img.description} 
-            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+            className="w-full h-full object-cover"
             data-ai-hint={img.imageHint}
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-80" />
@@ -42,13 +42,13 @@ export function ProfileVideoGrid({ items }: ProfileVideoGridProps) {
       {[1, 2, 3, 4, 5, 6].map((num) => (
         <div 
           key={`fallback-grid-${num}`}
-          className="relative aspect-[3/4] bg-neutral-950 overflow-hidden cursor-pointer group rounded-sm md:rounded-lg"
+          className="relative aspect-[3/4] bg-neutral-950 overflow-hidden cursor-pointer"
           onClick={() => router.push('/zap')}
         >
           <img 
             src={`https://picsum.photos/seed/tiktok-grid-${num}/300/400`} 
             alt="Miniature" 
-            className="w-full h-full object-cover opacity-90 transition-transform duration-300 group-hover:scale-110"
+            className="w-full h-full object-cover opacity-90"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-80" />
           <span className="absolute bottom-2 left-2 text-[10px] md:text-xs font-black text-white flex items-center gap-0.5 drop-shadow-sm">
