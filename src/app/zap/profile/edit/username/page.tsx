@@ -132,10 +132,7 @@ export default function EditUsernamePage() {
               </p>
             </div>
             
-            <div className="flex justify-between items-center text-[11px] font-bold text-neutral-400 px-1 pt-1">
-              <span className="text-[10px] leading-tight text-neutral-400 font-medium normal-case max-w-[80%]">
-                Lettres minuscules, chiffres, tirets (_) et (-). Min 3 caractères.
-              </span>
+            <div className="flex justify-end items-center text-[11px] font-bold text-neutral-400 px-1 pt-1">
               <span>
                 {username.length}/{USERNAME_LIMIT}
               </span>
