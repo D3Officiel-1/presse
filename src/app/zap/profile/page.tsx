@@ -231,11 +231,11 @@ export default function TikTokProfilePage() {
           <Button
             onClick={() => setIsEditModalOpen(true)}
             variant="ghost"
-            size="sm"
-            className="text-xs font-black h-8 px-2.5 rounded-xl gap-1 text-neutral-600 hover:bg-neutral-100"
+            size="icon"
+            className="h-8 w-8 rounded-xl text-neutral-600 active:scale-75 transition-all p-0"
+            title="Modifier le profil"
           >
-            <Edit2 className="w-3.5 h-3.5" />
-            <span>Modifier</span>
+            <Edit2 className="w-4 h-4" />
           </Button>
         </div>
         
