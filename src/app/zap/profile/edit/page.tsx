@@ -12,7 +12,9 @@ import {
   ChevronLeft, 
   Loader2, 
   Camera,
-  ChevronRight
+  ChevronRight,
+  Copy,
+  Save
 } from 'lucide-react';
 
 export default function EditProfilePage() {
@@ -28,6 +30,7 @@ export default function EditProfilePage() {
   const [bio, setBio] = useState('');
   const [link, setLink] = useState('');
   const [commune, setCommune] = useState('');
+  const [school, setSchool] = useState('');
 
   useEffect(() => {
     const uid = localStorage.getItem('userId');
@@ -45,6 +48,7 @@ export default function EditProfilePage() {
           setBio(data.bio || '');
           setLink(data.link || '');
           setCommune(data.commune || '');
+          setSchool(data.company || '');
         }
         setLoading(false);
       }).catch(() => {
@@ -83,6 +87,11 @@ export default function EditProfilePage() {
     }
   };
 
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
+    toast({ title: "Copié !", description: "Lien copié dans le presse-papier." });
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-[#F9F9FC] flex flex-col items-center justify-center text-neutral-400">
@@ -94,7 +103,8 @@ export default function EditProfilePage() {
 
   return (
     <div className="min-h-screen bg-[#F9F9FC] text-neutral-900 pb-[calc(env(safe-area-inset-bottom,0px)+4rem)]">
-      <header className="sticky top-0 z-50 bg-[#F9F9FC]/80 backdrop-blur-md border-b border-neutral-100 px-4 h-14 flex items-center justify-center relative">
+      {/* Header épuré */}
+      <header className="sticky top-0 z-50 bg-[#F9F9FC] border-b border-neutral-100 px-4 h-14 flex items-center justify-center relative">
         <button 
           onClick={() => router.back()} 
           className="absolute left-4 p-2 rounded-xl text-neutral-600 active:scale-95 transition-transform"
@@ -102,91 +112,119 @@ export default function EditProfilePage() {
           <ChevronLeft className="w-6 h-6" />
         </button>
         <h1 className="text-sm font-black uppercase tracking-widest text-neutral-900">modifier le profil</h1>
+        
+        {/* Petit bouton de sauvegarde discret en haut à droite comme alternative aux suppressions précédentes si nécessaire */}
+        <button 
+          onClick={handleSave}
+          disabled={saving}
+          className="absolute right-4 p-2 text-teal-600 font-bold text-xs uppercase tracking-widest active:opacity-70 disabled:opacity-30"
+        >
+          {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-5 h-5" />}
+        </button>
       </header>
 
-      <main className="max-w-md mx-auto p-4 space-y-6">
+      <main className="max-w-md mx-auto p-4 space-y-8">
         
-        {/* Section Avatar */}
-        <div className="flex flex-col items-center justify-center pt-4 pb-2 space-y-3">
+        {/* Section Avatar & Photo */}
+        <div className="flex flex-col items-center justify-center pt-6 space-y-4">
           <div 
-            className="w-28 h-28 rounded-full bg-neutral-200/80 flex items-center justify-center cursor-pointer active:opacity-80 transition-all shadow-sm relative overflow-hidden"
+            className="w-24 h-24 rounded-full bg-neutral-100 flex items-center justify-center cursor-pointer active:opacity-80 transition-all shadow-inner relative overflow-hidden group"
             onClick={() => toast({ title: "Prochainement", description: "Le téléchargement de photo sera bientôt disponible." })}
           >
-            <div className="absolute inset-0 bg-black/30 flex items-center justify-center z-10">
+            <div className="absolute inset-0 bg-black/20 flex items-center justify-center z-10 transition-opacity">
               <Camera className="w-8 h-8 text-white/90" />
             </div>
+            <img 
+              src={`https://picsum.photos/seed/${username}/200/200`} 
+              alt="Avatar" 
+              className="w-full h-full object-cover opacity-80"
+            />
           </div>
           <button 
             onClick={() => toast({ title: "Prochainement", description: "Le téléchargement de photo sera bientôt disponible." })}
-            className="text-xs font-bold text-teal-600 hover:text-teal-700 transition-colors"
+            className="text-[13px] font-bold text-teal-600 hover:text-teal-700 transition-colors"
           >
             Changer ma photo
           </button>
         </div>
 
-        {/* Bloc d'informations : Lignes de liste élégantes */}
+        {/* Bloc Identification */}
         <div className="space-y-6">
+          <div className="bg-white rounded-2xl border border-neutral-100 shadow-sm overflow-hidden divide-y divide-neutral-50">
+            <div className="flex items-center px-4 py-4 group cursor-pointer active:bg-neutral-50">
+              <span className="w-28 text-[13px] font-bold text-neutral-500">Nom</span>
+              <Input 
+                value={name} 
+                onChange={(e) => setName(e.target.value)} 
+                placeholder="Ajouter un nom"
+                className="flex-1 h-6 bg-transparent border-none px-0 text-[13px] font-bold text-neutral-900 text-right focus-visible:ring-0 shadow-none placeholder:text-neutral-300"
+              />
+              <ChevronRight className="w-4 h-4 text-neutral-300 ml-2 shrink-0" />
+            </div>
+
+            <div className="flex items-center px-4 py-4 group cursor-pointer active:bg-neutral-50">
+              <span className="w-28 text-[13px] font-bold text-neutral-500">Pseudo</span>
+              <Input 
+                value={username} 
+                onChange={(e) => setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_-]/g, ''))} 
+                placeholder="Identifiant unique"
+                className="flex-1 h-6 bg-transparent border-none px-0 text-[13px] font-mono font-bold text-neutral-900 text-right focus-visible:ring-0 shadow-none placeholder:text-neutral-300"
+              />
+              <ChevronRight className="w-4 h-4 text-neutral-300 ml-2 shrink-0" />
+            </div>
+
+            <div className="flex items-center px-4 py-4">
+              <span className="w-28 text-[13px] font-bold text-neutral-500">zap.ci/@{username || '...'}</span>
+              <div className="flex-1 flex justify-end">
+                <button 
+                  onClick={() => copyToClipboard(`zap.ci/@${username}`)}
+                  className="p-1 text-neutral-400 hover:text-neutral-600 active:scale-90 transition-all"
+                >
+                  <Copy className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          </div>
           
+          {/* Section Infos de base */}
           <div>
-            <p className="text-[11px] font-bold uppercase tracking-wider text-neutral-400 px-2 mb-2">Informations de base</p>
+            <p className="text-[10px] font-black uppercase tracking-widest text-neutral-400 px-4 mb-2">Informations de base</p>
             <div className="bg-white rounded-2xl border border-neutral-100 shadow-sm overflow-hidden divide-y divide-neutral-50">
-              
-              <div className="flex items-center px-4 py-3.5">
-                <span className="w-24 text-xs font-bold text-neutral-500">Nom</span>
+              <div className="flex items-center px-4 py-4 group cursor-pointer active:bg-neutral-50">
+                <span className="w-28 text-[13px] font-bold text-neutral-500">Bio</span>
                 <Input 
-                  value={name} 
-                  onChange={(e) => setName(e.target.value)} 
-                  placeholder="Ajouter un nom"
-                  className="flex-1 h-8 bg-transparent border-none px-0 text-xs font-bold text-neutral-900 text-right focus-visible:ring-0 shadow-none placeholder:text-neutral-300"
+                  value={bio} 
+                  onChange={(e) => setBio(e.target.value)} 
+                  placeholder="Décrivez votre univers..."
+                  className="flex-1 h-6 bg-transparent border-none px-0 text-[13px] font-bold text-neutral-900 text-right focus-visible:ring-0 shadow-none placeholder:text-neutral-300"
                 />
-                <ChevronRight className="w-4 h-4 text-neutral-300 ml-1 shrink-0" />
+                <ChevronRight className="w-4 h-4 text-neutral-300 ml-2 shrink-0" />
               </div>
 
-              <div className="flex items-center px-4 py-3.5">
-                <span className="w-24 text-xs font-bold text-neutral-500">Pseudo</span>
-                <Input 
-                  value={username} 
-                  onChange={(e) => setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_-]/g, ''))} 
-                  placeholder="Identifiant unique"
-                  className="flex-1 h-8 bg-transparent border-none px-0 text-xs font-mono font-bold text-neutral-900 text-right focus-visible:ring-0 shadow-none placeholder:text-neutral-300"
-                />
-                <ChevronRight className="w-4 h-4 text-neutral-300 ml-1 shrink-0" />
-              </div>
-
-              <div className="flex items-center px-4 py-3.5">
-                <span className="w-24 text-xs font-bold text-neutral-500">Lien web</span>
-                <Input 
-                  value={link} 
-                  onChange={(e) => setLink(e.target.value)} 
-                  placeholder="zap.ci/ton-portfolio"
-                  className="flex-1 h-8 bg-transparent border-none px-0 text-xs font-bold text-neutral-900 text-right focus-visible:ring-0 shadow-none placeholder:text-neutral-300"
-                />
-                <ChevronRight className="w-4 h-4 text-neutral-300 ml-1 shrink-0" />
-              </div>
-
-              <div className="flex items-center px-4 py-3.5">
-                <span className="w-24 text-xs font-bold text-neutral-500">Commune</span>
+              <div className="flex items-center px-4 py-4 group cursor-pointer active:bg-neutral-50">
+                <span className="w-28 text-[13px] font-bold text-neutral-500">Commune</span>
                 <Input 
                   value={commune} 
                   onChange={(e) => setCommune(e.target.value)} 
-                  placeholder="Ex: Marcory, Koumassi"
-                  className="flex-1 h-8 bg-transparent border-none px-0 text-xs font-bold text-neutral-900 text-right focus-visible:ring-0 shadow-none placeholder:text-neutral-300"
+                  placeholder="Ex: Marcory"
+                  className="flex-1 h-6 bg-transparent border-none px-0 text-[13px] font-bold text-neutral-900 text-right focus-visible:ring-0 shadow-none placeholder:text-neutral-300"
                 />
-                <ChevronRight className="w-4 h-4 text-neutral-300 ml-1 shrink-0" />
+                <ChevronRight className="w-4 h-4 text-neutral-300 ml-2 shrink-0" />
               </div>
             </div>
           </div>
 
+          {/* Section Autres */}
           <div>
-            <p className="text-[11px] font-bold uppercase tracking-wider text-neutral-400 px-2 mb-2">Description & Univers</p>
-            <div className="bg-white rounded-2xl border border-neutral-100 shadow-sm overflow-hidden p-4 space-y-3">
-              <span className="text-xs font-bold text-neutral-500 block">Biographie</span>
-              <Textarea 
-                value={bio} 
-                onChange={(e) => setBio(e.target.value)} 
-                placeholder="Décris ton univers créatif en quelques mots..."
-                className="min-h-[90px] rounded-xl bg-neutral-50/50 border-neutral-100 font-medium text-xs p-3 resize-none focus:ring-primary/10 shadow-none"
-              />
+            <p className="text-[10px] font-black uppercase tracking-widest text-neutral-400 px-4 mb-2">Autres</p>
+            <div className="bg-white rounded-2xl border border-neutral-100 shadow-sm overflow-hidden divide-y divide-neutral-50">
+              <div className="flex items-center px-4 py-4 group cursor-pointer active:bg-neutral-50">
+                <span className="w-28 text-[13px] font-bold text-neutral-500">Établissement</span>
+                <span className="flex-1 text-[13px] font-bold text-neutral-400 text-right truncate">
+                  {school || 'Non défini'}
+                </span>
+                <ChevronRight className="w-4 h-4 text-neutral-300 ml-2 shrink-0" />
+              </div>
             </div>
           </div>
 
