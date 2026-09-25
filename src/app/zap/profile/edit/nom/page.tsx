@@ -49,8 +49,8 @@ export default function EditNamePage() {
   if (loading) return null;
 
   return (
-    <div className="min-h-screen bg-[#F9F9FC] text-neutral-900">
-      <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-neutral-100 px-4 h-16 flex items-center justify-between">
+    <div className="min-h-screen bg-[#F9F9FC] text-neutral-900 w-full">
+      <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-neutral-100 px-4 h-16 flex items-center justify-between w-full">
         <button 
           onClick={() => router.back()} 
           className="text-sm font-bold text-neutral-500 hover:text-neutral-900 transition-colors"
@@ -67,17 +67,21 @@ export default function EditNamePage() {
         </button>
       </header>
       
-      <main className="max-w-md mx-auto p-6 space-y-8">
+      <main className="w-full px-4 py-6 space-y-6">
         <motion.div 
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="space-y-4"
+          className="space-y-6 w-full"
         >
-          <div className="space-y-2">
+          <h1 className="text-2xl font-black tracking-tight text-neutral-950 text-left">
+            Nom
+          </h1>
+
+          <div className="space-y-2 w-full">
             <label className="text-[10px] font-black uppercase tracking-[0.2em] text-neutral-400 ml-1">
               Nom complet
             </label>
-            <div className="relative group">
+            <div className="relative group w-full">
               <div className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-400 group-focus-within:text-primary transition-colors">
                 <User className="w-5 h-5" />
               </div>
@@ -86,7 +90,7 @@ export default function EditNamePage() {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Ex: Yannick Koffi"
-                className="pl-12 pr-12 border-none shadow-md"
+                className="pl-12 pr-12 border-none shadow-md w-full"
                 autoFocus
               />
               {name.length > 0 && (
