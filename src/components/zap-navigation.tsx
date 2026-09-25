@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import Link from 'next/link';
+import Link from 'next/navigation';
 import { usePathname } from 'next/navigation';
 import { Home, Users, Plus, MessageCircle, User } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -9,10 +9,11 @@ import { cn } from '@/lib/utils';
 export function ZapNavigation() {
   const pathname = usePathname();
 
-  // Ne pas afficher la barre de navigation sur le tunnel d'édition du profil, les vues de profil ou le scanner
+  // Ne pas afficher la barre de navigation sur le tunnel d'édition du profil, les vues de profil, le scanner ou le code QR
   if (
     pathname.startsWith('/zap/profile/edit') || 
     pathname === '/zap/profile/vue' ||
+    pathname === '/zap/profile/qrcode' ||
     pathname === '/zap/scanner'
   ) {
     return null;
