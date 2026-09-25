@@ -2,22 +2,20 @@
 
 import React, { useEffect, useState } from 'react';
 import { 
-  LogOut, 
-  GraduationCap, 
-  Briefcase, 
-  Sparkles, 
-  Award, 
-  Film, 
+  Grid, 
   Heart, 
-  Flame, 
+  Lock, 
+  Bookmark, 
   Settings, 
   Share2, 
-  Check, 
-  UserCircle 
+  Edit2, 
+  LogOut,
+  Check,
+  Play
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { useFirestore } from '@/firebase/provider';
 import { useToast } from '@/hooks/use-toast';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
@@ -26,9 +24,9 @@ import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 import placeholderData from '@/lib/placeholder-images.json';
 
-const INTEREST_OPTIONS = ["VFX & 3D", "Montage Vidéo", "Scénario", "Humour & Acting", "Danse", "Musique", "Cadrage"];
+const INTEREST_OPTIONS = ["VFX & 3D", "Montage Vidéo", "Scénario", "Humour", "Danse", "Musique", "Cadrage"];
 
-export default function ProfilePage() {
+export default function TikTokProfilePage() {
   const router = useRouter();
   const fs = useFirestore();
   const { toast } = useToast();
@@ -39,7 +37,9 @@ export default function ProfilePage() {
   const [editName, setEditName] = useState('');
   const [editClasse, setEditClasse] = useState('');
   const [savingProfile, setSavingProfile] = useState(false);
-  const [activeTab, setActiveTab] = useState<'pass' | 'projects' | 'badges' | 'settings'>('pass');
+  
+  const [activeTab, setActiveTab] = useState<'videos' | 'liked' | 'bookmarked'>('videos');
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
   const mediaImages = placeholderData.placeholderImages.filter(img => img.id.startsWith('media-'));
 
@@ -50,7 +50,7 @@ export default function ProfilePage() {
         if (snap.exists()) {
           const data = snap.data();
           setProfile(data);
-          setEditBio(data.bio || "Pas encore de devise de créateur... Écris ton histoire 🎬");
+          setEditBio(data.bio || "Pas encore de description.");
           setEditInterests(data.interests || []);
           setEditName(data.name || '');
           setEditClasse(data.classe || '3e');
@@ -72,10 +72,10 @@ export default function ProfilePage() {
       };
       await setDoc(doc(fs, 'users', uid), updatePayload, { merge: true });
       setProfile((prev: any) => ({ ...prev, ...updatePayload }));
-      toast({ title: 'Studio ZAP !', description: 'Passeport créateur mis à jour avec succès.' });
-      setActiveTab('pass');
+      toast({ title: 'Succès', description: 'Profil mis à jour.' });
+      setIsEditModalOpen(false);
     } catch (e) {
-      toast({ variant: 'destructive', title: 'Erreur', description: 'Impossible de sauvegarder les modifications.' });
+      toast({ variant: 'destructive', title: 'Erreur', description: 'Impossible de sauvegarder.' });
     } finally {
       setSavingProfile(false);
     }
@@ -89,337 +89,321 @@ export default function ProfilePage() {
 
   const handleLogout = () => {
     localStorage.clear();
-    toast({ title: 'Déconnexion', description: 'À bientôt dans le Studio ZAP !' });
+    toast({ title: 'Déconnexion', description: 'À bientôt sur ZAP !' });
     router.replace('/auth');
   };
 
-  const handleSharePass = () => {
+  const handleShareProfile = () => {
     if (typeof navigator !== 'undefined' && navigator.clipboard) {
-      navigator.clipboard.writeText(`Rejoins mon Studio ZAP! Je suis @${profile?.username || 'creator'}`);
-      toast({ title: 'Lien copié !', description: 'Partage ton pass de créateur avec ton équipe.' });
+      navigator.clipboard.writeText(`${window.location.origin}/zap/profile`);
+      toast({ title: 'Lien copié !', description: 'Lien du profil copié dans le presse-papiers.' });
     }
   };
 
   return (
-    <div className="p-4 md:p-8 space-y-6 max-w-6xl mx-auto text-neutral-900 pb-[calc(env(safe-area-inset-bottom,0px)+7rem)] pt-6 bg-[#F9F9FC] min-h-screen select-none">
+    <div className="min-h-screen bg-white text-neutral-900 pb-24 font-sans select-none max-w-2xl mx-auto border-x border-neutral-100 shadow-sm">
       
-      {/* Top Header Section */}
-      <div className="flex items-center justify-between px-1">
-        <div>
-          <h2 className="text-2xl md:text-3xl font-[1000] tracking-tighter text-neutral-950 uppercase">
-            Studio ID <span className="text-primary font-serif italic">!</span>
-          </h2>
-          <p className="text-[11px] md:text-xs text-neutral-400 font-bold uppercase tracking-widest">
-            {profile?.commune || 'Abidjan Côte d\'Ivoire'}
+      {/* Top sticky bar matching iOS/TikTok header action */}
+      <header className="sticky top-0 bg-white/90 backdrop-blur-md z-40 flex items-center justify-between px-4 h-14 border-b border-neutral-100">
+        <h1 className="font-bold text-base tracking-tight text-neutral-900 mx-auto">
+          {profile?.name || 'Profil'}
+        </h1>
+        <div className="absolute right-4 flex items-center gap-1">
+          <button onClick={handleShareProfile} className="p-2 text-neutral-700 hover:bg-neutral-50 rounded-full transition">
+            <Share2 className="w-5 h-5" />
+          </button>
+          <button onClick={handleLogout} className="p-2 text-rose-600 hover:bg-rose-50 rounded-full transition">
+            <LogOut className="w-5 h-5" />
+          </button>
+        </div>
+      </header>
+
+      {/* Main TikTok User Block */}
+      <div className="px-6 pt-6 pb-4 space-y-4">
+        <div className="flex items-center gap-5">
+          {/* Large round Avatar with primary gradient border ring */}
+          <div className="relative w-24 h-24 rounded-full p-0.5 bg-gradient-to-tr from-primary to-orange-500 shadow-md">
+            <div className="w-full h-full rounded-full border-2 border-white overflow-hidden bg-neutral-100 flex items-center justify-center text-neutral-400 font-black text-2xl uppercase">
+              {profile?.name?.substring(0, 2) || '@'}
+            </div>
+          </div>
+
+          {/* Core profile details */}
+          <div className="flex-1 space-y-2">
+            <h2 className="text-xl font-bold tracking-tight text-neutral-900 flex items-center gap-1.5">
+              @{profile?.username || 'username'}
+              <span className="text-[10px] bg-neutral-100 text-neutral-600 font-mono font-bold px-1.5 py-0.5 rounded uppercase">
+                {profile?.classe || '6e'}
+              </span>
+            </h2>
+            <p className="text-sm font-medium text-neutral-500">
+              {profile?.name || 'Nom complet'}
+            </p>
+
+            <div className="flex items-center gap-2 pt-1">
+              <Button 
+                onClick={() => setIsEditModalOpen(true)}
+                variant="outline" 
+                size="sm" 
+                className="h-9 px-4 rounded-md border-neutral-200 text-xs font-bold bg-neutral-50 text-neutral-900 hover:bg-neutral-100"
+              >
+                <Edit2 className="w-3.5 h-3.5 mr-1.5" /> Modifier le profil
+              </Button>
+            </div>
+          </div>
+        </div>
+
+        {/* Counter Stats Band identical to TikTok Layout */}
+        <div className="flex items-center justify-start gap-7 py-2 border-y border-neutral-50 text-center">
+          <div className="flex items-center gap-1">
+            <span className="font-bold text-base text-neutral-900">124</span>
+            <span className="text-xs text-neutral-400 font-medium">abonnements</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <span className="font-bold text-base text-neutral-900">4.8K</span>
+            <span className="text-xs text-neutral-400 font-medium">abonnés</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <span className="font-bold text-base text-neutral-900">12.5K</span>
+            <span className="text-xs text-neutral-400 font-medium">j'aime</span>
+          </div>
+        </div>
+
+        {/* Biography Block */}
+        <div className="space-y-1.5 pt-1">
+          <p className="text-sm text-neutral-800 font-normal leading-relaxed whitespace-pre-line">
+            {profile?.bio || "Pas encore de description de créateur."}
+          </p>
+          <p className="text-xs font-semibold text-primary uppercase tracking-tight flex items-center gap-1">
+            🏫 {profile?.company || 'Établissement non renseigné'}
           </p>
         </div>
-        <button 
-          onClick={() => setActiveTab(activeTab === 'settings' ? 'pass' : 'settings')}
-          className={cn(
-            "p-3 rounded-2xl border transition-all active:scale-95",
-            activeTab === 'settings' ? "bg-neutral-950 border-neutral-950 text-white" : "bg-white border-neutral-200 text-neutral-600 shadow-sm"
-          )}
-        >
-          <Settings className="w-5 h-5" />
-        </button>
+
+        {/* Badges / Tag pills block */}
+        <div className="flex flex-wrap gap-1 pt-1">
+          {profile?.interests?.map((tag: string) => (
+            <span key={tag} className="text-[10px] bg-neutral-100 text-neutral-600 font-bold px-2 py-0.5 rounded-sm">
+              #{tag}
+            </span>
+          ))}
+        </div>
       </div>
 
-      {/* Main Grid: Adapts seamlessly to tablet/desktop viewports */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-        
-        {/* Left Hand Column: navigation & live preview elements */}
-        <div className="lg:col-span-5 space-y-6">
-          
-          {/* Navigation tabs column / row responsive layout */}
-          <div className="grid grid-cols-4 gap-1.5 p-1.5 bg-neutral-200/50 rounded-2xl border border-neutral-200/30">
-            {[
-              { id: 'pass', label: 'Mon Pass', icon: UserCircle },
-              { id: 'projects', label: 'Projets', icon: Film },
-              { id: 'badges', label: 'Succès', icon: Award },
-              { id: 'settings', label: 'Profil', icon: Settings }
-            ].map(tab => {
-              const Icon = tab.icon;
-              const isSelected = activeTab === tab.id;
-              return (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id as any)}
-                  className={cn(
-                    "flex flex-col items-center justify-center py-3 rounded-xl text-[10px] font-black uppercase tracking-tight transition-all gap-1",
-                    isSelected ? "bg-white text-primary shadow-sm" : "text-neutral-500 hover:text-neutral-800"
-                  )}
+      {/* Tabs Selector Navigation Bar like TikTok */}
+      <div className="flex border-b border-neutral-200">
+        {[
+          { id: 'videos', icon: Grid, count: null },
+          { id: 'liked', icon: Heart, count: null },
+          { id: 'bookmarked', icon: Bookmark, count: null }
+        ].map((tab) => {
+          const Icon = tab.icon;
+          const isSelected = activeTab === tab.id;
+          return (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id as any)}
+              className={cn(
+                "flex-1 py-3 flex items-center justify-center relative transition-colors",
+                isSelected ? "text-neutral-900" : "text-neutral-400"
+              )}
+            >
+              <Icon className={cn("w-5 h-5", isSelected && tab.id === 'liked' && "fill-neutral-900")} />
+              {isSelected && (
+                <motion.div 
+                  layoutId="tiktokActiveLine" 
+                  className="absolute bottom-0 inset-x-12 h-0.5 bg-neutral-900"
+                />
+              )}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Tab Contents View Grid matching the exact standard TikTok aspect ratio feed */}
+      <div className="p-1">
+        <AnimatePresence mode="wait">
+          {activeTab === 'videos' && (
+            <motion.div 
+              key="videos" 
+              initial={{ opacity: 0 }} 
+              animate={{ opacity: 1 }} 
+              exit={{ opacity: 0 }}
+              className="grid grid-cols-3 gap-0.5"
+            >
+              {mediaImages.map((img) => (
+                <div 
+                  key={img.id} 
+                  className="relative aspect-[3/4] bg-neutral-100 overflow-hidden cursor-pointer group active:opacity-90"
+                  onClick={() => router.push('/zap')}
                 >
-                  <Icon className="w-4 h-4" />
-                  {tab.label}
-                </button>
-              );
-            })}
-          </div>
-
-          {/* Persistent holographic view for visual reward value on widescreen */}
-          <div className="relative overflow-hidden rounded-[2.5rem] bg-gradient-to-br from-neutral-950 via-purple-950 to-neutral-950 text-white p-6 shadow-xl border border-white/10 group">
-            <div className="absolute -right-12 -top-12 w-44 h-44 rounded-full bg-primary/20 blur-3xl group-hover:bg-primary/30 transition-all duration-700 pointer-events-none" />
-            <div className="absolute -left-12 -bottom-12 w-44 h-44 rounded-full bg-violet-600/20 blur-3xl pointer-events-none" />
-            
-            <div className="flex items-start justify-between border-b border-white/10 pb-4">
-              <div className="space-y-1">
-                <span className="bg-primary/20 text-primary border border-primary/30 text-[9px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded-full">
-                  Pass Officiel Créateur
-                </span>
-                <h3 className="text-xl font-[1000] tracking-tight mt-1 truncate max-w-[220px]">
-                  {profile?.name || 'ZAP Membre'}
-                </h3>
-                <p className="text-[11px] font-mono text-neutral-400 font-bold tracking-tight">
-                  @{profile?.username || 'pseudo'}
-                </p>
-              </div>
-              
-              <div className="w-14 h-14 bg-gradient-to-tr from-primary to-orange-500 rounded-2xl flex items-center justify-center text-white text-xl font-[1000] border-2 border-white/20 shadow-md shrink-0">
-                {profile?.name?.substring(0, 2).toUpperCase() || 'ZP'}
-              </div>
-            </div>
-
-            <div className="py-4 space-y-3.5 text-xs">
-              <div className="flex items-center gap-2.5 text-neutral-300">
-                <GraduationCap className="w-4 h-4 text-primary shrink-0" />
-                <span className="font-bold">Niveau d'étude :</span> 
-                <span className="bg-white/10 px-2 py-0.5 rounded-md font-mono uppercase text-white font-black text-[10px]">
-                  {profile?.classe?.toUpperCase() || '6E'}
-                </span>
-              </div>
-
-              <div className="flex items-center gap-2.5 text-neutral-300">
-                <Briefcase className="w-4 h-4 text-neutral-300 shrink-0" />
-                <span className="font-bold truncate max-w-[340px]">
-                  {profile?.company || 'Établissement scolaire'}
-                </span>
-              </div>
-
-              {editBio && (
-                <p className="text-neutral-400 italic font-medium leading-relaxed bg-white/5 p-3 rounded-xl border border-white/5 text-[11px]">
-                  "{editBio}"
-                </p>
-              )}
-            </div>
-
-            <div className="border-t border-white/10 pt-4 flex flex-wrap gap-1">
-              {editInterests.length > 0 ? editInterests.map(tag => (
-                <span key={tag} className="text-[10px] bg-white/10 text-white font-bold px-2.5 py-1 rounded-lg">
-                  ⚡ {tag}
-                </span>
-              )) : (
-                <span className="text-[10px] text-neutral-500 italic">Aucune spécialité configurée.</span>
-              )}
-            </div>
-          </div>
-
-          {/* Quick metrics counters */}
-          <div className="grid grid-cols-3 gap-3">
-            <div className="p-4 bg-white border border-neutral-200/70 rounded-2xl shadow-sm text-center space-y-1">
-              <div className="flex justify-center text-primary"><Film className="w-4 h-4" /></div>
-              <p className="text-lg md:text-2xl font-[1000] tracking-tight">12</p>
-              <p className="text-[9px] uppercase font-black text-neutral-400 tracking-wider">Créations</p>
-            </div>
-
-            <div className="p-4 bg-white border border-neutral-200/70 rounded-2xl shadow-sm text-center space-y-1">
-              <div className="flex justify-center text-rose-500"><Heart className="w-4 h-4 fill-rose-500 stroke-none" /></div>
-              <p className="text-lg md:text-2xl font-[1000] tracking-tight">4.8 K</p>
-              <p className="text-[9px] uppercase font-black text-neutral-400 tracking-wider">Likes reçus</p>
-            </div>
-
-            <div className="p-4 bg-white border border-neutral-200/70 rounded-2xl shadow-sm text-center space-y-1">
-              <div className="flex justify-center text-amber-500"><Flame className="w-4 h-4 fill-amber-500 stroke-none animate-bounce" /></div>
-              <p className="text-lg md:text-2xl font-[1000] tracking-tight">5 j</p>
-              <p className="text-[9px] uppercase font-black text-neutral-400 tracking-wider">Série active</p>
-            </div>
-          </div>
-
-        </div>
-
-        {/* Right Hand Column: Content panels based on selected tabs status */}
-        <div className="lg:col-span-7">
-          <AnimatePresence mode="wait">
-            
-            {activeTab === 'pass' && (
-              <motion.div 
-                key="pass" 
-                initial={{ opacity: 0, y: 15 }} 
-                animate={{ opacity: 1, y: 0 }} 
-                exit={{ opacity: 0, y: -15 }}
-                className="space-y-4"
-              >
-                <div className="p-6 bg-white border border-neutral-200/60 rounded-[2rem] shadow-sm space-y-4">
-                  <h4 className="text-sm font-black uppercase tracking-wider text-neutral-800">
-                    Bienvenue dans votre Espace Membre
-                  </h4>
-                  <p className="text-xs text-neutral-500 font-medium leading-relaxed">
-                    Utilisez les onglets ci-dessus pour naviguer rapidement et ajuster vos détails de profil public, suivre vos productions multimédias partagées avec le club, ou consulter l&apos;état de vos badges honorifiques de la commune.
-                  </p>
-                  <Button onClick={handleSharePass} variant="outline" className="w-full bg-white border-neutral-200 rounded-2xl text-neutral-800 text-xs font-black uppercase tracking-wider h-12 shadow-sm gap-2 mt-2">
-                    <Share2 className="w-4 h-4" /> Diffuser mon code Pass
-                  </Button>
-                </div>
-              </motion.div>
-            )}
-
-            {activeTab === 'projects' && (
-              <motion.div 
-                key="projects" 
-                initial={{ opacity: 0, scale: 0.95 }} 
-                animate={{ opacity: 1, scale: 1 }} 
-                exit={{ opacity: 0, scale: 0.95 }}
-                className="space-y-4"
-              >
-                <div className="flex items-center justify-between px-1">
-                  <p className="text-[10px] font-black uppercase tracking-widest text-neutral-400">
-                    Mes productions vidéo du Studio
-                  </p>
-                  <span className="text-[10px] font-mono font-bold bg-neutral-200 text-neutral-600 px-2 py-0.5 rounded-full">
-                    {mediaImages.length || 2} projets
+                  <img 
+                    src={img.imageUrl} 
+                    alt={img.description} 
+                    className="w-full h-full object-cover"
+                    data-ai-hint={img.imageHint}
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent pointer-events-none" />
+                  <span className="absolute bottom-1.5 left-1.5 text-[10px] font-bold text-white flex items-center gap-0.5">
+                    <Play className="w-2.5 h-2.5 fill-white stroke-none" /> 1.2K
                   </span>
                 </div>
+              ))}
 
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                  {mediaImages.map((img, index) => (
-                    <div key={img.id} className="bg-white border border-neutral-200/80 rounded-2xl overflow-hidden shadow-sm group relative aspect-[3/4]">
-                      <img 
-                        src={img.imageUrl} 
-                        alt={img.description} 
-                        className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                        data-ai-hint={img.imageHint}
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent flex flex-col justify-end p-3 text-white">
-                        <p className="text-[11px] font-black uppercase tracking-tight line-clamp-1">{img.description}</p>
-                        <span className="text-[9px] text-white/70 font-mono mt-0.5 flex items-center gap-1">
-                          🎬 Rendu #{index + 1}
-                        </span>
-                      </div>
-                    </div>
-                  ))}
-                  
-                  {mediaImages.length === 0 && [1, 2, 3].map((item) => (
-                    <div key={item} className="bg-white border border-neutral-200/80 rounded-2xl overflow-hidden shadow-sm aspect-[3/4] relative bg-neutral-100 flex flex-col justify-end p-4">
-                      <div className="absolute inset-0 bg-neutral-900/5" />
-                      <p className="text-[11px] font-black text-neutral-800 uppercase tracking-tight">Court-métrage {item}</p>
-                      <span className="text-[9px] text-neutral-400 font-mono mt-0.5">Projet sauvegardé</span>
-                    </div>
-                  ))}
+              {/* Simulation fallback grid values */}
+              {[1, 2, 3, 4, 5, 6].map((num) => (
+                <div 
+                  key={`sim-${num}`}
+                  className="relative aspect-[3/4] bg-neutral-900 overflow-hidden cursor-pointer group active:opacity-90"
+                  onClick={() => router.push('/zap')}
+                >
+                  <img 
+                    src={`https://picsum.photos/seed/pref-${num}/300/400`} 
+                    alt="Miniature" 
+                    className="w-full h-full object-cover opacity-90 transition-transform duration-300 group-hover:scale-105"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent pointer-events-none" />
+                  <span className="absolute bottom-1.5 left-1.5 text-[10px] font-black text-white flex items-center gap-0.5 drop-shadow">
+                    <Play className="w-2.5 h-2.5 fill-white stroke-none" /> {num * 243}
+                  </span>
                 </div>
-              </motion.div>
-            )}
+              ))}
+            </motion.div>
+          )}
 
-            {activeTab === 'badges' && (
-              <motion.div 
-                key="badges" 
-                initial={{ opacity: 0, x: -15 }} 
-                animate={{ opacity: 1, x: 0 }} 
-                exit={{ opacity: 0, x: 15 }}
-                className="space-y-3"
-              >
-                <p className="text-[10px] font-black uppercase tracking-widest text-neutral-400 ml-1 mb-2">
-                  Trophées et distinctions obtenues
-                </p>
+          {activeTab === 'liked' && (
+            <motion.div 
+              key="liked" 
+              initial={{ opacity: 0 }} 
+              animate={{ opacity: 1 }} 
+              exit={{ opacity: 0 }}
+              className="flex flex-col items-center justify-center py-20 text-center text-neutral-400 space-y-2"
+            >
+              <Lock className="w-8 h-8 text-neutral-300" />
+              <p className="text-xs font-bold text-neutral-800">Vidéos aimées masquées</p>
+              <p className="text-[11px] max-w-xs leading-normal">Les vidéos aimées par cet utilisateur sont privées conformément aux paramètres TikTok.</p>
+            </motion.div>
+          )}
 
-                {[
-                  { title: "ZAP d'Or Nominee", desc: "Sélectionné pour la meilleure vidéo de la commune.", color: "from-amber-400 to-orange-500", achieved: true },
-                  { title: "Pionnier Créatif", desc: "Inscrit dès le lancement officiel du Studio ZAP.", color: "from-purple-500 to-indigo-600", achieved: true },
-                  { title: "Maître du Montage", desc: "A généré au moins 5 structures de scripts avec l'IA.", color: "from-cyan-400 to-blue-500", achieved: false },
-                ].map((badge, idx) => (
-                  <div 
-                    key={idx} 
-                    className={cn(
-                      "p-4 bg-white border rounded-2xl shadow-sm flex items-center gap-4 transition-all",
-                      badge.achieved ? "border-neutral-200 opacity-100" : "border-neutral-200/40 opacity-50 grayscale"
-                    )}
-                  >
-                    <div className={cn("w-11 h-11 rounded-xl bg-gradient-to-tr flex items-center justify-center text-white shrink-0 shadow-sm", badge.color)}>
-                      <Award className="w-5 h-5" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <h4 className="font-black text-xs text-neutral-900 uppercase tracking-tight">{badge.title}</h4>
-                      <p className="text-[11px] text-neutral-500 font-medium leading-snug">{badge.desc}</p>
-                    </div>
-                    {badge.achieved && (
-                      <div className="w-5 h-5 bg-emerald-100 rounded-full flex items-center justify-center text-emerald-600">
-                        <Check className="w-3 h-3 stroke-[3]" />
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </motion.div>
-            )}
-
-            {activeTab === 'settings' && (
-              <motion.div 
-                key="settings" 
-                initial={{ opacity: 0, y: 15 }} 
-                animate={{ opacity: 1, y: 0 }} 
-                exit={{ opacity: 0, y: -15 }}
-                className="space-y-5 bg-white border border-neutral-200 rounded-[2rem] p-5 shadow-sm"
-              >
-                <p className="text-[10px] font-black uppercase tracking-widest text-primary ml-1">
-                  Configuration de mon profil public
-                </p>
-
-                <div className="space-y-4">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div className="space-y-1">
-                      <label className="text-[10px] font-black uppercase text-neutral-400 ml-1">Nom Public</label>
-                      <Input value={editName} onChange={(e) => setEditName(e.target.value)} className="text-sm font-bold rounded-xl bg-neutral-50/50 h-11 border-neutral-200" placeholder="Ton nom complet" />
-                    </div>
-
-                    <div className="space-y-1">
-                      <label className="text-[10px] font-black uppercase text-neutral-400 ml-1">Classe Scolaire</label>
-                      <Input value={editClasse} onChange={(e) => setEditClasse(e.target.value)} className="text-sm font-mono font-bold rounded-xl bg-neutral-50/50 h-11 border-neutral-200" placeholder="Ex: Tle, 1ère, 2nde" />
-                    </div>
-                  </div>
-
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-black uppercase text-neutral-400 ml-1">Ma Biographie & Devise</label>
-                    <Textarea value={editBio} onChange={(e) => setEditBio(e.target.value)} className="text-xs font-medium rounded-xl bg-neutral-50/50 border-neutral-200 min-h-[80px] leading-relaxed" placeholder="Raconte ton univers créatif..." />
-                  </div>
-
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-black uppercase text-neutral-400 ml-1">Mes Spécialités Créatives</label>
-                    <div className="flex flex-wrap gap-1.5">
-                      {INTEREST_OPTIONS.map((interest) => {
-                        const isSelected = editInterests.includes(interest);
-                        return (
-                          <button 
-                            key={interest} 
-                            type="button"
-                            onClick={() => handleToggleInterestTag(interest)} 
-                            className={cn(
-                              "px-3 py-1.5 rounded-xl text-[11px] font-bold border transition-all active:scale-95", 
-                              isSelected 
-                                ? "bg-primary text-white border-primary shadow-sm font-black" 
-                                : "bg-white text-neutral-600 border-neutral-200 hover:bg-neutral-50"
-                            )}
-                          >
-                            {interest}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
+          {activeTab === 'bookmarked' && (
+            <motion.div 
+              key="bookmarked" 
+              initial={{ opacity: 0 }} 
+              animate={{ opacity: 1 }} 
+              exit={{ opacity: 0 }}
+              className="grid grid-cols-3 gap-0.5"
+            >
+              {[3, 1].map((num) => (
+                <div 
+                  key={`fav-${num}`}
+                  className="relative aspect-[3/4] bg-neutral-900 overflow-hidden cursor-pointer"
+                  onClick={() => router.push('/zap')}
+                >
+                  <img 
+                    src={`https://picsum.photos/seed/fav-${num}/300/400`} 
+                    alt="Favoris" 
+                    className="w-full h-full object-cover"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent pointer-events-none" />
                 </div>
-
-                <div className="space-y-2.5 pt-4 border-t border-neutral-100 flex flex-col sm:flex-row sm:gap-3 sm:space-y-0">
-                  <Button onClick={handleSaveProfile} disabled={savingProfile} className="w-full sm:flex-1 bg-neutral-900 text-white rounded-xl h-12 text-xs font-black uppercase tracking-wider shadow-sm">
-                    {savingProfile ? "Mise à jour en cours..." : "Enregistrer"}
-                  </Button>
-                  
-                  <Button onClick={handleLogout} variant="outline" className="w-full sm:w-auto rounded-xl h-12 text-xs font-black uppercase tracking-wider text-rose-600 border-rose-100 bg-rose-50/40 hover:bg-rose-50 transition-colors">
-                    <LogOut className="w-4 h-4 sm:mr-0" /> <span className="sm:hidden ml-2">Déconnexion</span>
-                  </Button>
-                </div>
-              </motion.div>
-            )}
-
-          </AnimatePresence>
-        </div>
-
+              ))}
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
+
+      {/* Slide-up dialog/drawer form simulation for editing matching modern design guidelines */}
+      <AnimatePresence>
+        {isEditModalOpen && (
+          <>
+            <motion.div 
+              className="fixed inset-0 bg-black/40 z-50 backdrop-blur-xs"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsEditModalOpen(false)}
+            />
+            <motion.div 
+              className="fixed bottom-0 inset-x-0 bg-white rounded-t-3xl max-h-[85vh] overflow-y-auto p-6 z-50 space-y-5 text-left shadow-2xl border-t border-neutral-100 max-w-2xl mx-auto"
+              initial={{ y: "100%" }}
+              animate={{ y: 0 }}
+              exit={{ y: "100%" }}
+              transition={{ type: "spring", damping: 25, stiffness: 220 }}
+            >
+              <div className="flex items-center justify-between border-b border-neutral-100 pb-3">
+                <h3 className="font-bold text-base text-neutral-900">Modifier le profil</h3>
+                <button 
+                  onClick={() => setIsEditModalOpen(false)}
+                  className="text-xs font-bold text-neutral-400 hover:text-neutral-600"
+                >
+                  Fermer
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black uppercase text-neutral-400 tracking-wider">Nom complet</label>
+                  <Input 
+                    value={editName} 
+                    onChange={(e) => setEditName(e.target.value)} 
+                    className="text-sm font-bold bg-neutral-50 border-neutral-200 rounded-lg h-11"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black uppercase text-neutral-400 tracking-wider">Classe</label>
+                  <Input 
+                    value={editClasse} 
+                    onChange={(e) => setEditClasse(e.target.value)} 
+                    className="text-sm font-bold bg-neutral-50 border-neutral-200 rounded-lg h-11"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black uppercase text-neutral-400 tracking-wider">Description / Biographie</label>
+                  <Textarea 
+                    value={editBio} 
+                    onChange={(e) => setEditBio(e.target.value)} 
+                    className="text-xs font-medium bg-neutral-50 border-neutral-200 rounded-lg min-h-[80px]"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black uppercase text-neutral-400 tracking-wider">Spécialités créatives</label>
+                  <div className="flex flex-wrap gap-1.5">
+                    {INTEREST_OPTIONS.map((interest) => {
+                      const isSelected = editInterests.includes(interest);
+                      return (
+                        <button 
+                          key={interest} 
+                          type="button"
+                          onClick={() => handleToggleInterestTag(interest)} 
+                          className={cn(
+                            "px-3 py-1.5 rounded-lg text-xs font-bold border transition-all", 
+                            isSelected 
+                              ? "bg-neutral-900 text-white border-neutral-900" 
+                              : "bg-white text-neutral-600 border-neutral-200 hover:bg-neutral-50"
+                          )}
+                        >
+                          {interest}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+
+              <Button 
+                onClick={handleSaveProfile} 
+                disabled={savingProfile} 
+                className="w-full bg-neutral-900 text-white font-bold h-12 rounded-xl text-xs uppercase tracking-wider shadow-sm mt-4"
+              >
+                {savingProfile ? "Sauvegarde..." : "Enregistrer les modifications"}
+              </Button>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+
     </div>
   );
 }
