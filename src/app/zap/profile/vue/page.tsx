@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Eye, Sparkles, TrendingUp, Flame, ChevronRight } from 'lucide-react';
+import { ArrowLeft, Eye, Sparkles, TrendingUp, ChevronRight } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Badge } from '@/components/ui/badge';
 
@@ -94,18 +94,6 @@ export default function ProfileViewsPage() {
                   </div>
                 </div>
               ))}
-            </div>
-          </div>
-
-          <div className="p-4 bg-purple-50/50 border border-purple-100 rounded-2xl flex items-start gap-3 text-left">
-            <div className="p-2 bg-purple-600 text-white rounded-xl shrink-0">
-              <Flame className="w-4 h-4 fill-white" />
-            </div>
-            <div className="space-y-0.5">
-              <h4 className="text-xs font-black text-purple-950 uppercase tracking-tight">Conseil d'Audience IA</h4>
-              <p className="text-[11px] font-medium text-purple-800 leading-relaxed">
-                Votre Pass attire principalement des élèves intéressés par le <strong>VFX</strong> et le <strong>Montage</strong>. Publiez un nouveau court-métrage dans le Studio pour booster votre classement !
-              </p>
             </div>
           </div>
 
