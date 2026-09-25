@@ -32,29 +32,29 @@ export function ZapNavigation() {
   return (
     <nav 
       className={cn(
-        "fixed bottom-0 left-0 right-0 w-full z-50 transition-all duration-300 border-t",
+        "fixed bottom-0 left-0 right-0 w-full z-50 border-t transition-all duration-300",
         isFeedMode 
           ? "bg-black text-white border-white/10" 
           : "bg-white text-black border-neutral-100"
       )}
     >
-      <div className="flex items-start justify-between h-[calc(env(safe-area-inset-bottom,0px)+56px)] px-1 max-w-lg mx-auto">
+      <div className="flex items-center justify-between h-[calc(env(safe-area-inset-bottom,0px)+56px)] px-2 max-w-lg mx-auto pb-[env(safe-area-inset-bottom,0px)]">
         {navItems.map((item) => {
           if (item.isCenter) {
             return (
-              <div key={item.id} className="flex-1 flex justify-center pt-2">
+              <div key={item.id} className="flex-1 flex items-center justify-center h-full">
                 <Link 
-                  href={item.href}
-                  className="relative w-11 h-7.5 group active:scale-90 transition-transform"
+                  href="/zap/studio"
+                  className="relative w-11 h-7 block active:scale-95 transition-transform"
                 >
                   {/* Effet TikTok Plus Button (Bords colorés) */}
-                  <div className="absolute inset-0 bg-[#00f2ea] rounded-lg -left-[2px]" />
-                  <div className="absolute inset-0 bg-[#ff0050] rounded-lg -right-[2px]" />
+                  <div className="absolute inset-y-0 w-8 bg-[#00f2ea] rounded-md left-0" />
+                  <div className="absolute inset-y-0 w-8 bg-[#ff0050] rounded-md right-0" />
                   <div className={cn(
-                    "absolute inset-0 rounded-lg flex items-center justify-center transition-colors",
+                    "absolute inset-x-1.5 inset-y-0 rounded-md flex items-center justify-center transition-colors",
                     isFeedMode ? "bg-white text-black" : "bg-black text-white"
                   )}>
-                    <Plus className="w-5 h-5 stroke-[4]" />
+                    <Plus className="w-4 h-4 stroke-[4]" />
                   </div>
                 </Link>
               </div>
@@ -68,18 +68,18 @@ export function ZapNavigation() {
             <Link
               key={item.id}
               href={item.href}
-              className="flex flex-col items-center justify-center flex-1 pt-2 pb-1 group relative transition-all active:scale-95"
+              className="flex flex-col items-center justify-center flex-1 h-full min-w-0 transition-all active:scale-95"
             >
               <Icon 
                 className={cn(
-                  "w-6 h-6 transition-all duration-200", 
+                  "w-5 h-5 transition-all duration-200", 
                   isActive ? "stroke-[2.5]" : "stroke-[2]",
-                  !isActive && (isFeedMode ? "opacity-70" : "opacity-40")
+                  !isActive && (isFeedMode ? "opacity-70" : "opacity-45")
                 )} 
               />
               <span className={cn(
-                "text-[9px] mt-0.5 font-bold transition-all duration-200",
-                isActive ? "opacity-100" : (isFeedMode ? "opacity-70" : "opacity-40")
+                "text-[9px] mt-0.5 font-bold transition-all duration-200 truncate w-full text-center",
+                isActive ? "opacity-100 font-extrabold" : (isFeedMode ? "opacity-70" : "opacity-45")
               )}>
                 {item.label}
               </span>
