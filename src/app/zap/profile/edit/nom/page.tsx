@@ -5,17 +5,20 @@ import { useRouter } from 'next/navigation';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { useFirestore } from '@/firebase/provider';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, X, User } from 'lucide-react';
+import { Loader2, X, User, AlertCircle } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { motion } from 'framer-motion';
+import { differenceInDays } from 'date-fns';
 
 export default function EditNamePage() {
   const router = useRouter();
   const fs = useFirestore();
   const { toast } = useToast();
+  
   const [name, setName] = useState('');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
 
   useEffect(() => {
     const uid = localStorage.getItem('userId');
@@ -25,18 +28,35 @@ export default function EditNamePage() {
     }
     if (fs) {
       getDoc(doc(fs, 'users', uid)).then(snap => {
-        if (snap.exists()) setName(snap.data().name || '');
+        if (snap.exists()) {
+          const data = snap.data();
+          setName(data.name || '');
+          if (data.nameLastUpdatedAt) {
+            setLastUpdate(data.nameLastUpdatedAt.toDate());
+          }
+        }
         setLoading(false);
       });
     }
   }, [fs, router]);
 
+  const daysSinceLastUpdate = lastUpdate ? differenceInDays(new Date(), lastUpdate) : 8;
+  const isRestricted = daysSinceLastUpdate < 7;
+  const daysRemaining = 7 - daysSinceLastUpdate;
+
   const handleSave = async () => {
+    if (isRestricted) return;
+
     const uid = localStorage.getItem('userId');
     if (!uid || !fs) return;
     setSaving(true);
     try {
-      await setDoc(doc(fs, 'users', uid), { name: name.trim(), updatedAt: new Date() }, { merge: true });
+      await setDoc(doc(fs, 'users', uid), { 
+        name: name.trim(), 
+        nameLastUpdatedAt: new Date(),
+        updatedAt: new Date() 
+      }, { merge: true });
+      
       toast({ title: 'Modifié !', description: 'Votre nom a été mis à jour.' });
       router.back();
     } catch (e) {
@@ -46,7 +66,11 @@ export default function EditNamePage() {
     }
   };
 
-  if (loading) return null;
+  if (loading) return (
+    <div className="min-h-screen bg-[#F9F9FC] flex items-center justify-center">
+      <Loader2 className="w-6 h-6 animate-spin text-primary" />
+    </div>
+  );
 
   return (
     <div className="min-h-screen bg-[#F9F9FC] text-neutral-900 w-full">
@@ -60,7 +84,7 @@ export default function EditNamePage() {
         
         <button 
           onClick={handleSave} 
-          disabled={saving || !name.trim()}
+          disabled={saving || !name.trim() || isRestricted}
           className="text-sm font-black text-primary disabled:opacity-30 transition-opacity"
         >
           {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Enregistrer'}
@@ -73,9 +97,26 @@ export default function EditNamePage() {
           animate={{ opacity: 1, y: 0 }}
           className="space-y-6 w-full"
         >
-          <h1 className="text-2xl font-black tracking-tight text-neutral-950 text-left">
-            Nom
-          </h1>
+          <div className="space-y-1">
+            <h1 className="text-2xl font-black tracking-tight text-neutral-950 text-left">
+              Nom
+            </h1>
+            <p className="text-[11px] font-bold text-neutral-400 leading-tight">
+              Tu ne peux modifier ton nom qu'une fois tous les 7 jours.
+            </p>
+          </div>
+
+          {isRestricted && (
+            <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex gap-3 items-start animate-fade-up">
+              <AlertCircle className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
+              <div className="space-y-1">
+                <p className="text-[11px] font-black text-amber-900 uppercase tracking-widest">Modification restreinte</p>
+                <p className="text-xs font-medium text-amber-700 leading-relaxed">
+                  Vous avez modifié votre nom récemment. Vous pourrez le changer à nouveau dans {daysRemaining} jour{daysRemaining > 1 ? 's' : ''}.
+                </p>
+              </div>
+            </div>
+          )}
 
           <div className="space-y-2 w-full">
             <label className="text-[10px] font-black uppercase tracking-[0.2em] text-neutral-400 ml-1">
@@ -91,9 +132,10 @@ export default function EditNamePage() {
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Ex: Yannick Koffi"
                 className="pl-12 pr-12 border-none shadow-md w-full"
-                autoFocus
+                autoFocus={!isRestricted}
+                disabled={isRestricted}
               />
-              {name.length > 0 && (
+              {name.length > 0 && !isRestricted && (
                 <button
                   type="button"
                   onClick={() => setName('')}
