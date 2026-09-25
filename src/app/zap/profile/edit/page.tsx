@@ -8,16 +8,12 @@ import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Switch } from '@/components/ui/switch';
 import { 
   ChevronLeft, 
   Loader2, 
   Camera,
-  Globe,
-  Lock,
   ChevronRight
 } from 'lucide-react';
-import { cn } from '@/lib/utils';
 
 export default function EditProfilePage() {
   const router = useRouter();
@@ -32,7 +28,6 @@ export default function EditProfilePage() {
   const [bio, setBio] = useState('');
   const [link, setLink] = useState('');
   const [commune, setCommune] = useState('');
-  const [isPublic, setIsPublic] = useState(true);
 
   useEffect(() => {
     const uid = localStorage.getItem('userId');
@@ -50,7 +45,6 @@ export default function EditProfilePage() {
           setBio(data.bio || '');
           setLink(data.link || '');
           setCommune(data.commune || '');
-          setIsPublic(data.isPublic !== false);
         }
         setLoading(false);
       }).catch(() => {
@@ -76,7 +70,6 @@ export default function EditProfilePage() {
         bio: bio.trim(), 
         link: link.trim(),
         commune: commune.trim(),
-        isPublic,
         updatedAt: new Date()
       };
       
@@ -113,7 +106,7 @@ export default function EditProfilePage() {
 
       <main className="max-w-md mx-auto p-4 space-y-6">
         
-        {/* Section Avatar centrée à l'image du modèle */}
+        {/* Section Avatar */}
         <div className="flex flex-col items-center justify-center pt-4 pb-2 space-y-3">
           <div 
             className="w-28 h-28 rounded-full bg-neutral-200/80 flex items-center justify-center cursor-pointer active:opacity-80 transition-all shadow-sm relative overflow-hidden"
@@ -193,23 +186,6 @@ export default function EditProfilePage() {
                 onChange={(e) => setBio(e.target.value)} 
                 placeholder="Décris ton univers créatif en quelques mots..."
                 className="min-h-[90px] rounded-xl bg-neutral-50/50 border-neutral-100 font-medium text-xs p-3 resize-none focus:ring-primary/10 shadow-none"
-              />
-            </div>
-          </div>
-
-          <div>
-            <p className="text-[11px] font-bold uppercase tracking-wider text-neutral-400 px-2 mb-2">Paramètres du compte</p>
-            <div className="bg-white rounded-2xl border border-neutral-100 p-4 flex items-center justify-between shadow-sm">
-              <div className="space-y-0.5 text-left">
-                <div className="flex items-center gap-2">
-                  {isPublic ? <Globe className="w-3.5 h-3.5 text-emerald-500" /> : <Lock className="w-3.5 h-3.5 text-amber-500" />}
-                  <p className="text-xs font-black text-neutral-900 uppercase tracking-tight">Visibilité Publique</p>
-                </div>
-                <p className="text-[10px] font-medium text-neutral-400 max-w-[240px]">Rend vos créations visibles par toute la communauté scolaire ZAP.</p>
-              </div>
-              <Switch 
-                checked={isPublic} 
-                onCheckedChange={setIsPublic}
               />
             </div>
           </div>
