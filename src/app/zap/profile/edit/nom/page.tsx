@@ -16,6 +16,7 @@ export default function EditNamePage() {
   const { toast } = useToast();
   
   const [name, setName] = useState('');
+  const [initialName, setInitialName] = useState('');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
@@ -32,7 +33,9 @@ export default function EditNamePage() {
       getDoc(doc(fs, 'users', uid)).then(snap => {
         if (snap.exists()) {
           const data = snap.data();
-          setName(data.name || '');
+          const currentName = data.name || '';
+          setName(currentName);
+          setInitialName(currentName);
           if (data.nameLastUpdatedAt) {
             setLastUpdate(data.nameLastUpdatedAt.toDate());
           }
@@ -46,8 +49,11 @@ export default function EditNamePage() {
   const isRestricted = daysSinceLastUpdate < 7;
   const daysRemaining = 7 - daysSinceLastUpdate;
 
+  const hasChanges = name.trim() !== initialName;
+  const isNotEmpty = name.trim().length > 0;
+
   const handleSave = async () => {
-    if (isRestricted) return;
+    if (isRestricted || !hasChanges || !isNotEmpty) return;
 
     const uid = localStorage.getItem('userId');
     if (!uid || !fs) return;
@@ -86,7 +92,7 @@ export default function EditNamePage() {
         
         <button 
           onClick={handleSave} 
-          disabled={saving || !name.trim() || isRestricted}
+          disabled={saving || !isNotEmpty || !hasChanges || isRestricted}
           className="text-sm font-black text-primary disabled:opacity-30 transition-opacity"
         >
           {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Enregistrer'}
@@ -150,10 +156,6 @@ export default function EditNamePage() {
               {name.length}/{NAME_LIMIT}
             </div>
           </div>
-          
-          <p className="text-[11px] font-medium text-neutral-400 leading-relaxed px-1">
-            Utilisez votre vrai nom pour que vos camarades et professeurs puissent vous identifier facilement dans le studio.
-          </p>
         </motion.div>
       </main>
     </div>
