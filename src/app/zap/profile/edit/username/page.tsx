@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { useFirestore } from '@/firebase/provider';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, X, AtSign, Check } from 'lucide-react';
+import { Loader2, X, AtSign } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { motion } from 'framer-motion';
 
@@ -99,12 +99,9 @@ export default function EditUsernamePage() {
             <h1 className="text-2xl font-black tracking-tight text-neutral-950 text-left">
               Nom d'utilisateur
             </h1>
-            <p className="text-xs text-primary font-bold tracking-tight">
-              zap.ci/@{cleanVal || 'votre_pseudo'}
-            </p>
           </div>
 
-          <div className="space-y-2 w-full">
+          <div className="space-y-3 w-full">
             <div className="relative group w-full">
               <div className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-400 group-focus-within:text-primary transition-colors">
                 <AtSign className="w-5 h-5" />
@@ -129,8 +126,14 @@ export default function EditUsernamePage() {
               )}
             </div>
             
-            <div className="flex justify-between items-center text-[11px] font-bold text-neutral-400 px-1">
-              <span className="text-[10px] leading-tight text-neutral-400 font-medium normal-case">
+            <div className="text-left px-1">
+              <p className="text-xs text-primary font-bold tracking-tight">
+                zap.ci/@{cleanVal || 'votre_pseudo'}
+              </p>
+            </div>
+            
+            <div className="flex justify-between items-center text-[11px] font-bold text-neutral-400 px-1 pt-1">
+              <span className="text-[10px] leading-tight text-neutral-400 font-medium normal-case max-w-[80%]">
                 Lettres minuscules, chiffres, tirets (_) et (-). Min 3 caractères.
               </span>
               <span>
