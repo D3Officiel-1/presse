@@ -9,8 +9,8 @@ import { cn } from '@/lib/utils';
 export function ZapNavigation() {
   const pathname = usePathname();
 
-  // Ne pas afficher la barre de navigation sur la page d'édition du profil
-  if (pathname === '/zap/profile/edit') {
+  // Ne pas afficher la barre de navigation sur le tunnel d'édition du profil
+  if (pathname.startsWith('/zap/profile/edit')) {
     return null;
   }
 
@@ -52,7 +52,6 @@ export function ZapNavigation() {
                   href="/zap/studio"
                   className="relative w-11 h-7 block active:scale-95 transition-transform"
                 >
-                  {/* Effet TikTok Plus Button (Bords colorés) */}
                   <div className="absolute inset-y-0 w-8 bg-[#00f2ea] rounded-md left-0" />
                   <div className="absolute inset-y-0 w-8 bg-[#ff0050] rounded-md right-0" />
                   <div className={cn(
