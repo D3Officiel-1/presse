@@ -117,7 +117,7 @@ export default function EditProfilePage() {
 
   return (
     <div className="min-h-screen bg-[#F9F9FC] text-neutral-900 pb-[calc(env(safe-area-inset-bottom,0px)+2rem)]">
-      <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-neutral-100 px-4 h-14 flex items-center justify-center relative">
+      <header className="sticky top-0 z-50 bg-[#F9F9FC]/80 backdrop-blur-md border-b border-neutral-100 px-4 h-14 flex items-center justify-center relative">
         <button 
           onClick={() => router.back()} 
           className="absolute left-4 p-2 rounded-xl text-neutral-600 active:scale-95 transition-transform"
