@@ -111,7 +111,7 @@ export default function TikTokProfilePage() {
       <ProfileHeader 
         name={displayedTitleName} 
         onEditClick={() => router.push('/zap/profile/edit')}
-        onViewProfileClick={() => toast({ title: "Vues du profil", description: "42 membres ont visité votre pass cette semaine." })}
+        onViewProfileClick={() => router.push('/zap/profile/vue')}
       />
 
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
