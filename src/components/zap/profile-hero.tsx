@@ -79,9 +79,9 @@ export function ProfileHero({
       </div>
 
       <div className="shrink-0 flex items-center justify-end pt-1">
-        <div className="relative w-28 h-28 md:w-32 md:h-32 rounded-full p-1 bg-gradient-to-tr from-primary via-purple-600 to-orange-500 shadow-xl transition-all duration-300 hover:scale-105">
+        <div className="relative w-32 h-32 md:w-40 md:h-40 rounded-full p-1.5 bg-gradient-to-tr from-primary via-purple-600 to-orange-500 shadow-2xl transition-all duration-300 hover:scale-105">
           <div className="w-full h-full rounded-full border-4 border-white overflow-hidden bg-neutral-100 flex flex-col items-center justify-center text-neutral-400 shadow-inner">
-            <User className="w-12 h-12 md:w-16 md:h-16 text-neutral-300 stroke-[1.5]" />
+            <User className="w-16 h-16 md:w-20 md:h-20 text-neutral-300 stroke-[1.5]" />
           </div>
         </div>
       </div>
