@@ -97,6 +97,16 @@ export default function TikTokProfilePage() {
 
   const mediaImages = placeholderData.placeholderImages.filter(img => img.id.startsWith('media-'));
 
+  // Calcule le nom affiché (Nom ZAP ou Fallback)
+  const getDisplayName = (prof: any) => {
+    if (prof?.name && prof.name.trim() !== '') {
+      return prof.name;
+    }
+    // Si vide, génère ou récupère un ID ZAP unique temporaire
+    const shortId = prof?.uid ? prof.uid.substring(0, 6).toUpperCase() : Math.floor(1000 + Math.random() * 9000);
+    return `ZAP_${shortId}`;
+  };
+
   useEffect(() => {
     const uid = localStorage.getItem('userId');
     if (!uid) {
@@ -129,14 +139,14 @@ export default function TikTokProfilePage() {
     if (!uid || !fs) return;
 
     if (!editUsername.trim()) {
-      toast({ variant: 'destructive', title: 'Erreur', description: "Le nom d'utilisateur est obligatoire." });
+      toast({ variant: 'destructive', title: 'Erreur', description: "Le pseudo unique est obligatoire." });
       return;
     }
 
     setSavingProfile(true);
 
     const updatePayload = { 
-      name: editName,
+      name: editName.trim(),
       username: editUsername.trim().toLowerCase().replace(/[^a-z0-9_-]/g, ''),
       bio: editBio, 
       link: editLink,
@@ -148,7 +158,7 @@ export default function TikTokProfilePage() {
     try {
       await setDoc(doc(fs, 'users', uid), updatePayload, { merge: true });
       setProfile((prev: any) => ({ ...prev, ...updatePayload }));
-      toast({ title: 'Profil mis à jour !', description: 'Vos modifications ont été enregistrées.' });
+      toast({ title: 'Pass Créateur mis à jour !', description: 'Vos préférences ont été enregistrées.' });
       setIsEditModalOpen(false);
     } catch (e) {
       toast({ variant: 'destructive', title: 'Erreur', description: 'Impossible de sauvegarder les données.' });
@@ -172,30 +182,35 @@ export default function TikTokProfilePage() {
     );
   }
 
+  const displayedTitleName = getDisplayName(profile);
+
   return (
     <div className="min-h-screen bg-white text-neutral-900 pb-28 font-sans">
       
       <ProfileHeader 
-        name={profile.name} 
+        name={displayedTitleName} 
         onEditClick={() => setIsEditModalOpen(true)}
         onViewProfileClick={() => toast({ title: "Vues du profil", description: "42 membres ont visité votre pass cette semaine." })}
       />
 
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         
-        {/* En-tête asymétrique : Informations à gauche et photo tout à droite */}
+        {/* En-tête : Informations à gauche et photo tout à droite */}
         <div className="flex items-start justify-between gap-6 pt-4 pb-6">
           
           {/* Côté Gauche : Identifiants, Statistiques et Biographie */}
           <div className="flex-1 text-left space-y-4 min-w-0">
             <div className="space-y-1">
-              <h2 className="text-xl md:text-2xl font-black tracking-tight text-neutral-950 flex items-center gap-1.5">
-                @{profile.username || 'username'}
-                <span className="w-5 h-5 bg-sky-500 rounded-full flex items-center justify-center text-white shrink-0 shadow-sm">
-                  <Check className="w-3 h-3 stroke-[4]" />
+              <h1 className="text-xl md:text-2xl font-black tracking-tight text-neutral-950 truncate">
+                {displayedTitleName}
+              </h1>
+              <h2 className="text-sm font-bold text-neutral-500 flex items-center gap-1.5">
+                @{profile.username || 'id_profil'}
+                <span className="w-4 h-4 bg-sky-500 rounded-full flex items-center justify-center text-white shrink-0 shadow-sm">
+                  <Check className="w-2.5 h-2.5 stroke-[4]" />
                 </span>
               </h2>
-              <p className="text-xs md:text-sm font-bold text-primary uppercase tracking-widest">
+              <p className="text-xs font-bold text-primary uppercase tracking-widest pt-0.5">
                 {profile.category || 'Créateur Digital'}
               </p>
             </div>
@@ -241,8 +256,8 @@ export default function TikTokProfilePage() {
           {/* Côté Droit : Photo de profil de l'élève créateur */}
           <div className="shrink-0 flex items-center justify-end pt-1">
             <div className="relative w-24 h-24 md:w-28 md:h-28 rounded-full p-0.5 bg-gradient-to-tr from-primary to-orange-500 shadow-sm">
-              <div className="w-full h-full rounded-full border-4 border-white overflow-hidden bg-neutral-100 flex items-center justify-center text-neutral-900 font-black text-3xl md:text-4xl uppercase tracking-tighter">
-                {profile.name?.substring(0, 2) || '@'}
+              <div className="w-full h-full rounded-full border-4 border-white overflow-hidden bg-neutral-100 flex items-center justify-center text-neutral-900 font-black text-2xl md:text-3xl uppercase tracking-tighter">
+                {displayedTitleName.substring(0, 2)}
               </div>
               {profile.isPublic !== false ? (
                 <span className="absolute bottom-1 right-1 bg-emerald-500 text-white rounded-full p-1 border-2 border-white shadow" title="Compte Public">
@@ -539,23 +554,26 @@ export default function TikTokProfilePage() {
               </div>
 
               <div className="space-y-5">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-1.5">
-                    <label className="text-[10px] font-black uppercase text-neutral-400 tracking-widest">Nom complet affiché</label>
-                    <Input 
-                      value={editName} 
-                      onChange={(e) => setEditName(e.target.value)} 
-                      className="text-sm font-bold bg-neutral-50 border-neutral-200 rounded-xl h-11"
-                    />
-                  </div>
-                  <div className="space-y-1.5">
-                    <label className="text-[10px] font-black uppercase text-neutral-400 tracking-widest">Identifiant @username</label>
-                    <Input 
-                      value={editUsername} 
-                      onChange={(e) => setEditUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_-]/g, ''))} 
-                      className="text-sm font-bold bg-neutral-50 border-neutral-200 rounded-xl h-11 font-mono"
-                    />
-                  </div>
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-black uppercase text-neutral-400 tracking-widest">Nom ZAP (Nom de Profil)</label>
+                  <Input 
+                    value={editName} 
+                    placeholder="Ex: Jean l'Artiste (Laissez vide pour ZAP_XXXX)"
+                    onChange={(e) => setEditName(e.target.value)} 
+                    className="text-sm font-bold bg-neutral-50 border-neutral-200 rounded-xl h-11"
+                  />
+                  <p className="text-[10px] text-neutral-400 font-medium italic">
+                    Si ce champ est laissé vide, votre profil prendra automatiquement le nom de créateur temporaire "ZAP_(ID)".
+                  </p>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-black uppercase text-neutral-400 tracking-widest">Pseudo unique (@username / ID du profil)</label>
+                  <Input 
+                    value={editUsername} 
+                    onChange={(e) => setEditUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_-]/g, ''))} 
+                    className="text-sm font-bold bg-neutral-50 border-neutral-200 rounded-xl h-11 font-mono"
+                  />
                 </div>
 
                 <div className="space-y-2">
@@ -591,9 +609,9 @@ export default function TikTokProfilePage() {
                   />
                 </div>
 
-                <div className="grid grid-cols-1 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <label className="text-[10px] font-black uppercase text-neutral-400 tracking-widest">Lien (zap.ci/portfolio...)</label>
+                    <label className="text-[10px] font-black uppercase text-neutral-400 tracking-widest">Lien Externe</label>
                     <Input 
                       value={editLink} 
                       onChange={(e) => setEditLink(e.target.value)} 
@@ -601,7 +619,7 @@ export default function TikTokProfilePage() {
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <label className="text-[10px] font-black uppercase text-neutral-400 tracking-widest">Commune</label>
+                    <label className="text-[10px] font-black uppercase text-neutral-400 tracking-widest">Commune d'Abidjan</label>
                     <Input 
                       value={editCommune} 
                       onChange={(e) => setEditCommune(e.target.value)} 
@@ -615,7 +633,7 @@ export default function TikTokProfilePage() {
                     <p className="text-xs font-black text-neutral-900 flex items-center gap-1.5">
                       <Eye className="w-3.5 h-3.5 text-neutral-500" /> Profil Public ZAP
                     </p>
-                    <p className="text-[10px] font-medium text-neutral-400">Permet à tout le studio de voir vos créations.</p>
+                    <p className="text-[10px] font-medium text-neutral-400">Permet à toute la communauté scolaire de voir vos vidéos.</p>
                   </div>
                   <Switch 
                     checked={editIsPublic} 
