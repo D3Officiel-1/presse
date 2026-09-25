@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { useFirestore } from '@/firebase/provider';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, Check } from 'lucide-react';
+import { Loader2, X } from 'lucide-react';
 
 export default function EditNamePage() {
   const router = useRouter();
@@ -66,10 +66,18 @@ export default function EditNamePage() {
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="Ajouter votre nom"
-            className="w-full bg-transparent border-none outline-none text-base font-medium py-1.5 focus:ring-0"
+            className="w-full bg-transparent border-none outline-none text-base font-medium py-1.5 focus:ring-0 pr-8"
             autoFocus
           />
-          {name.trim().length > 0 && <Check className="w-5 h-5 text-emerald-500 shrink-0 ml-2" />}
+          {name.length > 0 && (
+            <button
+              type="button"
+              onClick={() => setName('')}
+              className="absolute right-0 top-1/2 -translate-y-1/2 p-1.5 text-neutral-400 hover:text-neutral-600 rounded-full bg-neutral-100 transition-colors"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          )}
         </div>
       </main>
     </div>
