@@ -20,7 +20,7 @@ export default function EditBioPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   
-  const BIO_LIMIT = 80;
+  const BIO_LIMIT = 180;
 
   useEffect(() => {
     const uid = localStorage.getItem('userId');
@@ -117,7 +117,7 @@ export default function EditBioPage() {
                 value={bio}
                 onChange={(e) => setBio(e.target.value.substring(0, BIO_LIMIT))}
                 placeholder="Décrivez votre univers créatif..."
-                className="pl-12 pr-12 min-h-[120px] bg-white/70 backdrop-blur-sm border border-neutral-200/80 rounded-2xl text-base font-medium focus-visible:ring-4 focus-visible:ring-primary/5 focus-visible:border-primary shadow-sm resize-none pt-3"
+                className="pl-12 pr-12 min-h-[140px] bg-white/70 backdrop-blur-sm border border-neutral-200/80 rounded-2xl text-base font-medium focus-visible:ring-4 focus-visible:ring-primary/5 focus-visible:border-primary shadow-sm resize-none pt-3"
                 autoFocus
                 maxLength={BIO_LIMIT}
               />
