@@ -37,9 +37,6 @@ export function ProfileHero({
               <Check className="w-2.5 h-2.5 stroke-[4]" />
             </span>
           </h2>
-          <p className="text-xs font-bold text-primary uppercase tracking-widest pt-0.5">
-            {category || 'Créateur Digital'}
-          </p>
         </div>
 
         <div className="flex items-center gap-6 lg:gap-10 py-1 text-left">
