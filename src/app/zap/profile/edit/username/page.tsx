@@ -126,13 +126,10 @@ export default function EditUsernamePage() {
               )}
             </div>
             
-            <div className="text-left px-1">
-              <p className="text-xs text-primary font-bold tracking-tight">
+            <div className="flex items-center justify-between px-1 pt-1 text-[11px] font-bold text-neutral-400">
+              <p className="text-primary font-bold tracking-tight text-left">
                 zap.ci/@{cleanVal || 'votre_pseudo'}
               </p>
-            </div>
-            
-            <div className="flex justify-end items-center text-[11px] font-bold text-neutral-400 px-1 pt-1">
               <span>
                 {username.length}/{USERNAME_LIMIT}
               </span>
