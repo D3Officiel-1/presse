@@ -6,24 +6,16 @@ import {
   Heart, 
   Lock, 
   Bookmark, 
-  LogOut,
-  Play,
-  Eye,
-  FileText,
   BarChart3,
   TrendingUp,
   Video,
-  Repeat2,
-  Sparkles
+  Repeat2
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Switch } from '@/components/ui/switch';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { useFirestore } from '@/firebase/provider';
 import { useToast } from '@/hooks/use-toast';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { doc, getDoc } from 'firebase/firestore';
 import { useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -42,15 +34,6 @@ import {
   Area,
   AreaChart
 } from 'recharts';
-
-const ACCOUNT_CATEGORIES = [
-  "Créateur Digital", 
-  "Monteur VFX", 
-  "Scénariste", 
-  "Acteur/Humoriste", 
-  "Danseur Urbain", 
-  "Cadreur / Réalisateur"
-];
 
 const GROWTH_DATA = [
   { day: 'Lun', views: 400, followers: 12 },
@@ -81,16 +64,6 @@ export default function TikTokProfilePage() {
   const [profile, setProfile] = useState<any>(null);
   const [isHydrated, setIsHydrated] = useState(false);
   const [activeTab, setActiveTab] = useState<'videos' | 'reposts' | 'liked' | 'bookmarked' | 'private' | 'insights'>('videos');
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-
-  const [editName, setEditName] = useState('');
-  const [editUsername, setEditUsername] = useState('');
-  const [editBio, setEditBio] = useState('');
-  const [editLink, setEditLink] = useState('');
-  const [editCommune, setEditCommune] = useState('');
-  const [editCategory, setEditCategory] = useState('Créateur Digital');
-  const [editIsPublic, setEditIsPublic] = useState(true);
-  const [savingProfile, setSavingProfile] = useState(false);
 
   const mediaImages = placeholderData.placeholderImages.filter(img => img.id.startsWith('media-'));
 
@@ -112,15 +85,7 @@ export default function TikTokProfilePage() {
     if (fs) {
       getDoc(doc(fs, 'users', uid)).then(snap => {
         if (snap.exists()) {
-          const data = snap.data();
-          setProfile(data);
-          setEditName(data.name || '');
-          setEditUsername(data.username || '');
-          setEditBio(data.bio || "Pas encore de description de créateur.");
-          setEditLink(data.link || 'zap.ci/studio');
-          setEditCommune(data.commune || 'Abidjan');
-          setEditCategory(data.category || 'Créateur Digital');
-          setEditIsPublic(data.isPublic !== false);
+          setProfile(snap.data());
         }
         setIsHydrated(true);
       }).catch(() => {
@@ -128,39 +93,6 @@ export default function TikTokProfilePage() {
       });
     }
   }, [fs, router]);
-
-  const handleSaveProfile = async () => {
-    const uid = localStorage.getItem('userId');
-    if (!uid || !fs) return;
-
-    if (!editUsername.trim()) {
-      toast({ variant: 'destructive', title: 'Erreur', description: "Le pseudo unique est obligatoire." });
-      return;
-    }
-
-    setSavingProfile(true);
-
-    const updatePayload = { 
-      name: editName.trim(),
-      username: editUsername.trim().toLowerCase().replace(/[^a-z0-9_-]/g, ''),
-      bio: editBio, 
-      link: editLink,
-      commune: editCommune,
-      category: editCategory,
-      isPublic: editIsPublic
-    };
-
-    try {
-      await setDoc(doc(fs, 'users', uid), updatePayload, { merge: true });
-      setProfile((prev: any) => ({ ...prev, ...updatePayload }));
-      toast({ title: 'Pass Créateur mis à jour !', description: 'Vos préférences ont été enregistrées.' });
-      setIsEditModalOpen(false);
-    } catch (e) {
-      toast({ variant: 'destructive', title: 'Erreur', description: 'Impossible de sauvegarder les données.' });
-    } finally {
-      setSavingProfile(false);
-    }
-  };
 
   if (!isHydrated || !profile) {
     return (
@@ -178,7 +110,7 @@ export default function TikTokProfilePage() {
       
       <ProfileHeader 
         name={displayedTitleName} 
-        onEditClick={() => setIsEditModalOpen(true)}
+        onEditClick={() => router.push('/zap/profile/edit')}
         onViewProfileClick={() => toast({ title: "Vues du profil", description: "42 membres ont visité votre pass cette semaine." })}
       />
 
@@ -431,137 +363,6 @@ export default function TikTokProfilePage() {
           pas d'autre resultat
         </div>
       </div>
-
-      <AnimatePresence>
-        {isEditModalOpen && (
-          <>
-            <motion.div 
-              className="fixed inset-0 bg-black/40 z-[60] backdrop-blur-sm"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setIsEditModalOpen(false)}
-            />
-            <motion.div 
-              className="fixed bottom-0 inset-x-0 md:inset-x-auto md:left-1/2 md:top-1/2 md:bottom-auto md:-translate-x-1/2 md:-translate-y-1/2 md:w-full md:max-w-xl bg-white rounded-t-[2.5rem] md:rounded-3xl max-h-[90vh] overflow-y-auto p-6 z-[70] space-y-6 shadow-2xl border-t border-neutral-100 text-left"
-              initial={{ y: "100%" }}
-              animate={{ y: 0 }}
-              exit={{ y: "100%" }}
-              transition={{ type: "spring", damping: 28, stiffness: 260 }}
-            >
-              <div className="flex items-center justify-between border-b border-neutral-100 pb-4">
-                <h3 className="font-black text-sm text-neutral-950 uppercase tracking-tight flex items-center gap-2">
-                  <FileText className="w-4 h-4 text-primary" /> Mettre à jour mon Pass Créateur
-                </h3>
-                <button 
-                  onClick={() => setIsEditModalOpen(false)}
-                  className="text-xs font-bold text-neutral-400 hover:text-neutral-600 bg-neutral-50 px-3 py-1.5 rounded-lg transition-colors"
-                >
-                  Fermer
-                </button>
-              </div>
-
-              <div className="space-y-5">
-                <div className="space-y-1.5">
-                  <label className="text-[10px] font-black uppercase text-neutral-400 tracking-widest">Nom ZAP (Nom de Profil)</label>
-                  <Input 
-                    value={editName} 
-                    placeholder="Ex: Jean l'Artiste (Laissez vide pour ZAP_XXXX)"
-                    onChange={(e) => setEditName(e.target.value)} 
-                    className="text-sm font-bold bg-neutral-50 border-neutral-200 rounded-xl h-11"
-                  />
-                  <p className="text-[10px] text-neutral-400 font-medium italic">
-                    Si ce champ est laissé vide, votre profil prendra automatiquement le nom de créateur temporaire "ZAP_(ID)".
-                  </p>
-                </div>
-
-                <div className="space-y-1.5">
-                  <label className="text-[10px] font-black uppercase text-neutral-400 tracking-widest">Pseudo unique (@username / ID du profil)</label>
-                  <Input 
-                    value={editUsername} 
-                    onChange={(e) => setEditUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_-]/g, ''))} 
-                    className="text-sm font-bold bg-neutral-50 border-neutral-200 rounded-xl h-11 font-mono"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-[10px] font-black uppercase text-neutral-400 tracking-widest">Catégorie Créateur</label>
-                  <div className="flex flex-wrap gap-2">
-                    {ACCOUNT_CATEGORIES.map((cat) => {
-                      const isSelected = editCategory === cat;
-                      return (
-                        <button
-                          key={cat}
-                          type="button"
-                          onClick={() => setEditCategory(cat)}
-                          className={cn(
-                            "px-3 py-2 rounded-xl text-xs font-bold border transition-all",
-                            isSelected 
-                              ? "bg-neutral-950 text-white border-neutral-950" 
-                              : "bg-white text-neutral-600 border-neutral-200 hover:bg-neutral-50"
-                          )}
-                        >
-                          {cat}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                <div className="space-y-1.5">
-                  <label className="text-[10px] font-black uppercase text-neutral-400 tracking-widest">Biographie</label>
-                  <Textarea 
-                    value={editBio} 
-                    onChange={(e) => setEditBio(e.target.value)} 
-                    className="text-xs md:text-sm font-medium bg-neutral-50 border-neutral-200 rounded-xl min-h-[80px]"
-                  />
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-1.5">
-                    <label className="text-[10px] font-black uppercase text-neutral-400 tracking-widest">Lien Externe</label>
-                    <Input 
-                      value={editLink} 
-                      onChange={(e) => setEditLink(e.target.value)} 
-                      className="text-sm font-bold bg-neutral-50 border-neutral-200 rounded-xl font-mono"
-                    />
-                  </div>
-                  <div className="space-y-1.5">
-                    <label className="text-[10px] font-black uppercase text-neutral-400 tracking-widest">Commune d'Abidjan</label>
-                    <Input 
-                      value={editCommune} 
-                      onChange={(e) => setEditCommune(e.target.value)} 
-                      className="text-sm font-bold bg-neutral-50 border-neutral-200 rounded-xl"
-                    />
-                  </div>
-                </div>
-
-                <div className="p-4 bg-neutral-50 rounded-2xl border border-neutral-100 flex items-center justify-between">
-                  <div className="space-y-0.5">
-                    <p className="text-xs font-black text-neutral-900 flex items-center gap-1.5">
-                      <Eye className="w-3.5 h-3.5 text-neutral-500" /> Profil Public ZAP
-                    </p>
-                    <p className="text-[10px] font-medium text-neutral-400">Permet à toute la communauté scolaire de voir vos vidéos.</p>
-                  </div>
-                  <Switch 
-                    checked={editIsPublic} 
-                    onCheckedChange={(checked) => setEditIsPublic(checked)}
-                  />
-                </div>
-              </div>
-
-              <Button 
-                onClick={handleSaveProfile} 
-                disabled={savingProfile} 
-                className="w-full bg-primary text-white font-black h-12 rounded-xl text-xs uppercase tracking-wider shadow-md mt-2"
-              >
-                {savingProfile ? "Mise à jour..." : "Enregistrer les modifications"}
-              </Button>
-            </motion.div>
-          </>
-        )}
-      </AnimatePresence>
-
     </div>
   );
 }
