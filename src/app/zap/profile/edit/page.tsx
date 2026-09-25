@@ -117,15 +117,14 @@ export default function EditProfilePage() {
 
   return (
     <div className="min-h-screen bg-[#F9F9FC] text-neutral-900 pb-[calc(env(safe-area-inset-bottom,0px)+2rem)]">
-      <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-neutral-100 px-4 h-14 flex items-center justify-between">
+      <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-neutral-100 px-4 h-14 flex items-center justify-center relative">
         <button 
           onClick={() => router.back()} 
-          className="p-2 -ml-2 rounded-xl text-neutral-600 active:scale-95 transition-transform"
+          className="absolute left-4 p-2 rounded-xl text-neutral-600 active:scale-95 transition-transform"
         >
           <ChevronLeft className="w-6 h-6" />
         </button>
-        <h1 className="text-sm font-black uppercase tracking-widest text-neutral-900">Modifier mon Pass</h1>
-        <div className="w-10" />
+        <h1 className="text-sm font-black uppercase tracking-widest text-neutral-900">Modifier mon profil</h1>
       </header>
 
       <main className="max-w-md mx-auto p-6 space-y-8">
