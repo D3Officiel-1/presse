@@ -5,9 +5,10 @@ import { useRouter } from 'next/navigation';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { useFirestore } from '@/firebase/provider';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, TextQuote, X } from 'lucide-react';
+import { Loader2, TextQuote, X, AtSign } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Textarea } from '@/components/ui/textarea';
+import { Button } from '@/components/ui/button';
 
 export default function EditBioPage() {
   const router = useRouter();
@@ -60,6 +61,11 @@ export default function EditBioPage() {
     } finally {
       setSaving(false);
     }
+  };
+
+  const handleInsertMention = () => {
+    if (bio.length >= BIO_LIMIT) return;
+    setBio(prev => (prev + '@').substring(0, BIO_LIMIT));
   };
 
   if (loading) return (
@@ -126,8 +132,19 @@ export default function EditBioPage() {
               )}
             </div>
             
-            <div className="flex justify-end text-[11px] font-bold text-neutral-400 px-1">
-              {bio.length}/{BIO_LIMIT}
+            <div className="flex items-center justify-between px-1 pt-1">
+              <button
+                type="button"
+                onClick={handleInsertMention}
+                disabled={bio.length >= BIO_LIMIT}
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-neutral-900 text-white rounded-xl text-xs font-black tracking-tight shadow-sm hover:bg-neutral-800 transition-all disabled:opacity-20"
+              >
+                <AtSign className="w-3.5 h-3.5" /> Mentionner
+              </button>
+
+              <div className="text-[11px] font-bold text-neutral-400">
+                {bio.length}/{BIO_LIMIT}
+              </div>
             </div>
           </div>
         </motion.div>
