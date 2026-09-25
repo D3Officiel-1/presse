@@ -9,8 +9,8 @@ import { cn } from '@/lib/utils';
 export function ZapNavigation() {
   const pathname = usePathname();
 
-  // Ne pas afficher la barre de navigation sur le tunnel d'édition du profil
-  if (pathname.startsWith('/zap/profile/edit')) {
+  // Ne pas afficher la barre de navigation sur le tunnel d'édition du profil ou les vues de profil
+  if (pathname.startsWith('/zap/profile/edit') || pathname === '/zap/profile/vue') {
     return null;
   }
 
