@@ -162,12 +162,6 @@ export default function TikTokProfilePage() {
     }
   };
 
-  const handleLogout = () => {
-    localStorage.clear();
-    toast({ title: 'Déconnexion', description: 'À bientôt sur ZAP !' });
-    router.replace('/auth');
-  };
-
   if (!isHydrated || !profile) {
     return (
       <div className="min-h-screen bg-white flex flex-col items-center justify-center text-neutral-400 space-y-3">
@@ -433,14 +427,8 @@ export default function TikTokProfilePage() {
           </AnimatePresence>
         </div>
 
-        <div className="p-8 flex justify-center">
-          <Button 
-            variant="ghost" 
-            onClick={handleLogout}
-            className="text-xs font-bold text-neutral-400 hover:text-rose-600 hover:bg-rose-50/50 rounded-xl px-6"
-          >
-            <LogOut className="w-3.5 h-3.5 mr-2" /> Déconnecter mon pass créateur
-          </Button>
+        <div className="p-8 flex justify-center text-xs font-bold text-neutral-400 uppercase tracking-widest opacity-60">
+          pas d'autre resultat
         </div>
       </div>
 
