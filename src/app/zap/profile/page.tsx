@@ -23,7 +23,10 @@ import {
   TrendingUp,
   Repeat2,
   Users as UsersIcon,
-  Video
+  Video,
+  ShieldAlert,
+  EyeOff,
+  UserX
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -43,11 +46,7 @@ import {
   ChartTooltipContent 
 } from '@/components/ui/chart';
 import { 
-  Line, 
-  LineChart, 
-  ResponsiveContainer, 
   XAxis, 
-  YAxis, 
   CartesianGrid,
   Area,
   AreaChart
@@ -62,7 +61,6 @@ const ACCOUNT_CATEGORIES = [
   "Cadreur / Réalisateur"
 ];
 
-// Données simulées pour les graphiques de croissance
 const GROWTH_DATA = [
   { day: 'Lun', views: 400, followers: 12 },
   { day: 'Mar', views: 300, followers: 8 },
@@ -93,9 +91,13 @@ export default function TikTokProfilePage() {
   const [isHydrated, setIsHydrated] = useState(false);
   const [activeTab, setActiveTab] = useState<'videos' | 'liked' | 'bookmarked' | 'insights'>('videos');
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isSimulatingFollow, setIsSimulatingFollow] = useState(false);
+  const [isFavorited, setIsFavorited] = useState(false);
 
+  // Formulaire d'édition
   const [editName, setEditName] = useState('');
+  const [editUsername, setEditUsername] = useState('');
   const [editBio, setEditBio] = useState('');
   const [editLink, setEditLink] = useState('');
   const [editCommune, setEditCommune] = useState('');
@@ -118,6 +120,7 @@ export default function TikTokProfilePage() {
           const data = snap.data();
           setProfile(data);
           setEditName(data.name || '');
+          setEditUsername(data.username || '');
           setEditBio(data.bio || "Pas encore de description de créateur.");
           setEditLink(data.link || 'zap.ci/studio');
           setEditCommune(data.commune || 'Abidjan');
@@ -134,10 +137,17 @@ export default function TikTokProfilePage() {
   const handleSaveProfile = async () => {
     const uid = localStorage.getItem('userId');
     if (!uid || !fs) return;
+
+    if (!editUsername.trim()) {
+      toast({ variant: 'destructive', title: 'Erreur', description: "Le nom d'utilisateur est obligatoire." });
+      return;
+    }
+
     setSavingProfile(true);
 
     const updatePayload = { 
       name: editName,
+      username: editUsername.trim().toLowerCase().replace(/[^a-z0-9_-]/g, ''),
       bio: editBio, 
       link: editLink,
       commune: editCommune,
@@ -148,7 +158,7 @@ export default function TikTokProfilePage() {
     try {
       await setDoc(doc(fs, 'users', uid), updatePayload, { merge: true });
       setProfile((prev: any) => ({ ...prev, ...updatePayload }));
-      toast({ title: 'Profil mis à jour !', description: 'Vos modifications ont été enregistrées avec succès.' });
+      toast({ title: 'Profil mis à jour !', description: 'Vos modifications ont été enregistrées.' });
       setIsEditModalOpen(false);
     } catch (e) {
       toast({ variant: 'destructive', title: 'Erreur', description: 'Impossible de sauvegarder les données.' });
@@ -166,15 +176,49 @@ export default function TikTokProfilePage() {
   const handleShareProfile = () => {
     if (typeof navigator !== 'undefined' && navigator.clipboard) {
       navigator.clipboard.writeText(`${window.location.origin}/zap/profile`);
-      toast({ title: 'Lien copié !', description: 'Le lien d\'accès à votre profil a été partagé.' });
+      toast({ title: 'Lien copié !', description: "L'adresse URL du profil est dans le presse-papiers." });
     }
+  };
+
+  const toggleFavorite = () => {
+    setIsFavorited(!isFavorited);
+    toast({
+      title: !isFavorited ? 'Ajouté aux favoris' : 'Retiré des favoris',
+      description: !isFavorited ? 'Ce créateur apparaîtra en haut de vos listes.' : 'Ce créateur a été retiré de vos favoris.'
+    });
+  };
+
+  const handleReport = () => {
+    toast({
+      variant: 'destructive',
+      title: 'Signalement envoyé',
+      description: 'Merci, notre équipe de modération va examiner ce profil sous 24 heures.'
+    });
+    setIsMenuOpen(false);
+  };
+
+  const handleBlock = () => {
+    toast({
+      variant: 'destructive',
+      title: 'Compte bloqué',
+      description: 'Vous ne verrez plus les publications de ce créateur.'
+    });
+    setIsMenuOpen(false);
+  };
+
+  const handleHideContent = () => {
+    toast({
+      title: 'Contenu masqué',
+      description: 'Ce type de contenu sera désormais moins mis en avant dans votre flux.'
+    });
+    setIsMenuOpen(false);
   };
 
   if (!isHydrated || !profile) {
     return (
       <div className="min-h-screen bg-white flex flex-col items-center justify-center text-neutral-400 space-y-3">
         <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
-        <p className="text-xs font-bold uppercase tracking-wider opacity-60">Chargement...</p>
+        <p className="text-xs font-bold uppercase tracking-wider opacity-60">Chargement du studio...</p>
       </div>
     );
   }
@@ -198,12 +242,42 @@ export default function TikTokProfilePage() {
         </h1>
 
         <div className="flex items-center gap-1">
-          <button onClick={handleShareProfile} className="p-2 text-neutral-800 hover:bg-neutral-50 rounded-full transition">
+          <button onClick={handleShareProfile} className="p-2 text-neutral-800 hover:bg-neutral-50 rounded-full transition" title="Partager le profil">
             <Share2 className="w-4 h-4" />
           </button>
-          <button className="p-2 text-neutral-800 hover:bg-neutral-50 rounded-full transition">
+          <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="p-2 text-neutral-800 hover:bg-neutral-50 rounded-full transition relative" title="Plus d'options">
             <MoreHorizontal className="w-4 h-4" />
           </button>
+
+          {/* Menu contextuel drop-down */}
+          <AnimatePresence>
+            {isMenuOpen && (
+              <>
+                <div className="fixed inset-0 z-40" onClick={() => setIsMenuOpen(false)} />
+                <motion.div 
+                  initial={{ opacity: 0, scale: 0.95, y: -10 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.95, y: -10 }}
+                  className="absolute right-4 top-12 bg-white border border-neutral-200 rounded-2xl shadow-xl p-2 z-50 min-w-[200px]"
+                >
+                  <button onClick={toggleFavorite} className="w-full text-left px-3 py-2.5 text-xs font-bold hover:bg-neutral-50 rounded-xl flex items-center gap-2">
+                    <Bookmark className={cn("w-3.5 h-3.5", isFavorited ? "fill-yellow-400 text-yellow-400" : "text-neutral-500")} />
+                    {isFavorited ? 'Retirer des favoris' : 'Ajouter aux favoris'}
+                  </button>
+                  <button onClick={handleHideContent} className="w-full text-left px-3 py-2.5 text-xs font-bold hover:bg-neutral-50 rounded-xl flex items-center gap-2 text-neutral-700">
+                    <EyeOff className="w-3.5 h-3.5 text-neutral-500" /> Masquer le contenu
+                  </button>
+                  <div className="h-px bg-neutral-100 my-1" />
+                  <button onClick={handleBlock} className="w-full text-left px-3 py-2.5 text-xs font-bold hover:bg-rose-50 rounded-xl flex items-center gap-2 text-rose-600">
+                    <UserX className="w-3.5 h-3.5 text-rose-500" /> Bloquer l'utilisateur
+                  </button>
+                  <button onClick={handleReport} className="w-full text-left px-3 py-2.5 text-xs font-bold hover:bg-rose-50 rounded-xl flex items-center gap-2 text-rose-600">
+                    <ShieldAlert className="w-3.5 h-3.5 text-rose-500" /> Signaler le profil
+                  </button>
+                </motion.div>
+              </>
+            )}
+          </AnimatePresence>
         </div>
       </header>
 
@@ -220,11 +294,11 @@ export default function TikTokProfilePage() {
                 {profile.name?.substring(0, 2) || '@'}
               </div>
               {profile.isPublic !== false ? (
-                <span className="absolute bottom-1 right-1 bg-emerald-500 text-white rounded-full p-1 border-2 border-white shadow">
+                <span className="absolute bottom-1 right-1 bg-emerald-500 text-white rounded-full p-1 border-2 border-white shadow" title="Compte Public">
                   <Globe className="w-3 h-3 md:w-4 md:h-4" />
                 </span>
               ) : (
-                <span className="absolute bottom-1 right-1 bg-amber-500 text-white rounded-full p-1 border-2 border-white shadow">
+                <span className="absolute bottom-1 right-1 bg-amber-500 text-white rounded-full p-1 border-2 border-white shadow" title="Compte Privé">
                   <Lock className="w-3 h-3 md:w-4 md:h-4" />
                 </span>
               )}
@@ -260,19 +334,20 @@ export default function TikTokProfilePage() {
                 variant={isSimulatingFollow ? "secondary" : "default"}
                 className={cn("h-10 text-xs font-black px-4 rounded-md transition-all active:scale-[0.98]", !isSimulatingFollow && "bg-neutral-900 text-white hover:bg-neutral-800")}
               >
-                {isSimulatingFollow ? <span className="flex items-center gap-1"><UserCheck className="w-3.5 h-3.5" /> Suivi</span> : 'Suivre'}
+                {isSimulatingFollow ? <span className="flex items-center gap-1"><UserCheck className="w-3.5 h-3.5" /> Abonné(e)</span> : 'S\'abonner'}
               </Button>
 
               <Button
                 onClick={() => router.push('/zap/chat')}
                 variant="outline"
                 className="h-10 w-10 border-neutral-200 rounded-md p-0 bg-neutral-50 hover:bg-neutral-100"
+                title="Envoyer un message"
               >
                 <MessageCircle className="w-4 h-4 text-neutral-700" />
               </Button>
             </div>
 
-            {/* Statistiques Horizontales */}
+            {/* Statistiques Horizontales Style TikTok */}
             <div className="flex items-center justify-center md:justify-start gap-6 lg:gap-10 w-full py-2 text-center md:text-left">
               <div className="flex flex-col md:flex-row md:gap-1 items-center">
                 <span className="font-black text-base text-neutral-950 tracking-tight">142</span>
@@ -311,7 +386,7 @@ export default function TikTokProfilePage() {
           </div>
         </div>
 
-        {/* Sélecteur d'onglets étendu */}
+        {/* Sélecteur d'onglets étendus */}
         <div className="flex border-b border-neutral-100 bg-white sticky top-14 z-30 w-full">
           {[
             { id: 'videos', icon: Grid },
@@ -449,18 +524,18 @@ export default function TikTokProfilePage() {
 
                   <Card className="rounded-2xl border-neutral-100 bg-neutral-50/50 shadow-none">
                     <CardHeader className="p-4 pb-0">
-                      <CardDescription className="text-[9px] font-black uppercase tracking-tighter opacity-100 text-neutral-400">Growth Rate</CardDescription>
+                      <CardDescription className="text-[9px] font-black uppercase tracking-tighter opacity-100 text-neutral-400">Publications</CardDescription>
                     </CardHeader>
                     <CardContent className="p-4 pt-1">
                       <div className="flex items-center justify-between">
-                        <span className="text-lg font-black tracking-tight">4.2%</span>
-                        <TrendingUp className="w-3.5 h-3.5 text-primary" />
+                        <span className="text-lg font-black tracking-tight">33</span>
+                        <Video className="w-3.5 h-3.5 text-neutral-900" />
                       </div>
                     </CardContent>
                   </Card>
                 </div>
 
-                {/* Growth Chart */}
+                {/* Graphique de Croissance */}
                 <Card className="rounded-3xl border-neutral-100 shadow-sm overflow-hidden">
                   <CardHeader className="p-6 pb-2">
                     <CardTitle className="text-xs font-black uppercase tracking-widest text-neutral-900 flex items-center gap-2">
@@ -509,51 +584,6 @@ export default function TikTokProfilePage() {
                     </ChartContainer>
                   </CardContent>
                 </Card>
-
-                {/* Detailed Breakdown */}
-                <div className="space-y-3">
-                  <p className="text-[10px] font-black uppercase tracking-widest text-neutral-400 px-2">Répartition par type</p>
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between p-4 bg-neutral-50/50 rounded-2xl border border-neutral-100">
-                      <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
-                          <Video className="w-5 h-5" />
-                        </div>
-                        <div>
-                          <p className="text-xs font-black">Vidéos publiées</p>
-                          <p className="text-[10px] font-medium text-neutral-400">Total sur le mois</p>
-                        </div>
-                      </div>
-                      <span className="font-black text-sm">24</span>
-                    </div>
-                    
-                    <div className="flex items-center justify-between p-4 bg-neutral-50/50 rounded-2xl border border-neutral-100">
-                      <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 rounded-xl bg-sky-500/10 flex items-center justify-center text-sky-500">
-                          <UsersIcon className="w-5 h-5" />
-                        </div>
-                        <div>
-                          <p className="text-xs font-black">Nouveaux Abonnés</p>
-                          <p className="text-[10px] font-medium text-neutral-400">Derniers 7 jours</p>
-                        </div>
-                      </div>
-                      <span className="font-black text-sm">+248</span>
-                    </div>
-
-                    <div className="flex items-center justify-between p-4 bg-neutral-50/50 rounded-2xl border border-neutral-100">
-                      <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 rounded-xl bg-orange-500/10 flex items-center justify-center text-orange-500">
-                          <Eye className="w-5 h-5" />
-                        </div>
-                        <div>
-                          <p className="text-xs font-black">Taux de Rétention</p>
-                          <p className="text-[10px] font-medium text-neutral-400">Temps de visionnage</p>
-                        </div>
-                      </div>
-                      <span className="font-black text-sm">68%</span>
-                    </div>
-                  </div>
-                </div>
               </motion.div>
             )}
 
@@ -605,12 +635,12 @@ export default function TikTokProfilePage() {
             onClick={handleLogout}
             className="text-xs font-bold text-neutral-400 hover:text-rose-600 hover:bg-rose-50/50 rounded-xl px-6"
           >
-            <LogOut className="w-3.5 h-3.5 mr-2" /> Déconnecter mon pass
+            <LogOut className="w-3.5 h-3.5 mr-2" /> Déconnecter mon pass créateur
           </Button>
         </div>
       </div>
 
-      {/* Modal d'édition */}
+      {/* Modal d'édition complet du profil */}
       <AnimatePresence>
         {isEditModalOpen && (
           <>
@@ -622,7 +652,7 @@ export default function TikTokProfilePage() {
               onClick={() => setIsEditModalOpen(false)}
             />
             <motion.div 
-              className="fixed bottom-0 inset-x-0 md:inset-x-auto md:left-1/2 md:top-1/2 md:bottom-auto md:-translate-x-1/2 md:-translate-y-1/2 md:w-full md:max-w-xl bg-white rounded-t-[2.5rem] md:rounded-3xl max-h-[90vh] overflow-y-auto p-6 z-[70] space-y-6 shadow-2xl border-t border-neutral-100"
+              className="fixed bottom-0 inset-x-0 md:inset-x-auto md:left-1/2 md:top-1/2 md:bottom-auto md:-translate-x-1/2 md:-translate-y-1/2 md:w-full md:max-w-xl bg-white rounded-t-[2.5rem] md:rounded-3xl max-h-[90vh] overflow-y-auto p-6 z-[70] space-y-6 shadow-2xl border-t border-neutral-100 text-left"
               initial={{ y: "100%" }}
               animate={{ y: 0 }}
               exit={{ y: "100%" }}
@@ -630,7 +660,7 @@ export default function TikTokProfilePage() {
             >
               <div className="flex items-center justify-between border-b border-neutral-100 pb-4">
                 <h3 className="font-black text-sm text-neutral-950 uppercase tracking-tight flex items-center gap-2">
-                  <FileText className="w-4 h-4 text-primary" /> Mettre à jour mon Pass
+                  <FileText className="w-4 h-4 text-primary" /> Mettre à jour mon Pass Créateur
                 </h3>
                 <button 
                   onClick={() => setIsEditModalOpen(false)}
@@ -641,13 +671,23 @@ export default function TikTokProfilePage() {
               </div>
 
               <div className="space-y-5">
-                <div className="space-y-1.5">
-                  <label className="text-[10px] font-black uppercase text-neutral-400 tracking-widest">Nom complet affiché</label>
-                  <Input 
-                    value={editName} 
-                    onChange={(e) => setEditName(e.target.value)} 
-                    className="text-sm font-bold bg-neutral-50 border-neutral-200 rounded-xl h-11"
-                  />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-black uppercase text-neutral-400 tracking-widest">Nom complet affiché</label>
+                    <Input 
+                      value={editName} 
+                      onChange={(e) => setEditName(e.target.value)} 
+                      className="text-sm font-bold bg-neutral-50 border-neutral-200 rounded-xl h-11"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-black uppercase text-neutral-400 tracking-widest">Identifiant @username</label>
+                    <Input 
+                      value={editUsername} 
+                      onChange={(e) => setEditUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_-]/g, ''))} 
+                      className="text-sm font-bold bg-neutral-50 border-neutral-200 rounded-xl h-11 font-mono"
+                    />
+                  </div>
                 </div>
 
                 <div className="space-y-2">
@@ -679,13 +719,13 @@ export default function TikTokProfilePage() {
                   <Textarea 
                     value={editBio} 
                     onChange={(e) => setEditBio(e.target.value)} 
-                    className="text-xs md:text-sm font-medium bg-neutral-50 border-neutral-200 rounded-xl min-h-[100px]"
+                    className="text-xs md:text-sm font-medium bg-neutral-50 border-neutral-200 rounded-xl min-h-[80px]"
                   />
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 Handheld:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <label className="text-[10px] font-black uppercase text-neutral-400 tracking-widest">Lien (Portfolio, etc.)</label>
+                    <label className="text-[10px] font-black uppercase text-neutral-400 tracking-widest">Lien (zap.ci/portfolio...)</label>
                     <Input 
                       value={editLink} 
                       onChange={(e) => setEditLink(e.target.value)} 
@@ -705,9 +745,9 @@ export default function TikTokProfilePage() {
                 <div className="p-4 bg-neutral-50 rounded-2xl border border-neutral-100 flex items-center justify-between">
                   <div className="space-y-0.5">
                     <p className="text-xs font-black text-neutral-900 flex items-center gap-1.5">
-                      <Eye className="w-3.5 h-3.5 text-neutral-500" /> Mode Compte Public
+                      <Eye className="w-3.5 h-3.5 text-neutral-500" /> Profil Public ZAP
                     </p>
-                    <p className="text-[10px] font-medium text-neutral-400">Permet à tout le club de voir votre activité.</p>
+                    <p className="text-[10px] font-medium text-neutral-400">Permet à tout le studio de voir vos créations.</p>
                   </div>
                   <Switch 
                     checked={editIsPublic} 
@@ -721,7 +761,7 @@ export default function TikTokProfilePage() {
                 disabled={savingProfile} 
                 className="w-full bg-primary text-white font-black h-12 rounded-xl text-xs uppercase tracking-wider shadow-md mt-2"
               >
-                {savingProfile ? "Mise à jour..." : "Sauvegarder mon Pass Digital"}
+                {savingProfile ? "Mise à jour..." : "Enregistrer les modifications"}
               </Button>
             </motion.div>
           </>
