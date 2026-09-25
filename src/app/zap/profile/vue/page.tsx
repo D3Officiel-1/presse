@@ -27,7 +27,7 @@ export default function ProfileViewsPage() {
         >
           <ArrowLeft className="w-6 h-6" />
         </button>
-        <h1 className="text-base font-bold text-neutral-900">Profile views</h1>
+        <h1 className="text-base font-bold text-neutral-900">Vues du profil</h1>
         <button className="p-1 text-neutral-900 hover:bg-neutral-50 rounded-full transition-colors active:scale-90">
           <Settings className="w-6 h-6" />
         </button>
@@ -59,11 +59,11 @@ export default function ProfileViewsPage() {
                 </div>
               </div>
               
-              {/* Bouton Follow rouge ZAP/TikTok */}
+              {/* Bouton Suivre rouge ZAP/TikTok */}
               <Button 
                 className="h-8 px-6 rounded-md bg-[#fe2c55] hover:bg-[#e6284d] text-white text-[13px] font-bold border-none shadow-none active:scale-95 transition-all"
               >
-                Follow
+                Suivre
               </Button>
             </div>
           ))}
@@ -71,7 +71,7 @@ export default function ProfileViewsPage() {
           {/* Texte informatif bas de page */}
           <div className="px-10 py-12 text-center">
             <p className="text-[13px] leading-relaxed text-neutral-400 font-medium">
-              People who viewed your profile in the past 30 days will appear here. Only you can see this.
+              Les personnes qui ont consulté votre profil au cours des 30 derniers jours apparaîtront ici. Vous seul pouvez voir cela.
             </p>
           </div>
         </motion.div>
