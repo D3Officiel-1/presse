@@ -19,6 +19,8 @@ export default function EditNamePage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
+  
+  const NAME_LIMIT = 30;
 
   useEffect(() => {
     const uid = localStorage.getItem('userId');
@@ -119,9 +121,6 @@ export default function EditNamePage() {
           )}
 
           <div className="space-y-2 w-full">
-            <label className="text-[10px] font-black uppercase tracking-[0.2em] text-neutral-400 ml-1">
-              Nom complet
-            </label>
             <div className="relative group w-full">
               <div className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-400 group-focus-within:text-primary transition-colors">
                 <User className="w-5 h-5" />
@@ -129,11 +128,12 @@ export default function EditNamePage() {
               <Input 
                 type="text"
                 value={name}
-                onChange={(e) => setName(e.target.value)}
+                onChange={(e) => setName(e.target.value.substring(0, NAME_LIMIT))}
                 placeholder="Ex: Yannick Koffi"
                 className="pl-12 pr-12 border-none shadow-md w-full"
                 autoFocus={!isRestricted}
                 disabled={isRestricted}
+                maxLength={NAME_LIMIT}
               />
               {name.length > 0 && !isRestricted && (
                 <button
@@ -144,6 +144,10 @@ export default function EditNamePage() {
                   <X className="w-4 h-4" />
                 </button>
               )}
+            </div>
+            
+            <div className="flex justify-end text-[11px] font-bold text-neutral-400 px-1">
+              {name.length}/{NAME_LIMIT}
             </div>
           </div>
           
