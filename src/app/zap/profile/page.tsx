@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { 
   Grid, 
   Heart, 
@@ -18,12 +18,18 @@ import {
   UserCheck,
   MessageCircle,
   Eye,
-  FileText
+  FileText,
+  BarChart3,
+  TrendingUp,
+  Repeat2,
+  Users as UsersIcon,
+  Video
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { useFirestore } from '@/firebase/provider';
 import { useToast } from '@/hooks/use-toast';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
@@ -31,6 +37,21 @@ import { useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 import placeholderData from '@/lib/placeholder-images.json';
+import { 
+  ChartContainer, 
+  ChartTooltip, 
+  ChartTooltipContent 
+} from '@/components/ui/chart';
+import { 
+  Line, 
+  LineChart, 
+  ResponsiveContainer, 
+  XAxis, 
+  YAxis, 
+  CartesianGrid,
+  Area,
+  AreaChart
+} from 'recharts';
 
 const ACCOUNT_CATEGORIES = [
   "Créateur Digital", 
@@ -41,6 +62,28 @@ const ACCOUNT_CATEGORIES = [
   "Cadreur / Réalisateur"
 ];
 
+// Données simulées pour les graphiques de croissance
+const GROWTH_DATA = [
+  { day: 'Lun', views: 400, followers: 12 },
+  { day: 'Mar', views: 300, followers: 8 },
+  { day: 'Mer', views: 900, followers: 25 },
+  { day: 'Jeu', views: 700, followers: 18 },
+  { day: 'Ven', views: 1200, followers: 32 },
+  { day: 'Sam', views: 1500, followers: 45 },
+  { day: 'Dim', views: 1100, followers: 38 },
+];
+
+const CHART_CONFIG = {
+  views: {
+    label: "Vues",
+    color: "hsl(var(--primary))",
+  },
+  followers: {
+    label: "Abonnés",
+    color: "#7C3AED",
+  },
+};
+
 export default function TikTokProfilePage() {
   const router = useRouter();
   const fs = useFirestore();
@@ -48,7 +91,7 @@ export default function TikTokProfilePage() {
   
   const [profile, setProfile] = useState<any>(null);
   const [isHydrated, setIsHydrated] = useState(false);
-  const [activeTab, setActiveTab] = useState<'videos' | 'liked' | 'bookmarked'>('videos');
+  const [activeTab, setActiveTab] = useState<'videos' | 'liked' | 'bookmarked' | 'insights'>('videos');
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isSimulatingFollow, setIsSimulatingFollow] = useState(false);
 
@@ -268,12 +311,13 @@ export default function TikTokProfilePage() {
           </div>
         </div>
 
-        {/* Sélecteur d'onglets */}
+        {/* Sélecteur d'onglets étendu */}
         <div className="flex border-b border-neutral-100 bg-white sticky top-14 z-30 w-full">
           {[
             { id: 'videos', icon: Grid },
             { id: 'liked', icon: Heart },
-            { id: 'bookmarked', icon: Bookmark }
+            { id: 'bookmarked', icon: Bookmark },
+            { id: 'insights', icon: BarChart3 }
           ].map((tab) => {
             const Icon = tab.icon;
             const isSelected = activeTab === tab.id;
@@ -298,7 +342,7 @@ export default function TikTokProfilePage() {
           })}
         </div>
 
-        {/* Grille de miniatures Vidéos */}
+        {/* Contenu des onglets */}
         <div className="mt-1">
           <AnimatePresence mode="wait">
             {activeTab === 'videos' && (
@@ -345,6 +389,171 @@ export default function TikTokProfilePage() {
                     </span>
                   </div>
                 ))}
+              </motion.div>
+            )}
+
+            {activeTab === 'insights' && (
+              <motion.div 
+                key="insights" 
+                initial={{ opacity: 0, y: 10 }} 
+                animate={{ opacity: 1, y: 0 }} 
+                exit={{ opacity: 0, y: 10 }}
+                className="space-y-6 pt-6 pb-12"
+              >
+                <div className="flex items-center justify-between px-2">
+                  <h3 className="text-sm font-black uppercase tracking-widest text-neutral-900">Tableau de bord créateur</h3>
+                  <Button variant="ghost" size="sm" className="text-[10px] font-bold text-primary">Derniers 7 jours</Button>
+                </div>
+
+                {/* Statistiques clés grid */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                  <Card className="rounded-2xl border-neutral-100 bg-neutral-50/50 shadow-none">
+                    <CardHeader className="p-4 pb-0">
+                      <CardDescription className="text-[9px] font-black uppercase tracking-tighter opacity-100 text-neutral-400">Vues Vidéos</CardDescription>
+                    </CardHeader>
+                    <CardContent className="p-4 pt-1">
+                      <div className="flex items-center justify-between">
+                        <span className="text-lg font-black tracking-tight">45.2 K</span>
+                        <div className="flex items-center text-[9px] font-black text-emerald-500">
+                          <TrendingUp className="w-2.5 h-2.5 mr-0.5" /> +12%
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="rounded-2xl border-neutral-100 bg-neutral-50/50 shadow-none">
+                    <CardHeader className="p-4 pb-0">
+                      <CardDescription className="text-[9px] font-black uppercase tracking-tighter opacity-100 text-neutral-400">Vues Profil</CardDescription>
+                    </CardHeader>
+                    <CardContent className="p-4 pt-1">
+                      <div className="flex items-center justify-between">
+                        <span className="text-lg font-black tracking-tight">1.8 K</span>
+                        <div className="flex items-center text-[9px] font-black text-emerald-500">
+                          <TrendingUp className="w-2.5 h-2.5 mr-0.5" /> +5%
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="rounded-2xl border-neutral-100 bg-neutral-50/50 shadow-none">
+                    <CardHeader className="p-4 pb-0">
+                      <CardDescription className="text-[9px] font-black uppercase tracking-tighter opacity-100 text-neutral-400">Reposts</CardDescription>
+                    </CardHeader>
+                    <CardContent className="p-4 pt-1">
+                      <div className="flex items-center justify-between">
+                        <span className="text-lg font-black tracking-tight">842</span>
+                        <Repeat2 className="w-3.5 h-3.5 text-primary" />
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="rounded-2xl border-neutral-100 bg-neutral-50/50 shadow-none">
+                    <CardHeader className="p-4 pb-0">
+                      <CardDescription className="text-[9px] font-black uppercase tracking-tighter opacity-100 text-neutral-400">Growth Rate</CardDescription>
+                    </CardHeader>
+                    <CardContent className="p-4 pt-1">
+                      <div className="flex items-center justify-between">
+                        <span className="text-lg font-black tracking-tight">4.2%</span>
+                        <TrendingUp className="w-3.5 h-3.5 text-primary" />
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                {/* Growth Chart */}
+                <Card className="rounded-3xl border-neutral-100 shadow-sm overflow-hidden">
+                  <CardHeader className="p-6 pb-2">
+                    <CardTitle className="text-xs font-black uppercase tracking-widest text-neutral-900 flex items-center gap-2">
+                      <TrendingUp className="w-4 h-4 text-primary" /> Croissance de l'Audience
+                    </CardTitle>
+                    <CardDescription className="normal-case text-[11px] font-medium tracking-normal text-neutral-500">Performances quotidiennes combinées (Vues & Abonnés)</CardDescription>
+                  </CardHeader>
+                  <CardContent className="p-0 pt-4 px-2">
+                    <ChartContainer config={CHART_CONFIG} className="aspect-[2/1] w-full">
+                      <AreaChart data={GROWTH_DATA}>
+                        <defs>
+                          <linearGradient id="colorViews" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.2}/>
+                            <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0}/>
+                          </linearGradient>
+                          <linearGradient id="colorFollowers" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="#7C3AED" stopOpacity={0.2}/>
+                            <stop offset="95%" stopColor="#7C3AED" stopOpacity={0}/>
+                          </linearGradient>
+                        </defs>
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
+                        <XAxis 
+                          dataKey="day" 
+                          axisLine={false} 
+                          tickLine={false} 
+                          tick={{ fontSize: 10, fontWeight: 700, fill: '#A3A3A3' }} 
+                        />
+                        <ChartTooltip content={<ChartTooltipContent />} />
+                        <Area 
+                          type="monotone" 
+                          dataKey="views" 
+                          stroke="hsl(var(--primary))" 
+                          strokeWidth={3} 
+                          fillOpacity={1} 
+                          fill="url(#colorViews)" 
+                        />
+                        <Area 
+                          type="monotone" 
+                          dataKey="followers" 
+                          stroke="#7C3AED" 
+                          strokeWidth={3} 
+                          fillOpacity={1} 
+                          fill="url(#colorFollowers)" 
+                        />
+                      </AreaChart>
+                    </ChartContainer>
+                  </CardContent>
+                </Card>
+
+                {/* Detailed Breakdown */}
+                <div className="space-y-3">
+                  <p className="text-[10px] font-black uppercase tracking-widest text-neutral-400 px-2">Répartition par type</p>
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between p-4 bg-neutral-50/50 rounded-2xl border border-neutral-100">
+                      <div className="flex items-center gap-3">
+                        <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
+                          <Video className="w-5 h-5" />
+                        </div>
+                        <div>
+                          <p className="text-xs font-black">Vidéos publiées</p>
+                          <p className="text-[10px] font-medium text-neutral-400">Total sur le mois</p>
+                        </div>
+                      </div>
+                      <span className="font-black text-sm">24</span>
+                    </div>
+                    
+                    <div className="flex items-center justify-between p-4 bg-neutral-50/50 rounded-2xl border border-neutral-100">
+                      <div className="flex items-center gap-3">
+                        <div className="w-9 h-9 rounded-xl bg-sky-500/10 flex items-center justify-center text-sky-500">
+                          <UsersIcon className="w-5 h-5" />
+                        </div>
+                        <div>
+                          <p className="text-xs font-black">Nouveaux Abonnés</p>
+                          <p className="text-[10px] font-medium text-neutral-400">Derniers 7 jours</p>
+                        </div>
+                      </div>
+                      <span className="font-black text-sm">+248</span>
+                    </div>
+
+                    <div className="flex items-center justify-between p-4 bg-neutral-50/50 rounded-2xl border border-neutral-100">
+                      <div className="flex items-center gap-3">
+                        <div className="w-9 h-9 rounded-xl bg-orange-500/10 flex items-center justify-center text-orange-500">
+                          <Eye className="w-5 h-5" />
+                        </div>
+                        <div>
+                          <p className="text-xs font-black">Taux de Rétention</p>
+                          <p className="text-[10px] font-medium text-neutral-400">Temps de visionnage</p>
+                        </div>
+                      </div>
+                      <span className="font-black text-sm">68%</span>
+                    </div>
+                  </div>
+                </div>
               </motion.div>
             )}
 
@@ -406,14 +615,14 @@ export default function TikTokProfilePage() {
         {isEditModalOpen && (
           <>
             <motion.div 
-              className="fixed inset-0 bg-black/40 z-50 backdrop-blur-sm"
+              className="fixed inset-0 bg-black/40 z-[60] backdrop-blur-sm"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setIsEditModalOpen(false)}
             />
             <motion.div 
-              className="fixed bottom-0 inset-x-0 md:inset-x-auto md:left-1/2 md:top-1/2 md:bottom-auto md:-translate-x-1/2 md:-translate-y-1/2 md:w-full md:max-w-xl bg-white rounded-t-[2.5rem] md:rounded-3xl max-h-[90vh] overflow-y-auto p-6 z-50 space-y-6 shadow-2xl border-t border-neutral-100"
+              className="fixed bottom-0 inset-x-0 md:inset-x-auto md:left-1/2 md:top-1/2 md:bottom-auto md:-translate-x-1/2 md:-translate-y-1/2 md:w-full md:max-w-xl bg-white rounded-t-[2.5rem] md:rounded-3xl max-h-[90vh] overflow-y-auto p-6 z-[70] space-y-6 shadow-2xl border-t border-neutral-100"
               initial={{ y: "100%" }}
               animate={{ y: 0 }}
               exit={{ y: "100%" }}
