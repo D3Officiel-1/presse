@@ -117,7 +117,6 @@ export default function EditProfilePage() {
 
   return (
     <div className="min-h-screen bg-[#F9F9FC] text-neutral-900 pb-[calc(env(safe-area-inset-bottom,0px)+2rem)]">
-      {/* Header Mobile Style */}
       <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-neutral-100 px-4 h-14 flex items-center justify-between">
         <button 
           onClick={() => router.back()} 
@@ -126,17 +125,10 @@ export default function EditProfilePage() {
           <ChevronLeft className="w-6 h-6" />
         </button>
         <h1 className="text-sm font-black uppercase tracking-widest text-neutral-900">Modifier mon Pass</h1>
-        <button 
-          onClick={handleSave} 
-          disabled={saving}
-          className="text-xs font-black text-primary hover:opacity-70 disabled:opacity-30 uppercase tracking-widest transition-all"
-        >
-          {saving ? '...' : 'Enregistrer'}
-        </button>
+        <div className="w-10" />
       </header>
 
       <main className="max-w-md mx-auto p-6 space-y-8">
-        {/* Photo Section */}
         <div className="flex flex-col items-center justify-center space-y-4">
           <div className="relative group">
             <div className="w-28 h-28 rounded-full bg-gradient-to-tr from-primary via-purple-600 to-orange-400 p-1 shadow-2xl">
@@ -151,7 +143,6 @@ export default function EditProfilePage() {
           <p className="text-[10px] font-black text-neutral-400 uppercase tracking-widest">Changer ma photo</p>
         </div>
 
-        {/* Form Fields */}
         <div className="space-y-6">
           <div className="space-y-2">
             <label className="text-[10px] font-black uppercase text-neutral-400 tracking-widest ml-1">Nom ZAP (Nom de Profil)</label>
