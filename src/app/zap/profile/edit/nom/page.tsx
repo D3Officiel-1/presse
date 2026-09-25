@@ -71,9 +71,6 @@ export default function EditNamePage() {
           />
           {name.trim().length > 0 && <Check className="w-5 h-5 text-emerald-500 shrink-0 ml-2" />}
         </div>
-        <p className="text-xs text-neutral-400 leading-normal font-medium">
-          Votre nom complet sera visible sur votre pass public pour permettre à la communauté de votre établissement scolaire de vous identifier plus facilement.
-        </p>
       </main>
     </div>
   );
