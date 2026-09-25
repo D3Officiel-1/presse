@@ -95,6 +95,7 @@ export default function TikTokProfilePage() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isSimulatingFollow, setIsSimulatingFollow] = useState(false);
   const [isFavorited, setIsFavorited] = useState(false);
+  const [showNavTitle, setShowNavTitle] = useState(false);
 
   const [editName, setEditName] = useState('');
   const [editUsername, setEditUsername] = useState('');
@@ -133,6 +134,18 @@ export default function TikTokProfilePage() {
       });
     }
   }, [fs, router]);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.scrollY > 100) {
+        setShowNavTitle(true);
+      } else {
+        setShowNavTitle(false);
+      }
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   const handleSaveProfile = async () => {
     const uid = localStorage.getItem('userId');
@@ -219,7 +232,7 @@ export default function TikTokProfilePage() {
   return (
     <div className="min-h-screen bg-white text-neutral-900 pb-28 font-sans">
       
-      <header className="sticky top-0 z-40 flex items-center justify-between px-4 h-14 max-w-4xl mx-auto w-full bg-white border-none shadow-none">
+      <header className="sticky top-0 z-40 flex items-center justify-between px-4 h-14 max-w-4xl mx-auto w-full bg-white border-none shadow-none relative">
         <div className="flex items-center">
           <Button
             onClick={() => setIsEditModalOpen(true)}
@@ -232,12 +245,24 @@ export default function TikTokProfilePage() {
           </Button>
         </div>
         
-        <h1 className="font-black text-sm tracking-tight text-neutral-950 flex items-center gap-1">
-          {profile.name || 'Mon Profil'}
-          <span className="w-3.5 h-3.5 bg-primary rounded-full flex items-center justify-center text-white shrink-0">
-            <Check className="w-2.5 h-2.5 stroke-[4]" />
-          </span>
-        </h1>
+        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center justify-center h-full pointer-events-none">
+          <AnimatePresence>
+            {showNavTitle && (
+              <motion.h1
+                initial={{ opacity: 0, y: 12, filter: "blur(4px)" }}
+                animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+                exit={{ opacity: 0, y: -12, filter: "blur(4px)" }}
+                transition={{ duration: 0.25, ease: "easeOut" }}
+                className="font-black text-sm tracking-tight text-neutral-950 flex items-center gap-1 pointer-events-auto whitespace-nowrap"
+              >
+                {profile.name || 'Mon Profil'}
+                <span className="w-3.5 h-3.5 bg-primary rounded-full flex items-center justify-center text-white shrink-0">
+                  <Check className="w-2.5 h-2.5 stroke-[4]" />
+                </span>
+              </motion.h1>
+            )}
+          </AnimatePresence>
+        </div>
 
         <div className="flex items-center gap-1.5">
           <button 
