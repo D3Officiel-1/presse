@@ -37,7 +37,6 @@ export default function ScannerPage() {
         const scanner = new Html5Qrcode(regionId);
         scannerRef.current = scanner;
 
-        // Configuration pour couvrir l'écran sans restreindre la zone de scan
         const config = {
           fps: 10,
           aspectRatio: window.innerWidth / window.innerHeight
@@ -49,9 +48,7 @@ export default function ScannerPage() {
           (decodedText) => {
             handleScanSuccess(decodedText);
           },
-          () => {
-            // Scan continu
-          }
+          () => {}
         );
         
         setIsInitializing(false);
@@ -75,8 +72,11 @@ export default function ScannerPage() {
     if (decodedText.includes('zap.ci/@')) {
       const parts = decodedText.split('@');
       const username = parts[parts.length - 1];
-      toast({ title: "Profil trouvé", description: `Redirection vers @${username}` });
-      router.push(`/zap/profile?user=${username}`);
+      if (scannerRef.current?.isScanning) {
+        scannerRef.current.stop().then(() => {
+          router.push(`/zap/profile?user=${username}`);
+        });
+      }
     } else {
       toast({ title: "Code scanné", description: decodedText });
     }
@@ -99,15 +99,14 @@ export default function ScannerPage() {
   };
 
   const toggleFlash = () => {
-    toast({ title: "Note", description: "Le contrôle du flash dépend des capacités de votre navigateur." });
     setIsFlashOn(!isFlashOn);
+    toast({ title: "Flash", description: "Le contrôle du flash dépend du navigateur." });
   };
 
   const myQrUrl = `https://zap.ci/@${user?.username || 'user'}`;
 
   return (
     <div className="fixed inset-0 bg-black text-white flex flex-col z-[100] overflow-hidden h-[100dvh]">
-      {/* Conteneur Caméra - Prend tout l'écran en arrière-plan */}
       <div className="absolute inset-0 z-0 bg-black">
         <div 
           id={regionId} 
@@ -115,9 +114,7 @@ export default function ScannerPage() {
         ></div>
       </div>
       
-      {/* Overlays UI - Superposés sur la caméra */}
       <div className="relative z-10 flex flex-col h-full pointer-events-none">
-        {/* Header */}
         <header className="flex items-center justify-between px-4 h-16 bg-gradient-to-b from-black/60 to-transparent shrink-0 pointer-events-auto">
           <button 
             onClick={() => router.back()} 
@@ -129,20 +126,13 @@ export default function ScannerPage() {
           <div className="w-10" />
         </header>
 
-        {/* Zone centrale libre sans viseur visuel */}
         <div className="flex-1" />
 
-        {/* Footer Controls */}
         <footer className="h-36 bg-gradient-to-t from-black/80 to-transparent flex items-center justify-around px-6 pb-[env(safe-area-inset-bottom,20px)] shrink-0 pointer-events-auto">
           <div className="flex flex-col items-center gap-2">
             <label className="w-14 h-14 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center cursor-pointer transition-all active:scale-90 shadow-xl border border-white/10 backdrop-blur-md">
               <ImageIcon className="w-6 h-6 text-white" />
-              <input 
-                type="file" 
-                accept="image/*" 
-                className="hidden" 
-                onChange={handleUploadFromGallery}
-              />
+              <input type="file" accept="image/*" className="hidden" onChange={handleUploadFromGallery} />
             </label>
             <span className="text-[10px] font-black uppercase tracking-widest text-white/60">Galerie</span>
           </div>
@@ -165,18 +155,13 @@ export default function ScannerPage() {
                 isFlashOn ? "bg-white border-white text-black" : "bg-white/10 border-white/10 text-white"
               )}
             >
-              {isFlashOn ? (
-                <Zap className="w-6 h-6 fill-current" />
-              ) : (
-                <ZapOff className="w-6 h-6" />
-              )}
+              {isFlashOn ? <Zap className="w-6 h-6 fill-current" /> : <ZapOff className="w-6 h-6" />}
             </button>
             <span className="text-[10px] font-black uppercase tracking-widest text-white/60">Flash</span>
           </div>
         </footer>
       </div>
 
-      {/* Modal Mon Code QR */}
       <AnimatePresence>
         {showMyQr && (
           <>
@@ -195,80 +180,29 @@ export default function ScannerPage() {
                 className="w-full max-w-sm bg-white rounded-[2.5rem] p-8 flex flex-col items-center text-center space-y-6 shadow-2xl relative overflow-hidden"
               >
                 <div className="absolute top-[-10%] right-[-10%] w-32 h-32 bg-primary/10 rounded-full blur-2xl" />
-                <div className="absolute bottom-[-10%] left-[-10%] w-32 h-32 bg-violet-500/10 rounded-full blur-2xl" />
-
-                <button 
-                  onClick={() => setShowMyQr(false)}
-                  className="absolute top-4 right-4 p-2 text-neutral-400 hover:text-neutral-900 transition-colors"
-                >
+                <button onClick={() => setShowMyQr(false)} className="absolute top-4 right-4 p-2 text-neutral-400 hover:text-neutral-900 transition-colors">
                   <X className="w-5 h-5" />
                 </button>
-
                 <div className="space-y-1">
                   <h3 className="text-xl font-black text-neutral-900 tracking-tight">Mon Pass ZAP</h3>
                   <p className="text-xs text-neutral-500 font-bold uppercase tracking-widest">@{user?.username || 'createur'}</p>
                 </div>
-
                 <div className="bg-white p-4 rounded-3xl border-8 border-neutral-50 shadow-inner">
-                  <QRCode 
-                    value={myQrUrl}
-                    size={200}
-                    style={{ height: "auto", maxWidth: "100%", width: "100%" }}
-                    viewBox={`0 0 256 256`}
-                    fgColor="#000000"
-                  />
+                  <QRCode value={myQrUrl} size={200} style={{ height: "auto", maxWidth: "100%", width: "100%" }} viewBox={`0 0 256 256`} fgColor="#000000" />
                 </div>
-
-                <p className="text-[11px] font-medium text-neutral-400 leading-relaxed max-w-[200px]">
-                  Faites scanner ce code à vos amis pour qu'ils puissent s'abonner instantanément.
-                </p>
-
-                <Button 
-                  onClick={() => setShowMyQr(false)}
-                  className="w-full h-12 rounded-2xl bg-neutral-900 text-white font-black text-xs uppercase tracking-widest"
-                >
-                  Fermer
-                </Button>
+                <p className="text-[11px] font-medium text-neutral-400 leading-relaxed max-w-[200px]">Partagez ce code pour être ajouté instantanément.</p>
+                <Button onClick={() => setShowMyQr(false)} className="w-full h-12 rounded-2xl bg-neutral-900 text-white font-black text-xs uppercase tracking-widest">Fermer</Button>
               </motion.div>
             </motion.div>
           </>
         )}
       </AnimatePresence>
 
-      {/* Chargement & Erreur */}
       <AnimatePresence>
         {isInitializing && (
-          <motion.div 
-            initial={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="absolute inset-0 bg-black z-50 flex flex-col items-center justify-center space-y-4"
-          >
+          <motion.div initial={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 bg-black z-50 flex flex-col items-center justify-center space-y-4">
             <Loader2 className="w-10 h-10 animate-spin text-primary" />
             <p className="text-[10px] font-black uppercase tracking-widest text-white/40">Activation de la caméra...</p>
-          </motion.div>
-        )}
-
-        {error && (
-          <motion.div 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="absolute inset-0 bg-neutral-950 z-[60] flex flex-col items-center justify-center p-10 text-center space-y-6"
-          >
-            <div className="w-20 h-20 rounded-full bg-rose-500/20 flex items-center justify-center">
-              <X className="w-10 h-10 text-rose-500" />
-            </div>
-            <div className="space-y-2">
-              <p className="text-xl font-black tracking-tight">{error}</p>
-              <p className="text-xs text-white/40 font-medium leading-relaxed">
-                L'accès à la caméra est nécessaire pour scanner les codes de vos amis.
-              </p>
-            </div>
-            <button 
-              onClick={() => window.location.reload()}
-              className="bg-white text-black px-10 h-14 rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl active:scale-95 transition-transform"
-            >
-              Autoriser & Réessayer
-            </button>
           </motion.div>
         )}
       </AnimatePresence>

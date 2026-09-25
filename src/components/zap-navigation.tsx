@@ -9,13 +9,15 @@ import { cn } from '@/lib/utils';
 export function ZapNavigation() {
   const pathname = usePathname();
 
-  // Ne pas afficher la barre de navigation sur le tunnel d'édition du profil, les vues de profil, le scanner ou le code QR
-  if (
-    pathname.startsWith('/zap/profile/edit') || 
-    pathname === '/zap/profile/vue' ||
-    pathname === '/zap/profile/qrcode' ||
-    pathname === '/zap/scanner'
-  ) {
+  // Ne pas afficher la barre de navigation sur les pages immersives
+  const hideOn = [
+    '/zap/profile/edit',
+    '/zap/profile/vue',
+    '/zap/profile/qrcode',
+    '/zap/scanner',
+  ];
+
+  if (hideOn.some(path => pathname.startsWith(path))) {
     return null;
   }
 
