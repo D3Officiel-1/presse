@@ -37,10 +37,9 @@ export default function ScannerPage() {
         const scanner = new Html5Qrcode(regionId);
         scannerRef.current = scanner;
 
-        // Configuration pour couvrir l'écran
+        // Configuration pour couvrir l'écran sans restreindre la zone de scan
         const config = {
           fps: 10,
-          qrbox: { width: 250, height: 250 },
           aspectRatio: window.innerWidth / window.innerHeight
         };
 
@@ -130,29 +129,8 @@ export default function ScannerPage() {
           <div className="w-10" />
         </header>
 
-        {/* Zone de scan centrale */}
-        <div className="flex-1 flex flex-col items-center justify-center">
-          <div className="relative w-64 h-64 border-2 border-white/20 rounded-[40px] overflow-hidden shadow-[0_0_0_100vmax_rgba(0,0,0,0.4)]">
-            {/* Coins du viseur */}
-            <div className="absolute top-0 left-0 w-8 h-8 border-t-4 border-l-4 border-white rounded-tl-xl" />
-            <div className="absolute top-0 right-0 w-8 h-8 border-t-4 border-r-4 border-white rounded-tr-xl" />
-            <div className="absolute bottom-0 left-0 w-8 h-8 border-b-4 border-l-4 border-white rounded-bl-xl" />
-            <div className="absolute bottom-0 right-0 w-8 h-8 border-b-4 border-r-4 border-white rounded-br-xl" />
-            
-            {/* Ligne animée */}
-            <motion.div 
-              animate={{ top: ['5%', '95%', '5%'] }}
-              transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
-              className="absolute left-4 right-4 h-0.5 bg-white/80 shadow-[0_0_12px_rgba(255,255,255,1)] z-10"
-            />
-          </div>
-
-          <div className="mt-8 text-center px-10">
-            <p className="text-[13px] font-bold text-white/90 bg-black/40 backdrop-blur-md py-2.5 px-6 rounded-full inline-block">
-              Placez le code QR au centre
-            </p>
-          </div>
-        </div>
+        {/* Zone centrale libre sans viseur visuel */}
+        <div className="flex-1" />
 
         {/* Footer Controls */}
         <footer className="h-36 bg-gradient-to-t from-black/80 to-transparent flex items-center justify-around px-6 pb-[env(safe-area-inset-bottom,20px)] shrink-0 pointer-events-auto">
