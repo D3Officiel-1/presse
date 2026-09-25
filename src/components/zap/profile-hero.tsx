@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Check, Globe, Lock, Link2, MapPin, User } from 'lucide-react';
+import { Check, Link2, MapPin, User } from 'lucide-react';
 
 interface ProfileHeroProps {
   displayName: string;
@@ -83,15 +83,6 @@ export function ProfileHero({
           <div className="w-full h-full rounded-full border-4 border-white overflow-hidden bg-neutral-100 flex flex-col items-center justify-center text-neutral-400 shadow-inner">
             <User className="w-12 h-12 md:w-16 md:h-16 text-neutral-300 stroke-[1.5]" />
           </div>
-          {isPublic !== false ? (
-            <span className="absolute bottom-1 right-1 bg-emerald-500 text-white rounded-full p-1.5 border-2 border-white shadow-lg animate-pulse" title="Compte Public">
-              <Globe className="w-4 h-4" />
-            </span>
-          ) : (
-            <span className="absolute bottom-1 right-1 bg-amber-500 text-white rounded-full p-1.5 border-2 border-white shadow-lg" title="Compte Privé">
-              <Lock className="w-4 h-4" />
-            </span>
-          )}
         </div>
       </div>
     </div>
