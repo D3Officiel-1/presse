@@ -16,6 +16,17 @@
         "company": { "type": "string" },
         "interests": { "type": "array", "items": { "type": "string" }, "description": "Centres d'intérêt créatifs de l'élève" },
         "bio": { "type": "string", "description": "Biographie ou devise de créateur" },
+        "links": { 
+          "type": "array", 
+          "items": { 
+            "type": "object",
+            "properties": {
+              "title": { "type": "string" },
+              "url": { "type": "string" }
+            }
+          },
+          "description": "Liens de redirection (réseaux sociaux, portfolio...)"
+        },
         "onboarded": { "type": "boolean" },
         "deviceId": { "type": "string" },
         "online": { "type": "boolean" },

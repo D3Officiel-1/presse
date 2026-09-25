@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState, useEffect } from 'react';
@@ -11,7 +12,8 @@ import {
   Loader2, 
   Camera,
   ChevronRight,
-  Copy
+  Copy,
+  Link2
 } from 'lucide-react';
 
 export default function EditProfilePage() {
@@ -56,6 +58,8 @@ export default function EditProfilePage() {
       </div>
     );
   }
+
+  const linksCount = profile?.links?.length || 0;
 
   return (
     <div className="min-h-screen bg-[#F9F9FC] text-neutral-900 pb-[calc(env(safe-area-inset-bottom,0px)+4rem)]">
@@ -139,6 +143,19 @@ export default function EditProfilePage() {
                 <div className="flex items-center space-x-1.5 min-w-0 flex-1 justify-end">
                   <span className="text-[13px] font-bold text-neutral-400 truncate max-w-[220px]">
                     {profile?.bio || 'Décrivez votre univers...'}
+                  </span>
+                  <ChevronRight className="w-4 h-4 text-neutral-300 shrink-0 ml-1" />
+                </div>
+              </Link>
+
+              <Link href="/zap/profile/edit/links" className="flex items-center px-4 py-4 group cursor-pointer active:bg-neutral-50 justify-between">
+                <div className="flex items-center gap-2">
+                  <Link2 className="w-4 h-4 text-neutral-400" />
+                  <span className="text-[13px] font-bold text-neutral-500">Liens</span>
+                </div>
+                <div className="flex items-center space-x-1.5 min-w-0 flex-1 justify-end">
+                  <span className="text-[13px] font-bold text-primary">
+                    {linksCount > 0 ? `${linksCount} lien${linksCount > 1 ? 's' : ''}` : 'Ajouter'}
                   </span>
                   <ChevronRight className="w-4 h-4 text-neutral-300 shrink-0 ml-1" />
                 </div>
