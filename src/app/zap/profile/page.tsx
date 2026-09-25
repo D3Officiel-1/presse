@@ -79,7 +79,7 @@ export default function TikTokProfilePage() {
   
   const [profile, setProfile] = useState<any>(null);
   const [isHydrated, setIsHydrated] = useState(false);
-  const [activeTab, setActiveTab] = useState<'videos' | 'liked' | 'bookmarked' | 'insights'>('videos');
+  const [activeTab, setActiveTab] = useState<'videos' | 'reposts' | 'liked' | 'bookmarked' | 'private' | 'insights'>('videos');
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
   const [editName, setEditName] = useState('');
@@ -200,11 +200,13 @@ export default function TikTokProfilePage() {
           isPublic={profile.isPublic}
         />
 
-        <div className="flex border-b border-neutral-100 bg-white sticky top-14 z-30 w-full">
+        <div className="flex border-b border-neutral-100 bg-white sticky top-14 z-30 w-full overflow-x-auto no-scrollbar">
           {[
             { id: 'videos', icon: Grid },
-            { id: 'liked', icon: Heart },
+            { id: 'reposts', icon: Repeat2 },
             { id: 'bookmarked', icon: Bookmark },
+            { id: 'liked', icon: Heart },
+            { id: 'private', icon: Lock },
             { id: 'insights', icon: BarChart3 }
           ].map((tab) => {
             const Icon = tab.icon;
@@ -214,7 +216,7 @@ export default function TikTokProfilePage() {
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id as any)}
                 className={cn(
-                  "flex-1 py-3.5 flex items-center justify-center relative transition-colors outline-none",
+                  "flex-1 min-w-[56px] py-3.5 flex items-center justify-center relative transition-colors outline-none",
                   isSelected ? "text-neutral-950" : "text-neutral-300 hover:text-neutral-400"
                 )}
               >
@@ -222,7 +224,7 @@ export default function TikTokProfilePage() {
                 {isSelected && (
                   <motion.div 
                     layoutId="tiktokActiveLineTab" 
-                    className="absolute bottom-0 inset-x-1/4 md:inset-x-1/3 h-0.5 bg-neutral-950 rounded-full"
+                    className="absolute bottom-0 inset-x-2 md:inset-x-4 h-0.5 bg-neutral-950 rounded-full"
                   />
                 )}
               </button>
@@ -259,7 +261,7 @@ export default function TikTokProfilePage() {
                   </div>
                 ))}
                 
-                {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((num) => (
+                {[1, 2, 3, 4, 5, 6].map((num) => (
                   <div 
                     key={`fallback-grid-${num}`}
                     className="relative aspect-[3/4] bg-neutral-950 overflow-hidden cursor-pointer group rounded-sm md:rounded-lg"
@@ -276,6 +278,34 @@ export default function TikTokProfilePage() {
                     </span>
                   </div>
                 ))}
+              </motion.div>
+            )}
+
+            {activeTab === 'reposts' && (
+              <motion.div 
+                key="reposts" 
+                initial={{ opacity: 0 }} 
+                animate={{ opacity: 1 }} 
+                exit={{ opacity: 0 }}
+                className="flex flex-col items-center justify-center py-24 text-center text-neutral-400 space-y-3 px-6"
+              >
+                <Repeat2 className="w-8 h-8 text-neutral-300 stroke-[2.5]" />
+                <p className="text-xs md:text-sm font-black text-neutral-800 uppercase tracking-wider">Aucun repost</p>
+                <p className="text-[11px] md:text-xs max-w-xs leading-normal font-medium text-neutral-400">Les vidéos que vous repartagez apparaîtront ici.</p>
+              </motion.div>
+            )}
+
+            {activeTab === 'private' && (
+              <motion.div 
+                key="private" 
+                initial={{ opacity: 0 }} 
+                animate={{ opacity: 1 }} 
+                exit={{ opacity: 0 }}
+                className="flex flex-col items-center justify-center py-24 text-center text-neutral-400 space-y-3 px-6"
+              >
+                <Lock className="w-8 h-8 text-neutral-300 stroke-[2.5]" />
+                <p className="text-xs md:text-sm font-black text-neutral-800 uppercase tracking-wider">Vidéos privées</p>
+                <p className="text-[11px] md:text-xs max-w-xs leading-normal font-medium text-neutral-400">Vos vidéos privées ne sont visibles que par vous.</p>
               </motion.div>
             )}
 
