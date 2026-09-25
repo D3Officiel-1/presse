@@ -105,7 +105,12 @@ export default function FindFriendsPage() {
           <ArrowLeft className="w-6 h-6" />
         </button>
         <h1 className="text-[17px] font-bold text-neutral-900">Trouver des amis</h1>
-        <div className="w-8" /> {/* Spacer */}
+        <button 
+          onClick={() => toast({ title: "QR Code", description: "Votre code QR sera bientôt disponible ici." })}
+          className="p-1 text-neutral-900 active:scale-90 transition-transform"
+        >
+          <QrCode className="w-6 h-6" />
+        </button>
       </header>
 
       <main className="max-w-md mx-auto">
