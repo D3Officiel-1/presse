@@ -6,6 +6,7 @@ import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { useFirestore } from '@/firebase/provider';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, X } from 'lucide-react';
+import { Input } from '@/components/ui/input';
 
 export default function EditNamePage() {
   const router = useRouter();
@@ -60,20 +61,20 @@ export default function EditNamePage() {
         </button>
       </header>
       <main className="max-w-md mx-auto p-4 pt-6 space-y-4">
-        <div className="relative border-b border-neutral-200 pb-1 flex items-center justify-between">
-          <input 
+        <div className="relative flex items-center">
+          <Input 
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="Ajouter votre nom"
-            className="w-full bg-transparent border-none outline-none text-base font-medium py-1.5 focus:ring-0 pr-8"
+            className="w-full bg-transparent border-none border-b border-neutral-200 rounded-none px-0 py-1.5 focus-visible:ring-0 focus-visible:border-primary text-base font-medium pr-8 shadow-none h-auto"
             autoFocus
           />
           {name.length > 0 && (
             <button
               type="button"
               onClick={() => setName('')}
-              className="absolute right-0 top-1/2 -translate-y-1/2 p-1.5 text-neutral-400 hover:text-neutral-600 rounded-full bg-neutral-100 transition-colors"
+              className="absolute right-0 top-1/2 -translate-y-1/2 p-1.5 text-neutral-400 hover:text-neutral-600 rounded-full bg-neutral-100 transition-colors z-10"
             >
               <X className="w-3.5 h-3.5" />
             </button>
