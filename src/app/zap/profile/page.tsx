@@ -93,9 +93,7 @@ export default function TikTokProfilePage() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isSimulatingFollow, setIsSimulatingFollow] = useState(false);
   const [isFavorited, setIsFavorited] = useState(false);
-  const [isScrolled, setIsScrolled] = useState(false);
 
-  // Formulaire d'édition
   const [editName, setEditName] = useState('');
   const [editUsername, setEditUsername] = useState('');
   const [editBio, setEditBio] = useState('');
@@ -106,18 +104,6 @@ export default function TikTokProfilePage() {
   const [savingProfile, setSavingProfile] = useState(false);
 
   const mediaImages = placeholderData.placeholderImages.filter(img => img.id.startsWith('media-'));
-
-  useEffect(() => {
-    const handleScroll = () => {
-      if (window.scrollY > 15) {
-        setIsScrolled(true);
-      } else {
-        setIsScrolled(false);
-      }
-    };
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
 
   useEffect(() => {
     const uid = localStorage.getItem('userId');
@@ -236,31 +222,22 @@ export default function TikTokProfilePage() {
   }
 
   return (
-    <div className="min-h-screen bg-white text-neutral-900 pb-28 font-sans transition-all duration-300">
+    <div className="min-h-screen bg-white text-neutral-900 pb-28 font-sans">
       
-      {/* Barre de navigation haute adaptative au défilement */}
-      <header className={cn(
-        "sticky top-0 z-40 flex items-center justify-between px-4 h-14 max-w-4xl mx-auto w-full transition-all duration-300",
-        isScrolled 
-          ? "bg-white border-b border-neutral-100 shadow-sm" 
-          : "bg-transparent border-b border-transparent shadow-none"
-      )}>
+      <header className="sticky top-0 z-40 flex items-center justify-between px-4 h-14 max-w-4xl mx-auto w-full bg-white border-b border-neutral-100 shadow-none">
         <div className="flex items-center">
           <Button
             onClick={() => setIsEditModalOpen(true)}
             variant="ghost"
             size="icon"
-            className="h-8 w-8 rounded-xl text-neutral-600 active:scale-90 transition-all p-0 hover:bg-neutral-100"
+            className="h-9 w-9 rounded-xl text-neutral-600 active:scale-95 p-0 hover:bg-neutral-50"
             title="Modifier le profil"
           >
             <Edit2 className="w-4 h-4" />
           </Button>
         </div>
         
-        <h1 className={cn(
-          "font-black text-sm tracking-tight text-neutral-950 flex items-center gap-1 transition-opacity duration-300",
-          isScrolled ? "opacity-100" : "opacity-0 pointer-events-none"
-        )}>
+        <h1 className="font-black text-sm tracking-tight text-neutral-950 flex items-center gap-1">
           {profile.name || 'Mon Profil'}
           <span className="w-3.5 h-3.5 bg-primary rounded-full flex items-center justify-center text-white shrink-0">
             <Check className="w-2.5 h-2.5 stroke-[4]" />
@@ -275,7 +252,6 @@ export default function TikTokProfilePage() {
             <MoreHorizontal className="w-4 h-4" />
           </button>
 
-          {/* Menu contextuel drop-down */}
           <AnimatePresence>
             {isMenuOpen && (
               <>
@@ -307,13 +283,10 @@ export default function TikTokProfilePage() {
         </div>
       </header>
 
-      {/* Conteneur Principal Responsive */}
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         
-        {/* Identité et En-tête Adaptatif */}
         <div className="flex flex-col md:flex-row md:items-start md:gap-8 pt-4 pb-6">
           
-          {/* Avatar Section */}
           <div className="flex justify-center md:justify-start shrink-0">
             <div className="relative w-24 h-24 md:w-32 md:h-32 rounded-full p-0.5 bg-gradient-to-tr from-primary to-orange-500 shadow-sm">
               <div className="w-full h-full rounded-full border-4 border-white overflow-hidden bg-neutral-100 flex items-center justify-center text-neutral-900 font-black text-3xl md:text-4xl uppercase tracking-tighter">
@@ -331,7 +304,6 @@ export default function TikTokProfilePage() {
             </div>
           </div>
 
-          {/* User Info Section */}
           <div className="flex flex-col items-center md:items-start space-y-4 flex-1 mt-4 md:mt-0">
             <div className="text-center md:text-left space-y-1">
               <h2 className="text-xl md:text-2xl font-black tracking-tight text-neutral-950 flex items-center justify-center md:justify-start gap-1.5">
@@ -345,7 +317,6 @@ export default function TikTokProfilePage() {
               </p>
             </div>
 
-            {/* Actions Buttons */}
             <div className="flex items-center justify-center md:justify-start gap-2 w-full max-w-sm">
               <Button 
                 onClick={() => setIsEditModalOpen(true)}
@@ -373,7 +344,6 @@ export default function TikTokProfilePage() {
               </Button>
             </div>
 
-            {/* Statistiques Horizontales Style TikTok */}
             <div className="flex items-center justify-center md:justify-start gap-6 lg:gap-10 w-full py-2 text-center md:text-left">
               <div className="flex flex-col md:flex-row md:gap-1 items-center">
                 <span className="font-black text-base text-neutral-950 tracking-tight">142</span>
@@ -389,7 +359,6 @@ export default function TikTokProfilePage() {
               </div>
             </div>
 
-            {/* Bio et Liens */}
             <div className="w-full text-center md:text-left space-y-3 pt-2">
               <p className="text-xs md:text-sm text-neutral-700 font-medium leading-relaxed max-w-2xl mx-auto md:mx-0">
                 {profile.bio || "Pas encore de description de créateur configurée."}
@@ -412,7 +381,6 @@ export default function TikTokProfilePage() {
           </div>
         </div>
 
-        {/* Sélecteur d'onglets étendus */}
         <div className="flex border-b border-neutral-100 bg-white sticky top-14 z-30 w-full">
           {[
             { id: 'videos', icon: Grid },
@@ -443,7 +411,6 @@ export default function TikTokProfilePage() {
           })}
         </div>
 
-        {/* Contenu des onglets */}
         <div className="mt-1">
           <AnimatePresence mode="wait">
             {activeTab === 'videos' && (
@@ -506,7 +473,6 @@ export default function TikTokProfilePage() {
                   <Button variant="ghost" size="sm" className="text-[10px] font-bold text-primary">Derniers 7 jours</Button>
                 </div>
 
-                {/* Statistiques clés grid */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                   <Card className="rounded-2xl border-neutral-100 bg-neutral-50/50 shadow-none">
                     <CardHeader className="p-4 pb-0">
@@ -561,7 +527,6 @@ export default function TikTokProfilePage() {
                   </Card>
                 </div>
 
-                {/* Graphique de Croissance */}
                 <Card className="rounded-3xl border-neutral-100 shadow-sm overflow-hidden">
                   <CardHeader className="p-6 pb-2">
                     <CardTitle className="text-xs font-black uppercase tracking-widest text-neutral-900 flex items-center gap-2">
@@ -654,7 +619,6 @@ export default function TikTokProfilePage() {
           </AnimatePresence>
         </div>
 
-        {/* Description / Bouton Déconnexion */}
         <div className="p-8 flex justify-center">
           <Button 
             variant="ghost" 
@@ -666,7 +630,6 @@ export default function TikTokProfilePage() {
         </div>
       </div>
 
-      {/* Modal d'édition complet du profil */}
       <AnimatePresence>
         {isEditModalOpen && (
           <>
@@ -702,7 +665,7 @@ export default function TikTokProfilePage() {
                     <label className="text-[10px] font-black uppercase text-neutral-400 tracking-widest">Nom complet affiché</label>
                     <Input 
                       value={editName} 
-                      onChange={(e) => setEditName(e.target.value)} 
+                      onChange={(e) => setEditName(target.value)} 
                       className="text-sm font-bold bg-neutral-50 border-neutral-200 rounded-xl h-11"
                     />
                   </div>
@@ -710,7 +673,7 @@ export default function TikTokProfilePage() {
                     <label className="text-[10px] font-black uppercase text-neutral-400 tracking-widest">Identifiant @username</label>
                     <Input 
                       value={editUsername} 
-                      onChange={(e) => setEditUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_-]/g, ''))} 
+                      onChange={(e) => setEditUsername(target.value.toLowerCase().replace(/[^a-z0-9_-]/g, ''))} 
                       className="text-sm font-bold bg-neutral-50 border-neutral-200 rounded-xl h-11 font-mono"
                     />
                   </div>
@@ -744,7 +707,7 @@ export default function TikTokProfilePage() {
                   <label className="text-[10px] font-black uppercase text-neutral-400 tracking-widest">Biographie</label>
                   <Textarea 
                     value={editBio} 
-                    onChange={(e) => setEditBio(e.target.value)} 
+                    onChange={(e) => setEditBio(target.value)} 
                     className="text-xs md:text-sm font-medium bg-neutral-50 border-neutral-200 rounded-xl min-h-[80px]"
                   />
                 </div>
@@ -754,7 +717,7 @@ export default function TikTokProfilePage() {
                     <label className="text-[10px] font-black uppercase text-neutral-400 tracking-widest">Lien (zap.ci/portfolio...)</label>
                     <Input 
                       value={editLink} 
-                      onChange={(e) => setEditLink(e.target.value)} 
+                      onChange={(e) => setEditLink(target.value)} 
                       className="text-sm font-bold bg-neutral-50 border-neutral-200 rounded-xl font-mono"
                     />
                   </div>
@@ -762,7 +725,7 @@ export default function TikTokProfilePage() {
                     <label className="text-[10px] font-black uppercase text-neutral-400 tracking-widest">Commune</label>
                     <Input 
                       value={editCommune} 
-                      onChange={(e) => setEditCommune(e.target.value)} 
+                      onChange={(e) => setEditCommune(target.value)} 
                       className="text-sm font-bold bg-neutral-50 border-neutral-200 rounded-xl"
                     />
                   </div>
