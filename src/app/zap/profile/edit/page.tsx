@@ -129,15 +129,17 @@ export default function EditProfilePage() {
 
       <main className="max-w-md mx-auto p-6 space-y-8">
         <div className="flex flex-col items-center justify-center space-y-4">
-          <div className="relative group">
-            <div className="w-28 h-28 rounded-full bg-gradient-to-tr from-primary via-purple-600 to-orange-400 p-1 shadow-2xl">
-              <div className="w-full h-full rounded-full bg-neutral-100 border-4 border-white overflow-hidden flex items-center justify-center shadow-inner">
+          <div className="relative group cursor-pointer" onClick={() => toast({ title: "Prochainement", description: "Le téléchargement de photo sera bientôt disponible." })}>
+            <div className="w-28 h-28 rounded-full bg-gradient-to-tr from-primary via-purple-600 to-orange-400 p-1 shadow-2xl overflow-hidden">
+              <div className="w-full h-full rounded-full bg-neutral-100 border-4 border-white overflow-hidden flex items-center justify-center shadow-inner relative">
                 <User className="w-12 h-12 text-neutral-300 stroke-[1.5]" />
+                
+                {/* Voile sombre et icône centrée */}
+                <div className="absolute inset-0 bg-black/30 flex items-center justify-center transition-all opacity-100 group-hover:bg-black/45">
+                   <Camera className="w-6 h-6 text-white drop-shadow-lg" />
+                </div>
               </div>
             </div>
-            <button className="absolute bottom-0 right-0 p-2.5 bg-neutral-950 text-white rounded-full border-2 border-white shadow-lg active:scale-90 transition-transform">
-              <Camera className="w-4 h-4" />
-            </button>
           </div>
           <p className="text-[10px] font-black text-neutral-400 uppercase tracking-widest">Changer ma photo</p>
         </div>
