@@ -183,10 +183,64 @@ export default function TikTokProfilePage() {
 
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         
-        <div className="flex flex-col md:flex-row md:items-start md:gap-8 pt-4 pb-6">
+        {/* En-tête asymétrique : Informations à gauche et photo tout à droite */}
+        <div className="flex items-start justify-between gap-6 pt-4 pb-6">
           
-          <div className="flex justify-center md:justify-start shrink-0">
-            <div className="relative w-24 h-24 md:w-32 md:h-32 rounded-full p-0.5 bg-gradient-to-tr from-primary to-orange-500 shadow-sm">
+          {/* Côté Gauche : Identifiants, Statistiques et Biographie */}
+          <div className="flex-1 text-left space-y-4 min-w-0">
+            <div className="space-y-1">
+              <h2 className="text-xl md:text-2xl font-black tracking-tight text-neutral-950 flex items-center gap-1.5">
+                @{profile.username || 'username'}
+                <span className="w-5 h-5 bg-sky-500 rounded-full flex items-center justify-center text-white shrink-0 shadow-sm">
+                  <Check className="w-3 h-3 stroke-[4]" />
+                </span>
+              </h2>
+              <p className="text-xs md:text-sm font-bold text-primary uppercase tracking-widest">
+                {profile.category || 'Créateur Digital'}
+              </p>
+            </div>
+
+            {/* Statistiques alignées à gauche */}
+            <div className="flex items-center gap-6 lg:gap-10 py-1 text-left">
+              <div className="flex flex-col">
+                <span className="font-black text-base text-neutral-950 tracking-tight">142</span>
+                <span className="text-[10px] md:text-xs text-neutral-400 font-bold uppercase tracking-wider">abonnements</span>
+              </div>
+              <div className="flex flex-col">
+                <span className="font-black text-base text-neutral-950 tracking-tight">3.5 K</span>
+                <span className="text-[10px] md:text-xs text-neutral-400 font-bold uppercase tracking-wider">abonnés</span>
+              </div>
+              <div className="flex flex-col">
+                <span className="font-black text-base text-neutral-950 tracking-tight">18.2 K</span>
+                <span className="text-[10px] md:text-xs text-neutral-400 font-bold uppercase tracking-wider">j'aime</span>
+              </div>
+            </div>
+
+            {/* Bio et liens externes */}
+            <div className="space-y-3 pt-1">
+              <p className="text-xs md:text-sm text-neutral-700 font-medium leading-relaxed max-w-xl">
+                {profile.bio || "Pas encore de description de créateur configurée."}
+              </p>
+              
+              <div className="flex flex-wrap gap-x-4 gap-y-2 text-[11px] md:text-xs font-bold text-neutral-500">
+                <span className="flex items-center gap-1 text-primary hover:underline cursor-pointer">
+                  <Link2 className="w-3.5 h-3.5 text-primary shrink-0" />
+                  {profile.link || 'zap.ci/portfolio'}
+                </span>
+                <span className="flex items-center gap-1">
+                  <MapPin className="w-3.5 h-3.5 text-neutral-400 shrink-0" />
+                  {profile.commune || 'Abidjan'}
+                </span>
+                <span className="flex items-center gap-1 text-neutral-400">
+                  🏫 {profile.company || 'Établissement Club'}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Côté Droit : Photo de profil de l'élève créateur */}
+          <div className="shrink-0 flex items-center justify-end pt-1">
+            <div className="relative w-24 h-24 md:w-28 md:h-28 rounded-full p-0.5 bg-gradient-to-tr from-primary to-orange-500 shadow-sm">
               <div className="w-full h-full rounded-full border-4 border-white overflow-hidden bg-neutral-100 flex items-center justify-center text-neutral-900 font-black text-3xl md:text-4xl uppercase tracking-tighter">
                 {profile.name?.substring(0, 2) || '@'}
               </div>
@@ -202,56 +256,9 @@ export default function TikTokProfilePage() {
             </div>
           </div>
 
-          <div className="flex flex-col items-center md:items-start space-y-4 flex-1 mt-4 md:mt-0">
-            <div className="text-center md:text-left space-y-1">
-              <h2 className="text-xl md:text-2xl font-black tracking-tight text-neutral-950 flex items-center justify-center md:justify-start gap-1.5">
-                @{profile.username || 'username'}
-                <span className="w-5 h-5 bg-sky-500 rounded-full flex items-center justify-center text-white shrink-0 shadow-sm">
-                  <Check className="w-3 h-3 stroke-[4]" />
-                </span>
-              </h2>
-              <p className="text-xs md:text-sm font-bold text-primary uppercase tracking-widest">
-                {profile.category || 'Créateur Digital'}
-              </p>
-            </div>
-
-            <div className="flex items-center justify-center md:justify-start gap-6 lg:gap-10 w-full py-2 text-center md:text-left">
-              <div className="flex flex-col md:flex-row md:gap-1 items-center">
-                <span className="font-black text-base text-neutral-950 tracking-tight">142</span>
-                <span className="text-[10px] md:text-xs text-neutral-400 font-bold uppercase tracking-wider">abonnements</span>
-              </div>
-              <div className="flex flex-col md:flex-row md:gap-1 items-center">
-                <span className="font-black text-base text-neutral-950 tracking-tight">3.5 K</span>
-                <span className="text-[10px] md:text-xs text-neutral-400 font-bold uppercase tracking-wider">abonnés</span>
-              </div>
-              <div className="flex flex-col md:flex-row md:gap-1 items-center">
-                <span className="font-black text-base text-neutral-950 tracking-tight">18.2 K</span>
-                <span className="text-[10px] md:text-xs text-neutral-400 font-bold uppercase tracking-wider">j'aime</span>
-              </div>
-            </div>
-
-            <div className="w-full text-center md:text-left space-y-3 pt-2">
-              <p className="text-xs md:text-sm text-neutral-700 font-medium leading-relaxed max-w-2xl mx-auto md:mx-0">
-                {profile.bio || "Pas encore de description de créateur configurée."}
-              </p>
-              
-              <div className="flex flex-wrap justify-center md:justify-start gap-x-4 gap-y-2 pt-1 text-[11px] md:text-xs font-bold text-neutral-500">
-                <span className="flex items-center gap-1 text-primary hover:underline cursor-pointer">
-                  <Link2 className="w-3.5 h-3.5 text-primary shrink-0" />
-                  {profile.link || 'zap.ci/portfolio'}
-                </span>
-                <span className="flex items-center gap-1">
-                  <MapPin className="w-3.5 h-3.5 text-neutral-400 shrink-0" />
-                  {profile.commune || 'Abidjan'}
-                </span>
-                <span className="flex items-center gap-1 text-neutral-400">
-                  🏫 {profile.company || 'Établissement Club'}
-                </span>
-              </div>
-            </div>
-          </div>
         </div>
 
+        {/* Barre des Onglets */}
         <div className="flex border-b border-neutral-100 bg-white sticky top-14 z-30 w-full">
           {[
             { id: 'videos', icon: Grid },
@@ -501,6 +508,7 @@ export default function TikTokProfilePage() {
         </div>
       </div>
 
+      {/* Modal d'édition du profil */}
       <AnimatePresence>
         {isEditModalOpen && (
           <>
