@@ -99,6 +99,9 @@ export default function EditUsernamePage() {
             <h1 className="text-2xl font-black tracking-tight text-neutral-950 text-left">
               Nom d'utilisateur
             </h1>
+            <p className="text-[11px] font-bold text-neutral-400 leading-tight">
+              Tu ne peux modifier ton nom d'utilisateur qu'une tous les 30 jours. La modification de ton nom d'utilisateur modifira aussi ton lien de profil. Les nom d'utilisateur ne peuvent contenir que des lettres, des chiffres, des tirets bas et des points.
+            </p>
           </div>
 
           <div className="space-y-3 w-full">
