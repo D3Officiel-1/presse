@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState } from 'react';
 import { 
   Grid, 
   Heart, 
@@ -22,7 +22,6 @@ import {
   BarChart3,
   TrendingUp,
   Repeat2,
-  Users as UsersIcon,
   Video,
   ShieldAlert,
   EyeOff,
@@ -174,7 +173,7 @@ export default function TikTokProfilePage() {
   };
 
   const handleShareProfile = () => {
-    if (typeof navigator !== 'undefined' && navigator.clipboard) {
+    if (typeof window !== 'undefined' && navigator.clipboard) {
       navigator.clipboard.writeText(`${window.location.origin}/zap/profile`);
       toast({ title: 'Lien copié !', description: "L'adresse URL du profil est dans le presse-papiers." });
     }
@@ -228,10 +227,16 @@ export default function TikTokProfilePage() {
       
       {/* Barre de navigation haute */}
       <header className="sticky top-0 bg-white/95 backdrop-blur-md z-40 flex items-center justify-between px-4 h-14 border-b border-neutral-100 max-w-4xl mx-auto w-full">
-        <div className="w-10">
-          <span className="text-xs font-mono font-bold bg-neutral-100 px-2 py-0.5 rounded text-neutral-600">
-            {profile.classe || 'Pass'}
-          </span>
+        <div className="flex items-center">
+          <Button
+            onClick={() => setIsEditModalOpen(true)}
+            variant="ghost"
+            size="sm"
+            className="text-xs font-black h-8 px-2.5 rounded-xl gap-1 text-neutral-600 hover:bg-neutral-100"
+          >
+            <Edit2 className="w-3.5 h-3.5" />
+            <span>Modifier</span>
+          </Button>
         </div>
         
         <h1 className="font-black text-sm tracking-tight text-neutral-950 flex items-center gap-1">
@@ -628,7 +633,7 @@ export default function TikTokProfilePage() {
           </AnimatePresence>
         </div>
 
-        {/* Bouton Déconnexion */}
+        {/* Description / Bouton Déconnexion */}
         <div className="p-8 flex justify-center">
           <Button 
             variant="ghost" 
@@ -723,7 +728,7 @@ export default function TikTokProfilePage() {
                   />
                 </div>
 
-                <div className="grid grid-cols-1 Handheld:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 gap-4">
                   <div className="space-y-1.5">
                     <label className="text-[10px] font-black uppercase text-neutral-400 tracking-widest">Lien (zap.ci/portfolio...)</label>
                     <Input 
