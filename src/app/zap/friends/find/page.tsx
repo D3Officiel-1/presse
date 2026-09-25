@@ -104,7 +104,7 @@ export default function FindFriendsPage() {
         </button>
         <h1 className="text-[17px] font-bold text-neutral-900">Trouver des amis</h1>
         <button 
-          onClick={() => toast({ title: "QR Code", description: "Votre code QR sera bientôt disponible ici." })}
+          onClick={() => router.push('/zap/scanner')}
           className="p-1 text-neutral-900 active:scale-90 transition-transform"
         >
           <QrCode className="w-6 h-6" />
