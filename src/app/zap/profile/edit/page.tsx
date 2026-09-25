@@ -113,7 +113,6 @@ export default function EditProfilePage() {
         </button>
         <h1 className="text-sm font-black uppercase tracking-widest text-neutral-900">modifier le profil</h1>
         
-        {/* Petit bouton de sauvegarde discret en haut à droite comme alternative aux suppressions précédentes si nécessaire */}
         <button 
           onClick={handleSave}
           disabled={saving}
@@ -151,9 +150,13 @@ export default function EditProfilePage() {
         {/* Bloc Identification */}
         <div className="space-y-6">
           <div className="bg-white rounded-2xl border border-neutral-100 shadow-sm overflow-hidden divide-y divide-neutral-50">
-            <div className="flex items-center px-4 py-4 group cursor-pointer active:bg-neutral-50">
+            <div 
+              onClick={() => router.push('/zap/profile/edit#nom')}
+              className="flex items-center px-4 py-4 group cursor-pointer active:bg-neutral-50"
+            >
               <span className="w-28 text-[13px] font-bold text-neutral-500">Nom</span>
               <Input 
+                id="nom"
                 value={name} 
                 onChange={(e) => setName(e.target.value)} 
                 placeholder="Ajouter un nom"
@@ -162,9 +165,13 @@ export default function EditProfilePage() {
               <ChevronRight className="w-4 h-4 text-neutral-300 ml-2 shrink-0" />
             </div>
 
-            <div className="flex items-center px-4 py-4 group cursor-pointer active:bg-neutral-50">
+            <div 
+              onClick={() => router.push('/zap/profile/edit#username')}
+              className="flex items-center px-4 py-4 group cursor-pointer active:bg-neutral-50"
+            >
               <span className="w-28 text-[13px] font-bold text-neutral-500">Pseudo</span>
               <Input 
+                id="username"
                 value={username} 
                 onChange={(e) => setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_-]/g, ''))} 
                 placeholder="Identifiant unique"
@@ -190,9 +197,13 @@ export default function EditProfilePage() {
           <div>
             <p className="text-[10px] font-black uppercase tracking-widest text-neutral-400 px-4 mb-2">Informations de base</p>
             <div className="bg-white rounded-2xl border border-neutral-100 shadow-sm overflow-hidden divide-y divide-neutral-50">
-              <div className="flex items-center px-4 py-4 group cursor-pointer active:bg-neutral-50">
+              <div 
+                onClick={() => router.push('/zap/profile/edit#bio')}
+                className="flex items-center px-4 py-4 group cursor-pointer active:bg-neutral-50"
+              >
                 <span className="w-28 text-[13px] font-bold text-neutral-500">Bio</span>
                 <Input 
+                  id="bio"
                   value={bio} 
                   onChange={(e) => setBio(e.target.value)} 
                   placeholder="Décrivez votre univers..."
@@ -201,9 +212,13 @@ export default function EditProfilePage() {
                 <ChevronRight className="w-4 h-4 text-neutral-300 ml-2 shrink-0" />
               </div>
 
-              <div className="flex items-center px-4 py-4 group cursor-pointer active:bg-neutral-50">
+              <div 
+                onClick={() => router.push('/zap/profile/edit#commune')}
+                className="flex items-center px-4 py-4 group cursor-pointer active:bg-neutral-50"
+              >
                 <span className="w-28 text-[13px] font-bold text-neutral-500">Commune</span>
                 <Input 
+                  id="commune"
                   value={commune} 
                   onChange={(e) => setCommune(e.target.value)} 
                   placeholder="Ex: Marcory"
