@@ -16,8 +16,8 @@ import { cn } from '@/lib/utils';
 const AUTH_DOMAIN = "@zap.ci";
 
 export default function RegisterPage(props: { params: Promise<any>; searchParams: Promise<any> }) {
-  const _params = props.params ? React.use(props.params) : null;
-  const _searchParams = props.searchParams ? React.use(props.searchParams) : null;
+  const _params = React.use(props.params);
+  const _searchParams = React.use(props.searchParams);
 
   const [step, setStep] = useState(1);
   const [matricule, setMatricule] = useState('');
@@ -134,7 +134,7 @@ export default function RegisterPage(props: { params: Promise<any>; searchParams
     <div className="flex flex-col min-h-[100dvh] w-full bg-[#F9F9FC] text-neutral-900 px-6 pt-12 pb-[calc(env(safe-area-inset-bottom,0px)+2rem)] justify-start items-center relative overflow-y-auto">
       <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
         <div 
-          className="absolute top-[-10%] right-[-10%] w-[60vw] h-[60vw] rounded-full blur-[100px]"
+          className="absolute top-[-10%] left-[-10%] w-[70vw] h-[70vw] rounded-full blur-[100px]"
           style={{ background: 'radial-gradient(circle, rgba(255,39,0,0.06) 0%, transparent 60%)' }}
         />
       </div>

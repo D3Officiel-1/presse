@@ -15,8 +15,8 @@ import { motion } from 'framer-motion';
 const AUTH_DOMAIN = "@leadersclub.ci";
 
 export default function ForgotPasswordPage(props: { params: Promise<any>; searchParams: Promise<any> }) {
-  const _params = props.params ? React.use(props.params) : null;
-  const _searchParams = props.searchParams ? React.use(props.searchParams) : null;
+  const _params = React.use(props.params);
+  const _searchParams = React.use(props.searchParams);
 
   const [matricule, setMatricule] = useState('');
   const [loading, setLoading] = useState(false);

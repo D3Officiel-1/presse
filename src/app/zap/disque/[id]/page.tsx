@@ -1,6 +1,6 @@
 'use client';
 
-import React, { use } from 'react';
+import React from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, Music, Play, Disc, Film, Sparkles, Heart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -19,10 +19,10 @@ const AUDIO_MAP: Record<string, VideoTrackMock> = {
   'vid-3': { id: 'vid-3', audioName: 'Coupé Décalé Remix 2024', creator: 'marc_dance', count: '12.4 K', avatarSeed: 'marc' },
 };
 
-export default function DisqueAudioPage({ params }: { params: Promise<{ id: string }> }) {
+export default function DisqueAudioPage(props: { params: Promise<{ id: string }> }) {
   const router = useRouter();
-  const resolvedParams = use(params);
-  const trackId = resolvedParams?.id || 'vid-1';
+  const params = React.use(props.params);
+  const trackId = params?.id || 'vid-1';
   
   const currentTrack = AUDIO_MAP[trackId] || AUDIO_MAP['vid-1'];
 

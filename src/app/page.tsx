@@ -5,9 +5,9 @@ import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { Logo } from '@/components/logo';
 
-export default function SplashScreen({ params, searchParams }: { params: Promise<any>; searchParams: Promise<any> }) {
-  const _params = React.use(params);
-  const _searchParams = React.use(searchParams);
+export default function SplashScreen(props: { params: Promise<any>; searchParams: Promise<any> }) {
+  const _params = React.use(props.params);
+  const _searchParams = React.use(props.searchParams);
 
   const router = useRouter();
 

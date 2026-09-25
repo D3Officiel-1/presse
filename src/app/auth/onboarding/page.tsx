@@ -48,8 +48,8 @@ const COMMUNES = [
 ];
 
 export default function OnboardingPage(props: { params: Promise<any>; searchParams: Promise<any> }) {
-  const _params = props.params ? React.use(props.params) : null;
-  const _searchParams = props.searchParams ? React.use(props.searchParams) : null;
+  const _params = React.use(props.params);
+  const _searchParams = React.use(props.searchParams);
 
   const [step, setStep] = useState(1);
   const [fullName, setFullName] = useState('');
