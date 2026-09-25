@@ -12,22 +12,12 @@ import { Switch } from '@/components/ui/switch';
 import { 
   ChevronLeft, 
   Loader2, 
-  User, 
   Camera,
   Globe,
   Lock,
   ChevronRight
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-
-const ACCOUNT_CATEGORIES = [
-  "Créateur Digital", 
-  "Monteur VFX", 
-  "Scénariste", 
-  "Acteur/Humoriste", 
-  "Danseur Urbain", 
-  "Cadreur / Réalisateur"
-];
 
 export default function EditProfilePage() {
   const router = useRouter();
@@ -42,7 +32,6 @@ export default function EditProfilePage() {
   const [bio, setBio] = useState('');
   const [link, setLink] = useState('');
   const [commune, setCommune] = useState('');
-  const [category, setCategory] = useState('Créateur Digital');
   const [isPublic, setIsPublic] = useState(true);
 
   useEffect(() => {
@@ -61,7 +50,6 @@ export default function EditProfilePage() {
           setBio(data.bio || '');
           setLink(data.link || '');
           setCommune(data.commune || '');
-          setCategory(data.category || 'Créateur Digital');
           setIsPublic(data.isPublic !== false);
         }
         setLoading(false);
@@ -88,7 +76,6 @@ export default function EditProfilePage() {
         bio: bio.trim(), 
         link: link.trim(),
         commune: commune.trim(),
-        category,
         isPublic,
         updatedAt: new Date()
       };
@@ -132,7 +119,9 @@ export default function EditProfilePage() {
             className="w-28 h-28 rounded-full bg-neutral-200/80 flex items-center justify-center cursor-pointer active:opacity-80 transition-all shadow-sm relative overflow-hidden"
             onClick={() => toast({ title: "Prochainement", description: "Le téléchargement de photo sera bientôt disponible." })}
           >
-            <Camera className="w-10 h-10 text-neutral-500" />
+            <div className="absolute inset-0 bg-black/30 flex items-center justify-center z-10">
+              <Camera className="w-8 h-8 text-white/90" />
+            </div>
           </div>
           <button 
             onClick={() => toast({ title: "Prochainement", description: "Le téléchargement de photo sera bientôt disponible." })}
@@ -205,30 +194,6 @@ export default function EditProfilePage() {
                 placeholder="Décris ton univers créatif en quelques mots..."
                 className="min-h-[90px] rounded-xl bg-neutral-50/50 border-neutral-100 font-medium text-xs p-3 resize-none focus:ring-primary/10 shadow-none"
               />
-            </div>
-          </div>
-
-          <div>
-            <p className="text-[11px] font-bold uppercase tracking-wider text-neutral-400 px-2 mb-2">Catégorie Créateur</p>
-            <div className="flex flex-wrap gap-1.5 px-1">
-              {ACCOUNT_CATEGORIES.map((cat) => {
-                const isSelected = category === cat;
-                return (
-                  <button
-                    key={cat}
-                    type="button"
-                    onClick={() => setCategory(cat)}
-                    className={cn(
-                      "px-3 py-2 rounded-xl text-[11px] font-bold border transition-all active:scale-95",
-                      isSelected 
-                        ? "bg-neutral-950 text-white border-neutral-950 shadow-sm" 
-                        : "bg-white text-neutral-600 border-neutral-200 hover:bg-neutral-50"
-                    )}
-                  >
-                    {cat}
-                  </button>
-                );
-              })}
             </div>
           </div>
 
