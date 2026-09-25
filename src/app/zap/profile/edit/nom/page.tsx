@@ -57,7 +57,7 @@ export default function EditNamePage() {
         >
           Annuler
         </button>
-        <h1 className="text-sm font-black uppercase tracking-widest text-neutral-900">Nom</h1>
+        
         <button 
           onClick={handleSave} 
           disabled={saving || !name.trim()}
