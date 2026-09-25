@@ -40,7 +40,6 @@ export default function EditBioPage() {
   }, [fs, router]);
 
   const hasChanges = bio.trim() !== initialBio;
-  const isNotEmpty = bio.trim().length > 0;
 
   const handleSave = async () => {
     if (!hasChanges || saving) return;
@@ -99,7 +98,7 @@ export default function EditBioPage() {
               Biographie
             </h1>
             <p className="text-[11px] font-bold text-neutral-400 leading-tight">
-              Présentez votre univers créatif (VFX, montage, danse...) pour inspirer la communauté ZAP de votre établissement.
+              Tu peux modifier ta biographie à tout moment.
             </p>
           </div>
 
