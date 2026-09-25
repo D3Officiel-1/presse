@@ -9,9 +9,7 @@ import {
   Sparkles, 
   Loader2,
   Users,
-  Contact,
   QrCode,
-  Facebook,
   ChevronRight
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
@@ -127,47 +125,8 @@ export default function FindFriendsPage() {
           </div>
         </div>
 
-        {/* Invite Friends Options */}
-        <div className="px-4 space-y-0.5">
-          <div className="flex items-center justify-between py-4 group cursor-pointer active:bg-neutral-50 rounded-xl transition-colors px-2">
-            <div className="flex items-center gap-4">
-              <div className="w-10 h-10 rounded-full bg-[#ff0050]/5 flex items-center justify-center">
-                <Contact className="w-5 h-5 text-[#ff0050]" />
-              </div>
-              <span className="text-[15px] font-bold">Contacts</span>
-            </div>
-            <div className="flex items-center gap-1">
-              <span className="text-xs text-neutral-400 font-medium">Trouver</span>
-              <ChevronRight className="w-4 h-4 text-neutral-300" />
-            </div>
-          </div>
-
-          <div className="flex items-center justify-between py-4 group cursor-pointer active:bg-neutral-50 rounded-xl transition-colors px-2">
-            <div className="flex items-center gap-4">
-              <div className="w-10 h-10 rounded-full bg-[#00f2ea]/5 flex items-center justify-center">
-                <Facebook className="w-5 h-5 text-[#00f2ea]" />
-              </div>
-              <span className="text-[15px] font-bold">Amis Facebook</span>
-            </div>
-            <div className="flex items-center gap-1">
-              <span className="text-xs text-neutral-400 font-medium">Trouver</span>
-              <ChevronRight className="w-4 h-4 text-neutral-300" />
-            </div>
-          </div>
-
-          <div className="flex items-center justify-between py-4 group cursor-pointer active:bg-neutral-50 rounded-xl transition-colors px-2">
-            <div className="flex items-center gap-4">
-              <div className="w-10 h-10 rounded-full bg-neutral-100 flex items-center justify-center">
-                <QrCode className="w-5 h-5 text-neutral-600" />
-              </div>
-              <span className="text-[15px] font-bold">Mon Code QR</span>
-            </div>
-            <ChevronRight className="w-4 h-4 text-neutral-300" />
-          </div>
-        </div>
-
         {/* Suggestions Title */}
-        <div className="px-6 pt-6 pb-2">
+        <div className="px-6 pt-2 pb-2">
           <div className="flex items-center gap-2">
             <Sparkles className="w-3.5 h-3.5 text-primary fill-primary" />
             <h2 className="text-[13px] font-bold text-neutral-900">Comptes suggérés</h2>
