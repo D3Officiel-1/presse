@@ -12,14 +12,11 @@ import { Switch } from '@/components/ui/switch';
 import { 
   ChevronLeft, 
   Loader2, 
-  Sparkles, 
-  AtSign, 
   User, 
-  Globe, 
-  Lock, 
-  Link2, 
-  MapPin,
-  Camera
+  Camera,
+  Globe,
+  Lock,
+  ChevronRight
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -116,7 +113,7 @@ export default function EditProfilePage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#F9F9FC] text-neutral-900 pb-[calc(env(safe-area-inset-bottom,0px)+2rem)]">
+    <div className="min-h-screen bg-[#F9F9FC] text-neutral-900 pb-[calc(env(safe-area-inset-bottom,0px)+4rem)]">
       <header className="sticky top-0 z-50 bg-[#F9F9FC]/80 backdrop-blur-md border-b border-neutral-100 px-4 h-14 flex items-center justify-center relative">
         <button 
           onClick={() => router.back()} 
@@ -127,54 +124,93 @@ export default function EditProfilePage() {
         <h1 className="text-sm font-black uppercase tracking-widest text-neutral-900">modifier le profil</h1>
       </header>
 
-      <main className="max-w-md mx-auto p-6 space-y-8">
-        <div className="flex flex-col items-center justify-center space-y-4">
-          <div className="relative group cursor-pointer" onClick={() => toast({ title: "Prochainement", description: "Le téléchargement de photo sera bientôt disponible." })}>
-            <div className="w-28 h-28 rounded-full bg-gradient-to-tr from-primary via-purple-600 to-orange-400 p-1 shadow-2xl overflow-hidden">
-              <div className="w-full h-full rounded-full bg-neutral-100 border-4 border-white overflow-hidden flex items-center justify-center shadow-inner relative">
-                <User className="w-12 h-12 text-neutral-300 stroke-[1.5]" />
-                
-                {/* Voile sombre et icône centrée */}
-                <div className="absolute inset-0 bg-black/30 flex items-center justify-center transition-all opacity-100 group-hover:bg-black/45">
-                   <Camera className="w-6 h-6 text-white drop-shadow-lg" />
-                </div>
+      <main className="max-w-md mx-auto p-4 space-y-6">
+        
+        {/* Section Avatar centrée à l'image du modèle */}
+        <div className="flex flex-col items-center justify-center pt-4 pb-2 space-y-3">
+          <div 
+            className="w-28 h-28 rounded-full bg-neutral-200/80 flex items-center justify-center cursor-pointer active:opacity-80 transition-all shadow-sm relative overflow-hidden"
+            onClick={() => toast({ title: "Prochainement", description: "Le téléchargement de photo sera bientôt disponible." })}
+          >
+            <Camera className="w-10 h-10 text-neutral-500" />
+          </div>
+          <button 
+            onClick={() => toast({ title: "Prochainement", description: "Le téléchargement de photo sera bientôt disponible." })}
+            className="text-xs font-bold text-teal-600 hover:text-teal-700 transition-colors"
+          >
+            Changer ma photo
+          </button>
+        </div>
+
+        {/* Bloc d'informations : Lignes de liste élégantes */}
+        <div className="space-y-6">
+          
+          <div>
+            <p className="text-[11px] font-bold uppercase tracking-wider text-neutral-400 px-2 mb-2">Informations de base</p>
+            <div className="bg-white rounded-2xl border border-neutral-100 shadow-sm overflow-hidden divide-y divide-neutral-50">
+              
+              <div className="flex items-center px-4 py-3.5">
+                <span className="w-24 text-xs font-bold text-neutral-500">Nom</span>
+                <Input 
+                  value={name} 
+                  onChange={(e) => setName(e.target.value)} 
+                  placeholder="Ajouter un nom"
+                  className="flex-1 h-8 bg-transparent border-none px-0 text-xs font-bold text-neutral-900 text-right focus-visible:ring-0 shadow-none placeholder:text-neutral-300"
+                />
+                <ChevronRight className="w-4 h-4 text-neutral-300 ml-1 shrink-0" />
+              </div>
+
+              <div className="flex items-center px-4 py-3.5">
+                <span className="w-24 text-xs font-bold text-neutral-500">Pseudo</span>
+                <Input 
+                  value={username} 
+                  onChange={(e) => setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_-]/g, ''))} 
+                  placeholder="Identifiant unique"
+                  className="flex-1 h-8 bg-transparent border-none px-0 text-xs font-mono font-bold text-neutral-900 text-right focus-visible:ring-0 shadow-none placeholder:text-neutral-300"
+                />
+                <ChevronRight className="w-4 h-4 text-neutral-300 ml-1 shrink-0" />
+              </div>
+
+              <div className="flex items-center px-4 py-3.5">
+                <span className="w-24 text-xs font-bold text-neutral-500">Lien web</span>
+                <Input 
+                  value={link} 
+                  onChange={(e) => setLink(e.target.value)} 
+                  placeholder="zap.ci/ton-portfolio"
+                  className="flex-1 h-8 bg-transparent border-none px-0 text-xs font-bold text-neutral-900 text-right focus-visible:ring-0 shadow-none placeholder:text-neutral-300"
+                />
+                <ChevronRight className="w-4 h-4 text-neutral-300 ml-1 shrink-0" />
+              </div>
+
+              <div className="flex items-center px-4 py-3.5">
+                <span className="w-24 text-xs font-bold text-neutral-500">Commune</span>
+                <Input 
+                  value={commune} 
+                  onChange={(e) => setCommune(e.target.value)} 
+                  placeholder="Ex: Marcory, Koumassi"
+                  className="flex-1 h-8 bg-transparent border-none px-0 text-xs font-bold text-neutral-900 text-right focus-visible:ring-0 shadow-none placeholder:text-neutral-300"
+                />
+                <ChevronRight className="w-4 h-4 text-neutral-300 ml-1 shrink-0" />
               </div>
             </div>
           </div>
-          <p className="text-[10px] font-black text-neutral-400 uppercase tracking-widest">Changer ma photo</p>
-        </div>
 
-        <div className="space-y-6">
-          <div className="space-y-2">
-            <label className="text-[10px] font-black uppercase text-neutral-400 tracking-widest ml-1">Nom ZAP (Nom de Profil)</label>
-            <div className="relative">
-              <Sparkles className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
-              <Input 
-                value={name} 
-                onChange={(e) => setName(e.target.value)} 
-                placeholder="Ex: Marc l'Artiste"
-                className="pl-12 h-14 rounded-2xl bg-white border-neutral-200 font-bold focus:ring-primary/10 transition-all shadow-sm"
-              />
-            </div>
-            <p className="text-[9px] text-neutral-400 italic ml-1 leading-tight opacity-80">Laissez vide pour utiliser votre identifiant par défaut.</p>
-          </div>
-
-          <div className="space-y-2">
-            <label className="text-[10px] font-black uppercase text-neutral-400 tracking-widest ml-1">Pseudo Unique (@)</label>
-            <div className="relative">
-              <AtSign className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
-              <Input 
-                value={username} 
-                onChange={(e) => setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_-]/g, ''))} 
-                placeholder="pseudo_zap"
-                className="pl-12 h-14 rounded-2xl bg-white border-neutral-200 font-mono font-bold focus:ring-primary/10 shadow-sm"
+          <div>
+            <p className="text-[11px] font-bold uppercase tracking-wider text-neutral-400 px-2 mb-2">Description & Univers</p>
+            <div className="bg-white rounded-2xl border border-neutral-100 shadow-sm overflow-hidden p-4 space-y-3">
+              <span className="text-xs font-bold text-neutral-500 block">Biographie</span>
+              <Textarea 
+                value={bio} 
+                onChange={(e) => setBio(e.target.value)} 
+                placeholder="Décris ton univers créatif en quelques mots..."
+                className="min-h-[90px] rounded-xl bg-neutral-50/50 border-neutral-100 font-medium text-xs p-3 resize-none focus:ring-primary/10 shadow-none"
               />
             </div>
           </div>
 
-          <div className="space-y-3">
-            <label className="text-[10px] font-black uppercase text-neutral-400 tracking-widest ml-1">Catégorie Créateur</label>
-            <div className="flex flex-wrap gap-2">
+          <div>
+            <p className="text-[11px] font-bold uppercase tracking-wider text-neutral-400 px-2 mb-2">Catégorie Créateur</p>
+            <div className="flex flex-wrap gap-1.5 px-1">
               {ACCOUNT_CATEGORIES.map((cat) => {
                 const isSelected = category === cat;
                 return (
@@ -183,10 +219,10 @@ export default function EditProfilePage() {
                     type="button"
                     onClick={() => setCategory(cat)}
                     className={cn(
-                      "px-4 py-2 rounded-xl text-[11px] font-bold border transition-all active:scale-95",
+                      "px-3 py-2 rounded-xl text-[11px] font-bold border transition-all active:scale-95",
                       isSelected 
-                        ? "bg-neutral-950 text-white border-neutral-950 shadow-md" 
-                        : "bg-white text-neutral-600 border-neutral-200 hover:bg-neutral-50 shadow-sm"
+                        ? "bg-neutral-950 text-white border-neutral-950 shadow-sm" 
+                        : "bg-white text-neutral-600 border-neutral-200 hover:bg-neutral-50"
                     )}
                   >
                     {cat}
@@ -196,62 +232,31 @@ export default function EditProfilePage() {
             </div>
           </div>
 
-          <div className="space-y-2">
-            <label className="text-[10px] font-black uppercase text-neutral-400 tracking-widest ml-1">Biographie</label>
-            <Textarea 
-              value={bio} 
-              onChange={(e) => setBio(e.target.value)} 
-              placeholder="Décris ton univers créatif en quelques mots..."
-              className="min-h-[110px] rounded-2xl bg-white border-neutral-200 font-medium text-sm p-4 resize-none focus:ring-primary/10 shadow-sm"
-            />
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <label className="text-[10px] font-black uppercase text-neutral-400 tracking-widest ml-1">Lien Portfolio</label>
-              <div className="relative">
-                <Link2 className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
-                <Input 
-                  value={link} 
-                  onChange={(e) => setLink(e.target.value)} 
-                  className="pl-12 h-14 rounded-2xl bg-white border-neutral-200 font-medium shadow-sm"
-                />
+          <div>
+            <p className="text-[11px] font-bold uppercase tracking-wider text-neutral-400 px-2 mb-2">Paramètres du compte</p>
+            <div className="bg-white rounded-2xl border border-neutral-100 p-4 flex items-center justify-between shadow-sm">
+              <div className="space-y-0.5 text-left">
+                <div className="flex items-center gap-2">
+                  {isPublic ? <Globe className="w-3.5 h-3.5 text-emerald-500" /> : <Lock className="w-3.5 h-3.5 text-amber-500" />}
+                  <p className="text-xs font-black text-neutral-900 uppercase tracking-tight">Visibilité Publique</p>
+                </div>
+                <p className="text-[10px] font-medium text-neutral-400 max-w-[240px]">Rend vos créations visibles par toute la communauté scolaire ZAP.</p>
               </div>
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-[10px] font-black uppercase text-neutral-400 tracking-widest ml-1">Commune</label>
-              <div className="relative">
-                <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
-                <Input 
-                  value={commune} 
-                  onChange={(e) => setCommune(e.target.value)} 
-                  className="pl-12 h-14 rounded-2xl bg-white border-neutral-200 font-medium shadow-sm"
-                />
-              </div>
+              <Switch 
+                checked={isPublic} 
+                onCheckedChange={setIsPublic}
+              />
             </div>
           </div>
 
-          <div className="p-5 bg-white rounded-3xl border border-neutral-200 flex items-center justify-between shadow-sm">
-            <div className="space-y-0.5">
-              <div className="flex items-center gap-2">
-                {isPublic ? <Globe className="w-4 h-4 text-emerald-500" /> : <Lock className="w-4 h-4 text-amber-500" />}
-                <p className="text-xs font-black text-neutral-900 uppercase tracking-tight">Visibilité Publique</p>
-              </div>
-              <p className="text-[10px] font-medium text-neutral-400 max-w-[220px]">Rend vos créations visibles par toute la communauté scolaire ZAP.</p>
-            </div>
-            <Switch 
-              checked={isPublic} 
-              onCheckedChange={setIsPublic}
-            />
-          </div>
         </div>
 
+        {/* Bouton de validation principal en bas */}
         <div className="pt-4">
           <Button 
             onClick={handleSave} 
             disabled={saving}
-            className="w-full h-14 rounded-2xl bg-neutral-900 text-white font-black text-xs uppercase tracking-widest shadow-xl hover:bg-neutral-800 transition-all active:scale-[0.98]"
+            className="w-full h-12 rounded-xl bg-neutral-900 text-white font-bold text-xs uppercase tracking-wider shadow-md hover:bg-neutral-800 transition-all active:scale-[0.98]"
           >
             {saving ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
             Enregistrer les modifications
