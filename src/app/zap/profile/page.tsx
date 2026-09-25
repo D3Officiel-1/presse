@@ -13,7 +13,6 @@ import {
   MapPin,
   Link2,
   Globe,
-  UserCheck,
   MessageCircle,
   Eye,
   FileText,
@@ -86,7 +85,6 @@ export default function TikTokProfilePage() {
   const [isHydrated, setIsHydrated] = useState(false);
   const [activeTab, setActiveTab] = useState<'videos' | 'liked' | 'bookmarked' | 'insights'>('videos');
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [isSimulatingFollow, setIsSimulatingFollow] = useState(false);
 
   const [editName, setEditName] = useState('');
   const [editUsername, setEditUsername] = useState('');
@@ -177,7 +175,6 @@ export default function TikTokProfilePage() {
   return (
     <div className="min-h-screen bg-white text-neutral-900 pb-28 font-sans">
       
-      {/* Header extrait dans son composant avec logique de scroll intégrée */}
       <ProfileHeader 
         name={profile.name} 
         onEditClick={() => setIsEditModalOpen(true)}
@@ -216,33 +213,6 @@ export default function TikTokProfilePage() {
               <p className="text-xs md:text-sm font-bold text-primary uppercase tracking-widest">
                 {profile.category || 'Créateur Digital'}
               </p>
-            </div>
-
-            <div className="flex items-center justify-center md:justify-start gap-2 w-full max-w-sm">
-              <Button 
-                onClick={() => setIsEditModalOpen(true)}
-                variant="outline" 
-                className="flex-1 h-10 border-neutral-200 text-xs font-black bg-neutral-50 rounded-md text-neutral-900 hover:bg-neutral-100 transition-all active:scale-[0.98]"
-              >
-                <Edit2 className="w-3.5 h-3.5 mr-1.5 text-neutral-500" /> Modifier le profil
-              </Button>
-
-              <Button 
-                onClick={() => setIsSimulatingFollow(!isSimulatingFollow)}
-                variant={isSimulatingFollow ? "secondary" : "default"}
-                className={cn("h-10 text-xs font-black px-4 rounded-md transition-all active:scale-[0.98]", !isSimulatingFollow && "bg-neutral-900 text-white hover:bg-neutral-800")}
-              >
-                {isSimulatingFollow ? <span className="flex items-center gap-1"><UserCheck className="w-3.5 h-3.5" /> Abonné(e)</span> : 'S\'abonner'}
-              </Button>
-
-              <Button
-                onClick={() => router.push('/zap/chat')}
-                variant="outline"
-                className="h-10 w-10 border-neutral-200 rounded-md p-0 bg-neutral-50 hover:bg-neutral-100"
-                title="Envoyer un message"
-              >
-                <MessageCircle className="w-4 h-4 text-neutral-700" />
-              </Button>
             </div>
 
             <div className="flex items-center justify-center md:justify-start gap-6 lg:gap-10 w-full py-2 text-center md:text-left">
