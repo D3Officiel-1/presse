@@ -87,7 +87,7 @@ export function ProfileHeader({ name, onEditClick, onViewProfileClick }: Profile
           <Eye className="w-5 h-5" />
         </button>
         <button 
-          onClick={() => router.push('/zap/friends')} 
+          onClick={() => router.push('/zap/friends/find')} 
           className="p-2 text-neutral-800 hover:bg-neutral-50 rounded-full transition active:scale-90"
         >
           <UserPlus className="w-5 h-5" />
