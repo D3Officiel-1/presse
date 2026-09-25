@@ -2,29 +2,9 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Eye, Sparkles, TrendingUp, User, ShieldCheck, Flame, ChevronRight } from 'lucide-react';
+import { ArrowLeft, Eye, Sparkles, TrendingUp, Flame, ChevronRight } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Area, AreaChart, CartesianGrid, XAxis } from 'recharts';
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
-
-const VIEWS_HISTORY = [
-  { date: 'Lun', count: 5 },
-  { date: 'Mar', count: 12 },
-  { date: 'Mer', count: 8 },
-  { date: 'Jeu', count: 24 },
-  { date: 'Ven', count: 31 },
-  { date: 'Sam', count: 42 },
-  { date: 'Dim', count: 38 },
-];
-
-const CHART_CONFIG = {
-  count: {
-    label: "Visites",
-    color: "hsl(var(--primary))",
-  },
-};
 
 export default function ProfileViewsPage() {
   const router = useRouter();
@@ -81,40 +61,6 @@ export default function ProfileViewsPage() {
               Votre Pass ZAP gagne en visibilité auprès de votre établissement !
             </p>
           </div>
-
-          <Card className="rounded-3xl border-neutral-200/80 shadow-sm overflow-hidden bg-white">
-            <CardHeader className="p-4 pb-1">
-              <CardTitle className="text-xs font-black uppercase tracking-widest text-neutral-500">Évolution des visites</CardTitle>
-            </CardHeader>
-            <CardContent className="p-0 pt-2 px-2">
-              <ChartContainer config={CHART_CONFIG} className="aspect-[2/1] w-full">
-                <AreaChart data={VIEWS_HISTORY}>
-                  <defs>
-                    <linearGradient id="colorViewsVue" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.2}/>
-                      <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0}/>
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
-                  <XAxis 
-                    dataKey="date" 
-                    axisLine={false} 
-                    tickLine={false} 
-                    tick={{ fontSize: 10, fontWeight: 700, fill: '#A3A3A3' }} 
-                  />
-                  <ChartTooltip content={<ChartTooltipContent />} />
-                  <Area 
-                    type="monotone" 
-                    dataKey="count" 
-                    stroke="hsl(var(--primary))" 
-                    strokeWidth={2.5} 
-                    fillOpacity={1} 
-                    fill="url(#colorViewsVue)" 
-                  />
-                </AreaChart>
-              </ChartContainer>
-            </CardContent>
-          </Card>
 
           <div className="space-y-3">
             <div className="flex items-center justify-between px-1">
