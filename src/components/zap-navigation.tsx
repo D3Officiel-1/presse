@@ -9,6 +9,11 @@ import { cn } from '@/lib/utils';
 export function ZapNavigation() {
   const pathname = usePathname();
 
+  // Ne pas afficher la barre de navigation sur la page d'édition du profil
+  if (pathname === '/zap/profile/edit') {
+    return null;
+  }
+
   const getActiveTab = () => {
     if (pathname === '/zap') return 'feed';
     if (pathname.startsWith('/zap/friends')) return 'friends';
