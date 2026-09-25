@@ -224,7 +224,7 @@ export default function TikTokProfilePage() {
   return (
     <div className="min-h-screen bg-white text-neutral-900 pb-28 font-sans">
       
-      <header className="sticky top-0 z-40 flex items-center justify-between px-4 h-14 max-w-4xl mx-auto w-full bg-white border-b border-neutral-100 shadow-none">
+      <header className="sticky top-0 z-40 flex items-center justify-between px-4 h-14 max-w-4xl mx-auto w-full bg-white border-none shadow-none">
         <div className="flex items-center">
           <Button
             onClick={() => setIsEditModalOpen(true)}
@@ -665,7 +665,7 @@ export default function TikTokProfilePage() {
                     <label className="text-[10px] font-black uppercase text-neutral-400 tracking-widest">Nom complet affiché</label>
                     <Input 
                       value={editName} 
-                      onChange={(e) => setEditName(target.value)} 
+                      onChange={(e) => setEditName(e.target.value)} 
                       className="text-sm font-bold bg-neutral-50 border-neutral-200 rounded-xl h-11"
                     />
                   </div>
@@ -673,7 +673,7 @@ export default function TikTokProfilePage() {
                     <label className="text-[10px] font-black uppercase text-neutral-400 tracking-widest">Identifiant @username</label>
                     <Input 
                       value={editUsername} 
-                      onChange={(e) => setEditUsername(target.value.toLowerCase().replace(/[^a-z0-9_-]/g, ''))} 
+                      onChange={(e) => setEditUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_-]/g, ''))} 
                       className="text-sm font-bold bg-neutral-50 border-neutral-200 rounded-xl h-11 font-mono"
                     />
                   </div>
@@ -707,7 +707,7 @@ export default function TikTokProfilePage() {
                   <label className="text-[10px] font-black uppercase text-neutral-400 tracking-widest">Biographie</label>
                   <Textarea 
                     value={editBio} 
-                    onChange={(e) => setEditBio(target.value)} 
+                    onChange={(e) => setEditBio(e.target.value)} 
                     className="text-xs md:text-sm font-medium bg-neutral-50 border-neutral-200 rounded-xl min-h-[80px]"
                   />
                 </div>
@@ -717,7 +717,7 @@ export default function TikTokProfilePage() {
                     <label className="text-[10px] font-black uppercase text-neutral-400 tracking-widest">Lien (zap.ci/portfolio...)</label>
                     <Input 
                       value={editLink} 
-                      onChange={(e) => setEditLink(target.value)} 
+                      onChange={(e) => setEditLink(e.target.value)} 
                       className="text-sm font-bold bg-neutral-50 border-neutral-200 rounded-xl font-mono"
                     />
                   </div>
@@ -725,7 +725,7 @@ export default function TikTokProfilePage() {
                     <label className="text-[10px] font-black uppercase text-neutral-400 tracking-widest">Commune</label>
                     <Input 
                       value={editCommune} 
-                      onChange={(e) => setEditCommune(target.value)} 
+                      onChange={(e) => setEditCommune(e.target.value)} 
                       className="text-sm font-bold bg-neutral-50 border-neutral-200 rounded-xl"
                     />
                   </div>
