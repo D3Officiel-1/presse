@@ -13,13 +13,14 @@ import {
   MapPin,
   Link2,
   Globe,
-  MessageCircle,
   Eye,
   FileText,
   BarChart3,
   TrendingUp,
   Video,
-  Repeat2
+  Repeat2,
+  User,
+  Sparkles
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -97,13 +98,11 @@ export default function TikTokProfilePage() {
 
   const mediaImages = placeholderData.placeholderImages.filter(img => img.id.startsWith('media-'));
 
-  // Calcule le nom affiché (Nom ZAP ou Fallback)
   const getDisplayName = (prof: any) => {
     if (prof?.name && prof.name.trim() !== '') {
       return prof.name;
     }
-    // Si vide, génère ou récupère un ID ZAP unique temporaire
-    const shortId = prof?.uid ? prof.uid.substring(0, 6).toUpperCase() : Math.floor(1000 + Math.random() * 9000);
+    const shortId = prof?.uid ? prof.uid.substring(0, 6).toUpperCase() : 'STUDIO';
     return `ZAP_${shortId}`;
   };
 
@@ -195,10 +194,8 @@ export default function TikTokProfilePage() {
 
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         
-        {/* En-tête : Informations à gauche et photo tout à droite */}
         <div className="flex items-start justify-between gap-6 pt-4 pb-6">
           
-          {/* Côté Gauche : Identifiants, Statistiques et Biographie */}
           <div className="flex-1 text-left space-y-4 min-w-0">
             <div className="space-y-1">
               <h1 className="text-xl md:text-2xl font-black tracking-tight text-neutral-950 truncate">
@@ -215,7 +212,6 @@ export default function TikTokProfilePage() {
               </p>
             </div>
 
-            {/* Statistiques alignées à gauche */}
             <div className="flex items-center gap-6 lg:gap-10 py-1 text-left">
               <div className="flex flex-col">
                 <span className="font-black text-base text-neutral-950 tracking-tight">142</span>
@@ -231,7 +227,6 @@ export default function TikTokProfilePage() {
               </div>
             </div>
 
-            {/* Bio et liens externes */}
             <div className="space-y-3 pt-1">
               <p className="text-xs md:text-sm text-neutral-700 font-medium leading-relaxed max-w-xl">
                 {profile.bio || "Pas encore de description de créateur configurée."}
@@ -253,19 +248,18 @@ export default function TikTokProfilePage() {
             </div>
           </div>
 
-          {/* Côté Droit : Photo de profil de l'élève créateur */}
           <div className="shrink-0 flex items-center justify-end pt-1">
-            <div className="relative w-24 h-24 md:w-28 md:h-28 rounded-full p-0.5 bg-gradient-to-tr from-primary to-orange-500 shadow-sm">
-              <div className="w-full h-full rounded-full border-4 border-white overflow-hidden bg-neutral-100 flex items-center justify-center text-neutral-900 font-black text-2xl md:text-3xl uppercase tracking-tighter">
-                {displayedTitleName.substring(0, 2)}
+            <div className="relative w-28 h-28 md:w-32 md:h-32 rounded-full p-1 bg-gradient-to-tr from-primary via-purple-600 to-orange-500 shadow-xl transition-all duration-300 hover:scale-105">
+              <div className="w-full h-full rounded-full border-4 border-white overflow-hidden bg-neutral-100 flex flex-col items-center justify-center text-neutral-400 shadow-inner">
+                <User className="w-12 h-12 md:w-16 md:h-16 text-neutral-300 stroke-[1.5]" />
               </div>
               {profile.isPublic !== false ? (
-                <span className="absolute bottom-1 right-1 bg-emerald-500 text-white rounded-full p-1 border-2 border-white shadow" title="Compte Public">
-                  <Globe className="w-3 h-3 md:w-4 md:h-4" />
+                <span className="absolute bottom-1 right-1 bg-emerald-500 text-white rounded-full p-1.5 border-2 border-white shadow-lg animate-pulse" title="Compte Public">
+                  <Globe className="w-4 h-4" />
                 </span>
               ) : (
-                <span className="absolute bottom-1 right-1 bg-amber-500 text-white rounded-full p-1 border-2 border-white shadow" title="Compte Privé">
-                  <Lock className="w-3 h-3 md:w-4 md:h-4" />
+                <span className="absolute bottom-1 right-1 bg-amber-500 text-white rounded-full p-1.5 border-2 border-white shadow-lg" title="Compte Privé">
+                  <Lock className="w-4 h-4" />
                 </span>
               )}
             </div>
@@ -273,7 +267,6 @@ export default function TikTokProfilePage() {
 
         </div>
 
-        {/* Barre des Onglets */}
         <div className="flex border-b border-neutral-100 bg-white sticky top-14 z-30 w-full">
           {[
             { id: 'videos', icon: Grid },
@@ -523,7 +516,6 @@ export default function TikTokProfilePage() {
         </div>
       </div>
 
-      {/* Modal d'édition du profil */}
       <AnimatePresence>
         {isEditModalOpen && (
           <>
